@@ -112,7 +112,10 @@
             <label for="modelPath">Model path (.bin)</label>
             <input id="modelPath" placeholder="C:\\models\\ggml-base.en.bin" />
           </div>
-          <button id="validateModelBtn" class="secondary" type="button">Validate model</button>
+          <div>
+            <button id="pickModelBtn" class="secondary" type="button">Browse...</button>
+            <button id="validateModelBtn" class="secondary" type="button">Validate model</button>
+          </div>
         </div>
       </section>
 
@@ -122,7 +125,10 @@
             <label for="audioPath">Audio path (.wav, .mp3, .flac, .ogg, .m4a)</label>
             <input id="audioPath" placeholder="C:\\samples\\jfk.wav" />
           </div>
-          <button id="validateAudioBtn" class="secondary" type="button">Validate audio</button>
+          <div>
+            <button id="pickAudioBtn" class="secondary" type="button">Browse...</button>
+            <button id="validateAudioBtn" class="secondary" type="button">Validate audio</button>
+          </div>
         </div>
       </section>
 
@@ -221,6 +227,28 @@
           showError("Transcription failed", error);
         } finally {
           runBtn.disabled = false;
+        }
+      });
+
+      document.getElementById("pickModelBtn").addEventListener("click", async () => {
+        setStatus("Selecting model file...");
+        try {
+          const selectedPath = await invoke("pick_model_path_command");
+          modelPathEl.value = selectedPath;
+          setStatus("Model file selected", "ok");
+        } catch (error) {
+          showError("Model selection failed", error);
+        }
+      });
+
+      document.getElementById("pickAudioBtn").addEventListener("click", async () => {
+        setStatus("Selecting audio file...");
+        try {
+          const selectedPath = await invoke("pick_audio_path_command");
+          audioPathEl.value = selectedPath;
+          setStatus("Audio file selected", "ok");
+        } catch (error) {
+          showError("Audio selection failed", error);
         }
       });
     </script>

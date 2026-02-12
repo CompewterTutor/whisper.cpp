@@ -4,6 +4,8 @@ fn build_tauri_builder() -> tauri::Builder<tauri::Wry> {
         frontend_tauri::tauri_commands::system_capability_command,
         frontend_tauri::tauri_commands::validate_model_path_command,
         frontend_tauri::tauri_commands::validate_audio_path_command,
+        frontend_tauri::tauri_commands::pick_model_path_command,
+        frontend_tauri::tauri_commands::pick_audio_path_command,
         frontend_tauri::tauri_commands::run_transcription_command,
         frontend_tauri::tauri_commands::run_transcription_with_options_command,
     ])

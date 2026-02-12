@@ -60,6 +60,32 @@ pub fn run_transcription_with_options_command(
     })
 }
 
+#[tauri::command]
+pub fn pick_model_path_command() -> TauriCommandResult<String> {
+    pick_file_with_filter(&[("Whisper Model", &["bin"])])
+}
+
+#[tauri::command]
+pub fn pick_audio_path_command() -> TauriCommandResult<String> {
+    pick_file_with_filter(&[("Audio", &["wav", "mp3", "flac", "ogg", "m4a"])])
+}
+
+fn pick_file_with_filter(filters: &[(&str, &[&str])]) -> TauriCommandResult<String> {
+    let mut dialog = rfd::FileDialog::new();
+    for &(name, extensions) in filters {
+        dialog = dialog.add_filter(name, extensions);
+    }
+
+    let Some(path) = dialog.pick_file() else {
+        return Err(ApiError {
+            code: "selection_cancelled".to_owned(),
+            message: "file selection cancelled".to_owned(),
+        });
+    };
+
+    Ok(path.to_string_lossy().into_owned())
+}
+
 #[cfg(test)]
 mod tests {
     use super::{
