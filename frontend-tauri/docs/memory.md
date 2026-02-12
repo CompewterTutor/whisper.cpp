@@ -45,10 +45,15 @@
 	- timeout-aware process runner loop and cancellation short-circuit
 	- timeout/cancel option wiring through contracts, commands, and tauri commands
 	- feature-gated ignored real smoke test (`real-whisper-smoke`) with env-driven inputs
+- In progress: M4 release readiness docs:
+	- `docs/release-checklist.md`
+	- `docs/versioning.md`
+	- changelog verification rules documented
 - Validation completed via Cargo commands:
 	- `cargo fmt --check`
 	- `cargo clippy --all-targets --all-features -- -D warnings`
 	- `cargo test --lib`
+	- `cargo test` (still fails on bin harness in this Windows environment: `STATUS_ENTRYPOINT_NOT_FOUND`)
 - Validation also completed via Makefile alias:
 	- `make check`
 - Latest test count: 31 passing tests (30 lib + 1 main), plus 1 ignored real smoke test behind feature flag.
@@ -64,5 +69,5 @@
 
 ### Next immediate action
 
-- Prepare M4 release-readiness docs (release checklist + version bump flow) and update CI documentation.
+- Complete M4 packaging smoke-check instructions once packaging is enabled.
 

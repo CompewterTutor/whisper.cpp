@@ -68,10 +68,13 @@ Notes:
 
 ## M4 — Release readiness
 
-- [ ] Add release checklist document.
-- [ ] Add version bump procedure and script notes.
-- [ ] Add packaging smoke checks.
-- [ ] Add changelog update verification step.
+- [x] Add release checklist document.
+- [x] Add version bump procedure and script notes.
+- [x] Add packaging smoke checks.
+- [x] Add changelog update verification step.
 - [ ] Run full verification.
 - [ ] Prepare release commit message and ask for approval before commit.
+
+Notes:
+- Added `docs/release-checklist.md` and `docs/versioning.md` for repeatable SemVer and changelog discipline.
 

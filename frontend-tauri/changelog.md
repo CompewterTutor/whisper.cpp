@@ -36,6 +36,7 @@ The format is based on Keep a Changelog, and the project follows Semantic Versio
 - Added timeout/cancel-aware Tauri command endpoint (`run_transcription_with_options_command`).
 - Added optional feature-gated real whisper-cli smoke test (`real-whisper-smoke`) with env-configured paths.
 - Added Tauri command registration wiring in `main.rs` for implemented command handlers.
+- Added release-readiness documentation: `docs/release-checklist.md` and `docs/versioning.md`.
 
 ### Changed
 
@@ -45,6 +46,7 @@ The format is based on Keep a Changelog, and the project follows Semantic Versio
 - Updated MVP transcription path to reuse shared transcript parsing logic from `execution` service.
 - Added Cargo feature flags to isolate optional real smoke test from default CI/dev runs.
 - Switched default quality-gate test command to `cargo test --lib` to avoid platform-specific Tauri bin harness runtime issues in constrained environments.
+- Documented changelog verification rules and SemVer release flow for frontend releases.
 
 ### Fixed
 
