@@ -27,6 +27,10 @@
 	- config persistence in `src/config.rs`
 	- model/audio validators in `src/commands.rs`
 	- module export in `src/lib.rs`
+- In progress: M2 MVP UI bootstrap (backend-first):
+	- run command contract and placeholder transcript flow in `src/commands.rs`
+	- transcription run request/response types in `src/contracts.rs`
+	- UI workflow state model with loading/success/error transitions in `src/ui_state.rs`
 - Validation completed via Cargo commands:
 	- `cargo fmt --check`
 	- `cargo clippy --all-targets --all-features -- -D warnings`
@@ -45,5 +49,5 @@
 
 ### Next immediate action
 
-- Prepare the M1 commit message proposal and ask user approval before committing.
+- Build the actual M2 UI layer (model/audio pickers + transcript panel) and bind it to the new run workflow.
 

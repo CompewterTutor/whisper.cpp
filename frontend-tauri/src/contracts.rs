@@ -35,3 +35,22 @@ pub struct AudioPathValidationResponse {
     pub is_valid: bool,
     pub normalized_path: String,
 }
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub enum TranscriptionRunStatus {
+    Loading,
+    Success,
+    Error,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct RunTranscriptionRequest {
+    pub model_path: String,
+    pub audio_path: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct RunTranscriptionResponse {
+    pub status: TranscriptionRunStatus,
+    pub transcript: String,
+}

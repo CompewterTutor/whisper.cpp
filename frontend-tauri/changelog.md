@@ -19,6 +19,10 @@ The format is based on Keep a Changelog, and the project follows Semantic Versio
 - Added typed frontend error mapping (`FrontendError` -> `ApiError`) in `src/errors.rs`.
 - Added backend module export surface in `src/lib.rs`.
 - Added unit tests for config persistence, validators, and error mapping.
+- Added MVP transcription run contracts (`RunTranscriptionRequest`, `RunTranscriptionResponse`, `TranscriptionRunStatus`) in `src/contracts.rs`.
+- Added `run_transcription_mvp` workflow command in `src/commands.rs`.
+- Added `MvpUiState` workflow model with loading/success/error transitions in `src/ui_state.rs`.
+- Added tests for MVP run success/failure and workflow state transitions.
 
 ### Changed
 
