@@ -31,6 +31,9 @@ The format is based on Keep a Changelog, and the project follows Semantic Versio
 - Added `execution` service module with `CliRunner` abstraction and `ProcessCliRunner` implementation.
 - Added whisper-cli argument builder and stdout transcript parser utilities.
 - Added mocked-runner integration tests for command execution and transcript parsing.
+- Added execution timeout and cancellation controls via `RunTranscriptionOptions` and `CliRunOptions`.
+- Added timeout-aware process execution path and cancellation short-circuit behavior.
+- Added timeout/cancel-aware Tauri command endpoint (`run_transcription_with_options_command`).
 
 ### Changed
 

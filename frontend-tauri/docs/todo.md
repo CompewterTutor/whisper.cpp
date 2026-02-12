@@ -54,7 +54,7 @@ Notes:
 - [x] Implement `whisper-cli` invocation service.
 - [x] Implement argument builder with validation.
 - [x] Implement stdout/stderr parser into transcript model.
-- [ ] Add cancellation/timeout handling.
+- [x] Add cancellation/timeout handling.
 - [x] Add unit tests for arg builder and parser.
 - [x] Add mocked process integration tests.
 - [ ] Add optional real sample smoke test.
@@ -63,6 +63,7 @@ Notes:
 
 Notes:
 - Added new `execution` service with `CliRunner` abstraction, `ProcessCliRunner`, CLI arg builder, stdout transcript parser, and mocked-runner tests.
+- Added timeout/cancel control path via `RunTranscriptionOptions`, `CliRunOptions`, and timeout-aware `run_transcription_with_execution` command path.
 
 ## M4 — Release readiness
 

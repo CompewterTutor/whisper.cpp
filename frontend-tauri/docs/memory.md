@@ -40,13 +40,16 @@
 	- whisper-cli arg builder and stdout parser
 	- mocked runner integration tests
 	- parser integration used in `run_transcription_mvp`
+	- timeout/cancel run controls with `CliRunOptions`
+	- timeout-aware process runner loop and cancellation short-circuit
+	- timeout/cancel option wiring through contracts, commands, and tauri commands
 - Validation completed via Cargo commands:
 	- `cargo fmt --check`
 	- `cargo clippy --all-targets --all-features -- -D warnings`
 	- `cargo test`
 - Validation also completed via Makefile alias:
 	- `make check`
-- Latest test count: 28 passing tests (27 lib + 1 main).
+- Latest test count: 31 passing tests (30 lib + 1 main).
 - Created/updated planning docs:
 	- `frontend-tauri/docs/plan.md`
 	- `frontend-tauri/docs/todo.md`
@@ -59,5 +62,5 @@
 
 ### Next immediate action
 
-- Add cancellation/timeout support to `execution` runner and expose timeout-aware command path.
+- Add optional real sample smoke test path for M3 (feature-gated and non-blocking in CI).
 

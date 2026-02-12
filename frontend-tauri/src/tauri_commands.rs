@@ -1,7 +1,7 @@
 use crate::commands;
 use crate::contracts::{
     AppHealthResponse, AudioPathValidationResponse, ModelPathValidationResponse,
-    RunTranscriptionResponse, SystemCapabilityResponse,
+    RunTranscriptionOptions, RunTranscriptionResponse, SystemCapabilityResponse,
 };
 use crate::errors::ApiError;
 
@@ -39,14 +39,32 @@ pub fn run_transcription_command(
     commands::run_transcription_mvp(crate::contracts::RunTranscriptionRequest {
         model_path,
         audio_path,
+        options: None,
+    })
+}
+
+#[tauri::command]
+pub fn run_transcription_with_options_command(
+    model_path: String,
+    audio_path: String,
+    timeout_ms: Option<u64>,
+    cancel_requested: bool,
+) -> TauriCommandResult<RunTranscriptionResponse> {
+    commands::run_transcription_with_execution(crate::contracts::RunTranscriptionRequest {
+        model_path,
+        audio_path,
+        options: Some(RunTranscriptionOptions {
+            timeout_ms,
+            cancel_requested,
+        }),
     })
 }
 
 #[cfg(test)]
 mod tests {
     use super::{
-        app_health_command, run_transcription_command, system_capability_command,
-        validate_audio_path_command, validate_model_path_command,
+        app_health_command, run_transcription_command, run_transcription_with_options_command,
+        system_capability_command, validate_audio_path_command, validate_model_path_command,
     };
     use crate::contracts::TranscriptionRunStatus;
     use std::fs;
@@ -104,5 +122,23 @@ mod tests {
                 .expect("run_transcription_command should succeed");
 
         assert_eq!(response.status, TranscriptionRunStatus::Success);
+    }
+
+    #[test]
+    fn run_transcription_with_options_command_can_cancel() {
+        let model = unique_path("bin");
+        let audio = unique_path("wav");
+        fs::write(&model, b"model").expect("should write model file");
+        fs::write(&audio, b"audio").expect("should write audio file");
+
+        let error = run_transcription_with_options_command(
+            model.display().to_string(),
+            audio.display().to_string(),
+            Some(1_000),
+            true,
+        )
+        .expect_err("cancelled command should fail");
+
+        assert_eq!(error.code, "execution_cancelled");
     }
 }

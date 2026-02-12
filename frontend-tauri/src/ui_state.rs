@@ -74,6 +74,7 @@ impl MvpUiState {
         let request = RunTranscriptionRequest {
             model_path: self.model_path.clone(),
             audio_path: self.audio_path.clone(),
+            options: None,
         };
 
         match runner(request) {

@@ -47,6 +47,13 @@ pub enum TranscriptionRunStatus {
 pub struct RunTranscriptionRequest {
     pub model_path: String,
     pub audio_path: String,
+    pub options: Option<RunTranscriptionOptions>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
+pub struct RunTranscriptionOptions {
+    pub timeout_ms: Option<u64>,
+    pub cancel_requested: bool,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]

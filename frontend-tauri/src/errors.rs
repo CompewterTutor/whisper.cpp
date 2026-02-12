@@ -24,6 +24,10 @@ pub enum FrontendError {
         context: &'static str,
         source: serde_json::Error,
     },
+    ExecutionTimeout {
+        timeout_ms: u64,
+    },
+    ExecutionCancelled,
 }
 
 impl FrontendError {
@@ -34,6 +38,8 @@ impl FrontendError {
             Self::InvalidExtension { .. } => "invalid_extension",
             Self::Io { .. } => "io_error",
             Self::Serialization { .. } => "serialization_error",
+            Self::ExecutionTimeout { .. } => "execution_timeout",
+            Self::ExecutionCancelled => "execution_cancelled",
         }
     }
 }
@@ -56,6 +62,10 @@ impl Display for FrontendError {
             ),
             Self::Io { context, source } => write!(formatter, "{context}: {source}"),
             Self::Serialization { context, source } => write!(formatter, "{context}: {source}"),
+            Self::ExecutionTimeout { timeout_ms } => {
+                write!(formatter, "execution exceeded timeout of {timeout_ms} ms")
+            }
+            Self::ExecutionCancelled => write!(formatter, "execution cancelled before start"),
         }
     }
 }

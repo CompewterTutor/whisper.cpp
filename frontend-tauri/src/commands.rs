@@ -4,7 +4,9 @@ use crate::contracts::{
     RunTranscriptionResponse, SystemCapabilityResponse, TranscriptionRunStatus,
 };
 use crate::errors::{ApiError, FrontendError};
-use crate::execution::parse_whisper_cli_stdout;
+use crate::execution::{
+    CliRunOptions, ProcessCliRunner, WhisperCliRequest, parse_whisper_cli_stdout, run_with_runner,
+};
 use std::path::{Path, PathBuf};
 
 pub type CommandResult<T> = Result<T, ApiError>;
@@ -76,6 +78,39 @@ pub fn run_transcription_mvp(
         transcript: parse_whisper_cli_stdout(&format!(
             "[00:00.000 --> 00:01.000]  MVP transcript placeholder for {audio_name} with model {model_name}"
         )),
+    })
+}
+
+pub fn run_transcription_with_execution(
+    request: RunTranscriptionRequest,
+) -> CommandResult<RunTranscriptionResponse> {
+    let model = validate_model_path(ModelPathValidationRequest {
+        path: request.model_path,
+    })?;
+    let audio = validate_audio_path(AudioPathValidationRequest {
+        path: request.audio_path,
+    })?;
+
+    let options = request.options.unwrap_or_default();
+    let execution_options = CliRunOptions {
+        timeout_ms: options.timeout_ms,
+        cancel_requested: options.cancel_requested,
+    };
+
+    let output = run_with_runner(
+        Path::new("build/bin/whisper-cli"),
+        &WhisperCliRequest {
+            model_path: PathBuf::from(model.normalized_path),
+            audio_path: PathBuf::from(audio.normalized_path),
+        },
+        &ProcessCliRunner,
+        execution_options,
+    )
+    .map_err(ApiError::from)?;
+
+    Ok(RunTranscriptionResponse {
+        status: TranscriptionRunStatus::Success,
+        transcript: output.transcript,
     })
 }
 
@@ -163,12 +198,12 @@ fn validate_audio_file(path: &Path) -> Result<(), ApiError> {
 #[cfg(test)]
 mod tests {
     use super::{
-        app_health, run_transcription_mvp, system_capability, validate_audio_path,
-        validate_model_path,
+        app_health, run_transcription_mvp, run_transcription_with_execution, system_capability,
+        validate_audio_path, validate_model_path,
     };
     use crate::contracts::{
-        AudioPathValidationRequest, ModelPathValidationRequest, RunTranscriptionRequest,
-        TranscriptionRunStatus,
+        AudioPathValidationRequest, ModelPathValidationRequest, RunTranscriptionOptions,
+        RunTranscriptionRequest, TranscriptionRunStatus,
     };
     use std::fs;
     use std::path::PathBuf;
@@ -263,6 +298,7 @@ mod tests {
         let response = run_transcription_mvp(RunTranscriptionRequest {
             model_path: model_path.display().to_string(),
             audio_path: audio_path.display().to_string(),
+            options: None,
         })
         .expect("run_transcription_mvp should succeed");
 
@@ -279,9 +315,30 @@ mod tests {
         let error = run_transcription_mvp(RunTranscriptionRequest {
             model_path: missing_model.display().to_string(),
             audio_path: audio_path.display().to_string(),
+            options: None,
         })
         .expect_err("run_transcription_mvp should fail when model is missing");
 
         assert_eq!(error.code, "path_not_found");
+    }
+
+    #[test]
+    fn run_transcription_with_execution_returns_cancelled_error() {
+        let model_path = unique_path("bin");
+        let audio_path = unique_path("wav");
+        fs::write(&model_path, b"model").expect("should write temp model file");
+        fs::write(&audio_path, b"audio").expect("should write temp audio file");
+
+        let error = run_transcription_with_execution(RunTranscriptionRequest {
+            model_path: model_path.display().to_string(),
+            audio_path: audio_path.display().to_string(),
+            options: Some(RunTranscriptionOptions {
+                timeout_ms: None,
+                cancel_requested: true,
+            }),
+        })
+        .expect_err("execution run should return cancellation error");
+
+        assert_eq!(error.code, "execution_cancelled");
     }
 }
