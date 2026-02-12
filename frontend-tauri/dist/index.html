@@ -119,6 +119,19 @@
       .hint.neutral {
         color: #9ca3af;
       }
+      .settings {
+        display: grid;
+        gap: 0.6rem;
+      }
+      .toggle {
+        display: flex;
+        gap: 0.6rem;
+        align-items: center;
+      }
+      .toggle input[type="checkbox"] {
+        width: auto;
+        margin: 0;
+      }
     </style>
   </head>
   <body>
@@ -175,6 +188,23 @@
         </div>
         <pre id="transcript">(no transcript yet)</pre>
       </section>
+
+      <section class="card">
+        <label>Background settings</label>
+        <div class="settings">
+          <label class="toggle">
+            <input id="startInBackgroundToggle" type="checkbox" />
+            <span>Start in background</span>
+          </label>
+          <label class="toggle">
+            <input id="launchOnLoginToggle" type="checkbox" />
+            <span>Launch on login (scaffold)</span>
+          </label>
+          <p class="hint neutral" id="backgroundHint">
+            Background/tray behavior is active; login autostart wiring comes next.
+          </p>
+        </div>
+      </section>
     </main>
 
     <script>
@@ -186,10 +216,15 @@
       const audioHintEl = document.getElementById("audioHint");
       const runBtn = document.getElementById("runBtn");
       const openOutputFolderBtn = document.getElementById("openOutputFolderBtn");
+      const startInBackgroundToggle = document.getElementById("startInBackgroundToggle");
+      const launchOnLoginToggle = document.getElementById("launchOnLoginToggle");
+      const backgroundHintEl = document.getElementById("backgroundHint");
       const STORAGE_KEYS = {
         modelPath: "frontend-tauri.modelPath",
         audioPath: "frontend-tauri.audioPath",
         exportPath: "frontend-tauri.lastExportPath",
+        startInBackground: "frontend-tauri.startInBackground",
+        launchOnLogin: "frontend-tauri.launchOnLogin",
       };
       let latestTranscript = "";
       let latestExportPath = "";
@@ -222,12 +257,24 @@
         localStorage.setItem(STORAGE_KEYS.modelPath, modelPathEl.value.trim());
         localStorage.setItem(STORAGE_KEYS.audioPath, audioPathEl.value.trim());
         localStorage.setItem(STORAGE_KEYS.exportPath, latestExportPath);
+        localStorage.setItem(
+          STORAGE_KEYS.startInBackground,
+          startInBackgroundToggle.checked ? "true" : "false"
+        );
+        localStorage.setItem(
+          STORAGE_KEYS.launchOnLogin,
+          launchOnLoginToggle.checked ? "true" : "false"
+        );
       }
 
       function restoreState() {
         const restoredModelPath = localStorage.getItem(STORAGE_KEYS.modelPath) || "";
         const restoredAudioPath = localStorage.getItem(STORAGE_KEYS.audioPath) || "";
         const restoredExportPath = localStorage.getItem(STORAGE_KEYS.exportPath) || "";
+        const restoredStartInBackground =
+          localStorage.getItem(STORAGE_KEYS.startInBackground) === "true";
+        const restoredLaunchOnLogin =
+          localStorage.getItem(STORAGE_KEYS.launchOnLogin) === "true";
 
         if (restoredModelPath) {
           modelPathEl.value = restoredModelPath;
@@ -239,6 +286,8 @@
 
         latestExportPath = restoredExportPath;
         openOutputFolderBtn.disabled = !latestExportPath;
+        startInBackgroundToggle.checked = restoredStartInBackground;
+        launchOnLoginToggle.checked = restoredLaunchOnLogin;
       }
 
       function resetModelValidationHint() {
@@ -436,12 +485,34 @@
         }
       });
 
+      startInBackgroundToggle.addEventListener("change", () => {
+        persistState();
+        setStatus(
+          startInBackgroundToggle.checked
+            ? "Start-in-background enabled for next launch."
+            : "Start-in-background disabled.",
+          "ok"
+        );
+      });
+
+      launchOnLoginToggle.addEventListener("change", () => {
+        persistState();
+        backgroundHintEl.textContent = launchOnLoginToggle.checked
+          ? "Launch on login is saved as preference; OS autostart wiring is next."
+          : "Launch on login disabled. Background tray mode remains available.";
+        setStatus("Launch-on-login preference updated (scaffold).", "ok");
+      });
+
       restoreState();
       if (modelPathEl.value.trim()) {
         validateModelPath();
       }
       if (audioPathEl.value.trim()) {
         validateAudioPath();
+      }
+      if (launchOnLoginToggle.checked) {
+        backgroundHintEl.textContent =
+          "Launch on login is saved as preference; OS autostart wiring is next.";
       }
       updateRunAvailability();
     </script>
