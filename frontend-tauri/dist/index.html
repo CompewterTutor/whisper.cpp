@@ -169,6 +169,9 @@
           <button id="exportSrtBtn" class="secondary" type="button">Export SRT</button>
           <button id="exportVttBtn" class="secondary" type="button">Export VTT</button>
           <button id="exportJsonBtn" class="secondary" type="button">Export JSON</button>
+          <button id="openOutputFolderBtn" class="secondary" type="button" disabled>
+            Open output folder
+          </button>
         </div>
         <pre id="transcript">(no transcript yet)</pre>
       </section>
@@ -182,7 +185,9 @@
       const modelHintEl = document.getElementById("modelHint");
       const audioHintEl = document.getElementById("audioHint");
       const runBtn = document.getElementById("runBtn");
+      const openOutputFolderBtn = document.getElementById("openOutputFolderBtn");
       let latestTranscript = "";
+      let latestExportPath = "";
       let runStartedAt = null;
       let isRunning = false;
       let modelValid = false;
@@ -236,6 +241,8 @@
             transcript,
             format,
           });
+          latestExportPath = savedPath;
+          openOutputFolderBtn.disabled = false;
           setStatus(`Exported ${format.toUpperCase()} to ${savedPath}`, "ok");
         } catch (error) {
           showError(`Export ${format.toUpperCase()} failed`, error);
@@ -379,6 +386,22 @@
       document.getElementById("exportSrtBtn").addEventListener("click", () => exportTranscript("srt"));
       document.getElementById("exportVttBtn").addEventListener("click", () => exportTranscript("vtt"));
       document.getElementById("exportJsonBtn").addEventListener("click", () => exportTranscript("json"));
+
+      openOutputFolderBtn.addEventListener("click", async () => {
+        if (!latestExportPath) {
+          setStatus("No exported file yet.", "error");
+          return;
+        }
+
+        try {
+          await invoke("open_output_folder_command", {
+            filePath: latestExportPath,
+          });
+          setStatus("Opened output folder.", "ok");
+        } catch (error) {
+          showError("Open output folder failed", error);
+        }
+      });
 
       updateRunAvailability();
     </script>

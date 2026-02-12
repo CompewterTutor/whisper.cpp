@@ -9,6 +9,7 @@ fn build_tauri_builder() -> tauri::Builder<tauri::Wry> {
         frontend_tauri::tauri_commands::run_transcription_command,
         frontend_tauri::tauri_commands::run_transcription_with_options_command,
         frontend_tauri::tauri_commands::export_transcript_command,
+        frontend_tauri::tauri_commands::open_output_folder_command,
     ])
 }
 

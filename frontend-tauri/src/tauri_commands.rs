@@ -4,6 +4,7 @@ use crate::contracts::{
     RunTranscriptionOptions, RunTranscriptionResponse, SystemCapabilityResponse,
 };
 use crate::errors::ApiError;
+use std::path::PathBuf;
 
 pub type TauriCommandResult<T> = Result<T, ApiError>;
 
@@ -87,6 +88,58 @@ pub fn export_transcript_command(transcript: String, format: String) -> TauriCom
 }
 
 #[tauri::command]
+pub fn open_output_folder_command(file_path: String) -> TauriCommandResult<()> {
+    let trimmed = file_path.trim();
+    if trimmed.is_empty() {
+        return Err(ApiError {
+            code: "invalid_input".to_owned(),
+            message: "file path cannot be empty".to_owned(),
+        });
+    }
+
+    let path = PathBuf::from(trimmed);
+    let parent = path.parent().ok_or_else(|| ApiError {
+        code: "invalid_input".to_owned(),
+        message: "file path must have a parent directory".to_owned(),
+    })?;
+
+    if !parent.exists() {
+        return Err(ApiError {
+            code: "path_not_found".to_owned(),
+            message: format!("output directory does not exist: {}", parent.display()),
+        });
+    }
+
+    #[cfg(target_os = "windows")]
+    let mut command = {
+        let mut cmd = std::process::Command::new("explorer");
+        cmd.arg(parent);
+        cmd
+    };
+
+    #[cfg(target_os = "macos")]
+    let mut command = {
+        let mut cmd = std::process::Command::new("open");
+        cmd.arg(parent);
+        cmd
+    };
+
+    #[cfg(all(unix, not(target_os = "macos")))]
+    let mut command = {
+        let mut cmd = std::process::Command::new("xdg-open");
+        cmd.arg(parent);
+        cmd
+    };
+
+    command.spawn().map_err(|error| ApiError {
+        code: "io_error".to_owned(),
+        message: format!("failed to open output folder: {error}"),
+    })?;
+
+    Ok(())
+}
+
+#[tauri::command]
 pub fn pick_model_path_command() -> TauriCommandResult<String> {
     pick_file_with_filter(&[("Whisper Model", &["bin"])])
 }
@@ -115,9 +168,9 @@ fn pick_file_with_filter(filters: &[(&str, &[&str])]) -> TauriCommandResult<Stri
 #[cfg(test)]
 mod tests {
     use super::{
-        app_health_command, export_transcript_command, run_transcription_command,
-        run_transcription_with_options_command, system_capability_command,
-        validate_audio_path_command, validate_model_path_command,
+        app_health_command, export_transcript_command, open_output_folder_command,
+        run_transcription_command, run_transcription_with_options_command,
+        system_capability_command, validate_audio_path_command, validate_model_path_command,
     };
     use crate::contracts::TranscriptionRunStatus;
     use std::fs;
@@ -199,6 +252,14 @@ mod tests {
     fn export_transcript_command_rejects_invalid_format() {
         let error = export_transcript_command("hello".to_owned(), "xml".to_owned())
             .expect_err("invalid format should fail before dialog");
+
+        assert_eq!(error.code, "invalid_input");
+    }
+
+    #[test]
+    fn open_output_folder_command_rejects_empty_path() {
+        let error = open_output_folder_command("   ".to_owned())
+            .expect_err("empty path should be rejected");
 
         assert_eq!(error.code, "invalid_input");
     }
