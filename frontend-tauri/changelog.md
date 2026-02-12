@@ -37,6 +37,7 @@ The format is based on Keep a Changelog, and the project follows Semantic Versio
 - Added optional feature-gated real whisper-cli smoke test (`real-whisper-smoke`) with env-configured paths.
 - Added Tauri command registration wiring in `main.rs` for implemented command handlers.
 - Added release-readiness documentation: `docs/release-checklist.md` and `docs/versioning.md`.
+- Added `make smoke-real` and `make verify-release` automation targets for repeatable release checks.
 
 ### Changed
 
@@ -47,6 +48,7 @@ The format is based on Keep a Changelog, and the project follows Semantic Versio
 - Added Cargo feature flags to isolate optional real smoke test from default CI/dev runs.
 - Disabled binary target tests via `[[bin]] test = false` to avoid platform-specific Tauri bin harness runtime issues while keeping `cargo test` for standard quality gates.
 - Documented changelog verification rules and SemVer release flow for frontend releases.
+- Aligned release checklist and README with automated release verification commands.
 
 ### Fixed
 

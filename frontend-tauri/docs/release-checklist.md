@@ -17,8 +17,8 @@ Use this checklist before any `frontend-tauri` release tag or announcement.
 
 - [ ] `make fmt`
 - [ ] `make lint`
-- [ ] `make test` (currently `cargo test --lib`)
-- [ ] Optional full run: `cargo test` (best-effort, platform-dependent)
+- [ ] `make test` (runs `cargo test`)
+- [ ] `make verify-release` for combined check + optional smoke flow
 
 ## 3) Optional real execution smoke
 
@@ -27,13 +27,13 @@ Use this checklist before any `frontend-tauri` release tag or announcement.
   - `WHISPER_MODEL_PATH`
   - `WHISPER_AUDIO_PATH`
 - [ ] Run:
-  - `cargo test --lib --features real-whisper-smoke real_whisper_cli_smoke_test -- --ignored`
+  - `make smoke-real`
 - [ ] Confirm command executes and produces non-empty output.
 
 ## 4) CI checks
 
 - [ ] Confirm `.github/workflows/frontend-tauri-ci.yml` is green for branch/PR.
-- [ ] Verify lint + lib tests passed in CI logs.
+- [ ] Verify lint + tests passed in CI logs.
 
 ## 5) Packaging readiness (when packaging is enabled)
 

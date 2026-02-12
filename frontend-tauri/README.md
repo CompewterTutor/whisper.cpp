@@ -23,6 +23,8 @@ From `frontend-tauri/`:
 - `make lint` - clippy warnings as errors
 - `make test` - run unit tests
 - `make check` - run all local quality checks
+- `make smoke-real` - run optional real whisper smoke test if env vars are set
+- `make verify-release` - run release verification (`check` + optional smoke)
 - `make dev` - run app locally
 
 Direct cargo equivalents:

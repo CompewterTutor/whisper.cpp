@@ -78,4 +78,5 @@ Notes:
 
 Notes:
 - Added `docs/release-checklist.md` and `docs/versioning.md` for repeatable SemVer and changelog discipline.
+- Added `make verify-release` and `make smoke-real` to automate release verification and optional real smoke runs.
 
