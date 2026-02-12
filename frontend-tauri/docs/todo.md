@@ -1,82 +1,74 @@
 # frontend-tauri TODO
 
 Date initialized: 2026-02-12
+Last updated: 2026-02-12
 
 Legend: `[ ]` pending, `[~]` in progress, `[x]` done
 
-## Now
+## Current status snapshot
 
-- [x] Skim root project architecture and build flow (`README`, `CMakeLists`, `Makefile`, `whisper.h`, `examples/cli`).
-- [x] Draft high-level implementation plan in `docs/plan.md`.
-- [x] Initialize `docs/memory.md` and frontend changelog.
+- [x] Runtime shell launches on Windows and loads bundled assets.
+- [x] Core Rust backend contracts/commands/execution path implemented and tested.
+- [x] Minimal interactive UI shell wired to command invocations.
+- [x] Native model/audio file pickers integrated.
 
-## M0 — Baseline
+## Now — Next feature slice (P1)
 
-- [x] Add `frontend-tauri` README with setup and run instructions.
-- [x] Add Rust/Tauri task aliases for fmt/lint/test/dev.
-- [x] Add minimal CI workflow for frontend checks.
-- [x] Add smoke unit test (`app metadata` / `health`).
-- [x] Run tests: fmt + lint + unit.
-- [x] Prepare commit message and ask for approval before commit.
+- [ ] Add transcript export actions (`txt`, `srt`, `vtt`, `json`) in UI + backend command.
+- [ ] Add clearer run-state panel (idle/running/success/error + elapsed time).
+- [ ] Add inline validation messages next to model/audio fields.
+- [ ] Add "open output folder" action after successful run.
+- [ ] Add tests for export request validation and run-state transitions.
+- [ ] Run `fmt`, `clippy`, `test`, and `build --release`.
 
-Notes:
-- `make check` now runs successfully on Windows in this environment.
+## P1 — Complete single-file transcribe UX
 
-## M1 — Backend shell
+- [ ] Refine layout into sections: inputs, controls, transcript, export.
+- [ ] Persist last-used model/audio/output directory and options.
+- [ ] Add transcript metadata summary (duration, segments, language if available).
+- [ ] Ensure all user-facing errors include actionable recovery hints.
 
-- [x] Define typed Tauri command inputs/outputs.
-- [x] Implement config model and persistence layer.
-- [x] Implement model path validation command.
-- [x] Implement audio file validation command.
-- [x] Add unit tests for each command.
-- [x] Add error mapping tests.
-- [x] Run test suite.
-- [x] Prepare commit message and ask for approval before commit.
+Acceptance criteria:
+- [ ] User can complete full workflow without terminal interaction.
+- [ ] User can export transcript in at least two formats.
+- [ ] Invalid model/audio clearly blocks run and shows reason.
 
-## M2 — MVP UI
+## P2 — Advanced controls + presets
 
-- [x] Add model picker UI.
-- [x] Add audio picker UI.
-- [x] Add transcript output panel.
-- [x] Add loading/success/error states.
-- [x] Wire UI to backend commands.
-- [x] Add component tests for core states.
-- [x] Add integration test for end-to-end UI flow (mock backend).
-- [x] Run test suite.
-- [x] Prepare commit message and ask for approval before commit.
+- [ ] Add advanced options drawer (task, language, beam, best-of, temp, threads, timeout).
+- [ ] Add preset save/load/delete flow.
+- [ ] Add default preset selection in settings.
+- [ ] Add reducer + serialization tests for preset and advanced options.
 
-Notes:
-- M2 interaction layer expanded in `ui_state` with model/audio picker setters, start-button eligibility, transcript panel rendering text, and error banner text.
-- Added `tauri_commands` wrappers and `mvp_binding` reducer/view-model to represent webview action wiring.
+Acceptance criteria:
+- [ ] One-click basic workflow remains unchanged.
+- [ ] Advanced options survive app restart.
 
-## M3 — whisper.cpp execution
+## P3 — Batch processing + history
 
-- [x] Implement `whisper-cli` invocation service.
-- [x] Implement argument builder with validation.
-- [x] Implement stdout/stderr parser into transcript model.
-- [x] Add cancellation/timeout handling.
-- [x] Add unit tests for arg builder and parser.
-- [x] Add mocked process integration tests.
-- [x] Add optional real sample smoke test.
-- [x] Run test suite.
-- [x] Prepare commit message and ask for approval before commit.
+- [ ] Add batch queue view with multi-file add/remove/reorder.
+- [ ] Add per-item status and retry action.
+- [ ] Add run history list with rerun and open-output actions.
+- [ ] Add tests for queue transitions and rerun behavior.
 
-Notes:
-- Added new `execution` service with `CliRunner` abstraction, `ProcessCliRunner`, CLI arg builder, stdout transcript parser, and mocked-runner tests.
-- Added timeout/cancel control path via `RunTranscriptionOptions`, `CliRunOptions`, and timeout-aware `run_transcription_with_execution` command path.
-- Added feature-gated ignored smoke test (`real-whisper-smoke`) requiring explicit `WHISPER_CLI_PATH`, `WHISPER_MODEL_PATH`, and `WHISPER_AUDIO_PATH` env vars.
-- Verified real run on Windows with `build/bin/Release/whisper-cli.exe` and validated `real_whisper_cli_smoke_test` using local model/audio paths.
+Acceptance criteria:
+- [ ] Queue can process >1 file reliably with visible progress.
+- [ ] History enables rerun with same settings.
 
-## M4 — Release readiness
+## P4 — Final hardening + release UX
 
-- [x] Add release checklist document.
-- [x] Add version bump procedure and script notes.
-- [x] Add packaging smoke checks.
-- [x] Add changelog update verification step.
-- [x] Run full verification.
-- [ ] Prepare release commit message and ask for approval before commit.
+- [ ] Add settings page (theme, defaults, diagnostics toggle, paths).
+- [ ] Add keyboard accessibility pass on core controls.
+- [ ] Add capability/security config review for Tauri command surface.
+- [ ] Extend release smoke checklist for packaged artifact UX.
 
-Notes:
-- Added `docs/release-checklist.md` and `docs/versioning.md` for repeatable SemVer and changelog discipline.
-- Added `make verify-release` and `make smoke-real` to automate release verification and optional real smoke runs.
+Acceptance criteria:
+- [ ] Release build verified on Windows with packaged startup + transcription smoke.
+- [ ] Settings and defaults persist and are reversible.
+
+## Process checklist (per slice)
+
+- [ ] Keep slices small and test-backed.
+- [ ] Update docs (`plan.md`, `todo.md`, `memory.md`, `changelog.md`) for user-visible changes.
+- [ ] Propose commit message and ask for approval before commit.
 

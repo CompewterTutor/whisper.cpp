@@ -1,119 +1,170 @@
-# frontend-tauri Plan
+# frontend-tauri Product + UI Plan
 
-Date: 2026-02-12
-Scope: Build a Rust/Tauri frontend for `whisper.cpp` with clear milestones, small steps, and tests for each step.
+Date: 2026-02-12  
+Scope: Define the end-goal UX and feature set for a modern desktop wrapper around `whisper.cpp`.
 
-## Project context (from root skim)
+## Product vision
 
-- Core inference and public API are exposed via `include/whisper.h` and built from CMake at repo root.
-- Standard workflows use CMake + generated binaries (e.g. `whisper-cli`) and model files under `models/`.
-- The current `frontend-tauri` crate is minimal (`tauri` dependency + `src/main.rs` hello-world).
+Build a fast, local-first transcription workstation that makes `whisper.cpp` accessible to non-CLI users while preserving power-user control over models and decoding settings.
 
-## Guardrails
+## Primary users
 
-1. **No commits without confirmation**: before every commit, explicitly ask for approval.
-2. **Commit format**: use Conventional Commits (e.g. `feat(ui): add model selection panel`).
-3. **Semantic Versioning**: maintain `MAJOR.MINOR.PATCH` for frontend releases.
-	- `MAJOR`: breaking UX/API/workflow changes.
-	- `MINOR`: new backward-compatible features.
-	- `PATCH`: fixes/internal improvements.
-4. **Changelog discipline**: update `frontend-tauri/changelog.md` on every user-visible change.
+1. **Quick transcriber**: wants drag-drop + one-click transcript.
+2. **Power user**: wants tuning (`language`, `threads`, timestamps, output formats).
+3. **Batch operator**: wants queue processing and repeatable presets.
 
-## Milestones and step-by-step execution
+## UX principles
 
-### M0 — Baseline and reproducible dev setup
+1. **One-screen happy path**: basic transcription should be visible without opening settings.
+2. **Progressive disclosure**: advanced options live in collapsible sections / settings page.
+3. **Local-first clarity**: clearly show file paths, model source, and no-cloud execution.
+4. **Recoverable failures**: every error includes actionable next step.
+5. **Deterministic runs**: users can save/load presets and rerun with same parameters.
 
-1. Add frontend architecture doc section (runtime model, data flow, boundaries).
-2. Add local setup instructions for Windows/Linux/macOS and model prerequisites.
-3. Add scripts/tasks to run: format, lint, test, dev.
-4. Add CI skeleton for frontend checks only.
+## End-goal information architecture
 
-**Tests for M0**
-- Run formatting check.
-- Run lint check.
-- Run unit test command (even if smoke test only).
-- Run CI workflow locally or via dry-run tooling where available.
+## 1) `Transcribe` (default view)
 
-### M1 — Backend shell (Tauri commands + service layer)
+Core workflow card:
+- Input source: single file picker + drag/drop.
+- Model selector: recent models + browse + quick validate.
+- Primary actions: `Transcribe`, `Cancel`.
+- Runtime status: idle/loading/running/success/error with elapsed time.
 
-1. Create typed command contract for:
-	- app health/version
-	- system capability check
-	- model discovery/validation
-2. Implement service modules with explicit error types.
-3. Add config/state management (paths, selected model, preferences).
-4. Keep whisper execution integration mocked/stubbed initially.
+Result area:
+- Transcript viewer with timestamps toggle.
+- Segment table (start/end/text).
+- Copy transcript / save outputs (`.txt`, `.srt`, `.vtt`, `.json`).
 
-**Tests for M1**
-- Unit tests for command handlers.
-- Unit tests for config persistence and validation.
-- Unit tests for error mapping.
-- Contract tests for command input/output serialization.
+Advanced panel (collapsed by default):
+- Task: `transcribe` / `translate`.
+- Language: auto or explicit code.
+- Decode controls: temperature, beam size, best-of.
+- Performance controls: threads, processors/GPU toggle (where available).
+- Output controls: timestamps, diarization-ready JSON flag (future-compatible).
 
-### M2 — Minimal usable UI (MVP)
+## 2) `Batch` view
 
-1. Build single-page MVP with only:
-	- model path selection
-	- audio file selection
-	- start transcription button
-	- transcript output panel
-2. Add deterministic loading/error/success states.
-3. Wire UI to backend command contract.
+- Queue multiple audio files.
+- Per-item status (`queued`, `running`, `done`, `failed`, `cancelled`).
+- Reorder/remove/retry actions.
+- Shared preset for the queue.
+- Export all outputs to selected folder.
 
-**Tests for M2**
-- Component tests for each UI state.
-- Integration test for “select inputs → run → render transcript”.
-- Regression test for empty/invalid input handling.
+## 3) `Models` view
 
-### M3 — Real whisper.cpp execution bridge
+- Registered models list (name, size, path, modified date).
+- Validate model file and display compatibility notes.
+- Set default model.
+- Add/remove model references (no destructive file delete by default).
 
-1. Choose integration path:
-	- invoke `whisper-cli` process (first implementation), or
-	- direct FFI binding (later optimization milestone).
-2. Implement process execution with cancellation and timeout.
-3. Parse output into structured transcript model.
-4. Surface robust runtime errors (missing model, unsupported audio, execution failure).
+## 4) `History` view
 
-**Tests for M3**
-- Unit tests for argument construction.
-- Unit tests for output parsing.
-- Integration tests with mocked process I/O.
-- Optional end-to-end test with sample audio (feature-flagged in CI).
+- Recent runs with searchable metadata.
+- Open transcript, open output folder, rerun with same settings.
+- Capture failure reason for diagnostics.
 
-### M4 — Quality and release readiness
+## 5) `Settings` view
 
-1. Add accessibility and keyboard checks for core workflow.
-2. Add performance guardrails (cold start + transcription timing baselines).
-3. Package app for target OSes.
-4. Prepare release checklist and version bump workflow.
+- App: theme (system/light/dark), startup behavior.
+- Execution: default timeout, default thread count, process priority mode.
+- Paths: default output directory, model directory.
+- Privacy: local-only statement, optional diagnostics logging toggle.
 
-**Tests for M4**
-- End-to-end happy path test.
-- Smoke tests on packaged artifact.
-- Release checklist verification test (scripted where possible).
+## Feature inventory (prioritized)
 
-## Definition of done (per step)
+### Must-have (v0.2-v0.4)
 
-Each step is complete only when all are true:
+- Single-file transcription end-to-end.
+- Model + audio pickers with validation.
+- Run/cancel + clear status/errors.
+- Transcript preview + save to text formats.
+- Persistent user settings and last-used inputs.
 
-1. Code implemented.
-2. Tests for that step written and passing.
-3. Docs updated (`plan.md`/`todo.md`/`memory.md`/`changelog.md` when relevant).
-4. Proposed commit message prepared.
-5. User confirms before commit.
+### Should-have (v0.5-v0.7)
 
-## Initial commit message patterns
+- Batch queue.
+- Preset management (save/load/duplicate).
+- History and rerun.
+- Advanced decoding controls.
 
-- `chore(frontend): initialize tauri project guardrails and docs`
-- `feat(frontend): add transcription MVP flow`
-- `test(frontend): add command and UI integration tests`
-- `fix(frontend): handle whisper execution timeout and parse errors`
+### Nice-to-have (v0.8+)
 
-## Versioning flow
+- Waveform with segment jump.
+- Hotkeys for core actions.
+- Optional speaker-segmentation integration path.
+- Plugin/extension hooks for post-processing.
 
-1. Determine change type (`MAJOR`/`MINOR`/`PATCH`).
-2. Update version in `frontend-tauri/Cargo.toml`.
-3. Add changelog entry under matching version/date.
-4. Run full frontend test suite.
-5. Ask user for commit approval.
+## Settings schema (target)
+
+`app`:
+- theme: `system | light | dark`
+- show_timestamps_default: `bool`
+
+`execution`:
+- timeout_ms_default: `u64`
+- thread_count_default: `u16`
+- default_task: `transcribe | translate`
+- language_default: `auto | <lang_code>`
+
+`io`:
+- default_model_path: `string`
+- default_output_dir: `string`
+- output_formats: `txt | srt | vtt | json` (multi)
+
+`advanced`:
+- beam_size: `u8`
+- best_of: `u8`
+- temperature: `f32`
+
+## Delivery phases from current state
+
+### P1 — Solid MVP UI completion
+
+Goal: polish existing single-page shell into a complete single-file transcribe experience.
+- Add clear layout sections (input, run controls, transcript, export).
+- Add save/export actions for transcript outputs.
+- Add stronger error surfaces and validation hints.
+
+Tests:
+- UI integration: happy path from pickers to transcript render.
+- Command-level tests for export request validation.
+
+### P2 — Advanced controls + presets
+
+Goal: keep one-click flow while exposing power-user controls.
+- Add advanced options drawer.
+- Add preset save/load.
+
+Tests:
+- State reducer tests for option changes and preset application.
+- Serialization round-trip tests for presets.
+
+### P3 — Batch and history
+
+Goal: support production workflows.
+- Add queue orchestration and run history.
+- Add rerun and retry flows.
+
+Tests:
+- Queue state transition tests.
+- Integration tests for rerun from history.
+
+### P4 — Hardening + release UX
+
+Goal: make desktop app robust and supportable.
+- Add settings page and diagnostics toggles.
+- Add accessibility/keyboard passes and release smoke checks.
+
+Tests:
+- Packaged artifact smoke tests.
+- Settings persistence regression tests.
+
+## Definition of done (per feature slice)
+
+1. UX behavior documented in `todo.md` acceptance checklist.
+2. Backend + UI wiring implemented.
+3. Unit/integration tests added and passing.
+4. Changelog updated for user-visible changes.
+5. Commit proposed and user approves before commit.
 
