@@ -7,11 +7,52 @@ use crate::errors::{ApiError, FrontendError};
 use crate::execution::{
     CliRunOptions, ProcessCliRunner, WhisperCliRequest, parse_whisper_cli_stdout, run_with_runner,
 };
+use serde::Serialize;
 use std::path::{Path, PathBuf};
 
 pub type CommandResult<T> = Result<T, ApiError>;
 
 const AUDIO_EXTENSIONS: [&str; 5] = ["wav", "mp3", "flac", "ogg", "m4a"];
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct TranscriptExportArtifact {
+    pub file_name: String,
+    pub extension: String,
+    pub content: String,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum TranscriptExportFormat {
+    Txt,
+    Srt,
+    Vtt,
+    Json,
+}
+
+impl TranscriptExportFormat {
+    fn parse(raw: &str) -> CommandResult<Self> {
+        let normalized = raw.trim().to_ascii_lowercase();
+        match normalized.as_str() {
+            "txt" => Ok(Self::Txt),
+            "srt" => Ok(Self::Srt),
+            "vtt" => Ok(Self::Vtt),
+            "json" => Ok(Self::Json),
+            _ => Err(ApiError {
+                code: "invalid_input".to_owned(),
+                message: format!("unsupported export format: {raw} (expected txt|srt|vtt|json)"),
+            }),
+        }
+    }
+
+    fn extension(self) -> &'static str {
+        match self {
+            Self::Txt => "txt",
+            Self::Srt => "srt",
+            Self::Vtt => "vtt",
+            Self::Json => "json",
+        }
+    }
+}
 
 pub fn app_health() -> AppHealthResponse {
     AppHealthResponse {
@@ -114,6 +155,138 @@ pub fn run_transcription_with_execution(
     })
 }
 
+pub fn prepare_transcript_export(
+    transcript: String,
+    format: String,
+) -> CommandResult<TranscriptExportArtifact> {
+    let trimmed = transcript.trim();
+    if trimmed.is_empty() {
+        return Err(ApiError {
+            code: "invalid_input".to_owned(),
+            message: "transcript cannot be empty".to_owned(),
+        });
+    }
+
+    let export_format = TranscriptExportFormat::parse(&format)?;
+    let lines: Vec<&str> = trimmed
+        .lines()
+        .map(str::trim)
+        .filter(|line| !line.is_empty())
+        .collect();
+
+    let content = match export_format {
+        TranscriptExportFormat::Txt => lines.join("\n"),
+        TranscriptExportFormat::Srt => render_as_srt(&lines),
+        TranscriptExportFormat::Vtt => render_as_vtt(&lines),
+        TranscriptExportFormat::Json => render_as_json(trimmed, &lines)?,
+    };
+
+    Ok(TranscriptExportArtifact {
+        file_name: format!("transcript.{}", export_format.extension()),
+        extension: export_format.extension().to_owned(),
+        content,
+    })
+}
+
+fn render_as_srt(lines: &[&str]) -> String {
+    if lines.is_empty() {
+        return String::new();
+    }
+
+    lines
+        .iter()
+        .enumerate()
+        .map(|(index, line)| {
+            let start_ms = index as u64 * 2_000;
+            let end_ms = start_ms + 2_000;
+            format!(
+                "{}\n{} --> {}\n{}",
+                index + 1,
+                format_timestamp_srt(start_ms),
+                format_timestamp_srt(end_ms),
+                line
+            )
+        })
+        .collect::<Vec<String>>()
+        .join("\n\n")
+}
+
+fn render_as_vtt(lines: &[&str]) -> String {
+    if lines.is_empty() {
+        return "WEBVTT\n".to_owned();
+    }
+
+    let body = lines
+        .iter()
+        .enumerate()
+        .map(|(index, line)| {
+            let start_ms = index as u64 * 2_000;
+            let end_ms = start_ms + 2_000;
+            format!(
+                "{} --> {}\n{}",
+                format_timestamp_vtt(start_ms),
+                format_timestamp_vtt(end_ms),
+                line
+            )
+        })
+        .collect::<Vec<String>>()
+        .join("\n\n");
+
+    format!("WEBVTT\n\n{body}")
+}
+
+fn render_as_json(full_text: &str, lines: &[&str]) -> CommandResult<String> {
+    #[derive(Serialize)]
+    struct Segment {
+        index: usize,
+        start_ms: u64,
+        end_ms: u64,
+        text: String,
+    }
+
+    #[derive(Serialize)]
+    struct ExportModel {
+        text: String,
+        segments: Vec<Segment>,
+    }
+
+    let segments = lines
+        .iter()
+        .enumerate()
+        .map(|(index, line)| Segment {
+            index: index + 1,
+            start_ms: index as u64 * 2_000,
+            end_ms: (index as u64 + 1) * 2_000,
+            text: (*line).to_owned(),
+        })
+        .collect();
+
+    serde_json::to_string_pretty(&ExportModel {
+        text: full_text.to_owned(),
+        segments,
+    })
+    .map_err(|error| ApiError {
+        code: "serialization_error".to_owned(),
+        message: format!("failed to serialize transcript export: {error}"),
+    })
+}
+
+fn format_timestamp_srt(total_ms: u64) -> String {
+    let hours = total_ms / 3_600_000;
+    let minutes = (total_ms % 3_600_000) / 60_000;
+    let seconds = (total_ms % 60_000) / 1_000;
+    let millis = total_ms % 1_000;
+    format!("{hours:02}:{minutes:02}:{seconds:02},{millis:03}")
+}
+
+fn format_timestamp_vtt(total_ms: u64) -> String {
+    let hours = total_ms / 3_600_000;
+    let minutes = (total_ms % 3_600_000) / 60_000;
+    let seconds = (total_ms % 60_000) / 1_000;
+    let millis = total_ms % 1_000;
+    format!("{hours:02}:{minutes:02}:{seconds:02}.{millis:03}")
+}
+
 fn normalize_path_input(raw_path: &str) -> Result<PathBuf, ApiError> {
     let trimmed = raw_path.trim();
     if trimmed.is_empty() {
@@ -198,8 +371,9 @@ fn validate_audio_file(path: &Path) -> Result<(), ApiError> {
 #[cfg(test)]
 mod tests {
     use super::{
-        app_health, run_transcription_mvp, run_transcription_with_execution, system_capability,
-        validate_audio_path, validate_model_path,
+        app_health, prepare_transcript_export, run_transcription_mvp,
+        run_transcription_with_execution, system_capability, validate_audio_path,
+        validate_model_path,
     };
     use crate::contracts::{
         AudioPathValidationRequest, ModelPathValidationRequest, RunTranscriptionOptions,
@@ -340,5 +514,41 @@ mod tests {
         .expect_err("execution run should return cancellation error");
 
         assert_eq!(error.code, "execution_cancelled");
+    }
+
+    #[test]
+    fn prepare_transcript_export_rejects_empty_transcript() {
+        let error = prepare_transcript_export("   ".to_owned(), "txt".to_owned())
+            .expect_err("empty transcript should fail");
+
+        assert_eq!(error.code, "invalid_input");
+    }
+
+    #[test]
+    fn prepare_transcript_export_renders_srt() {
+        let artifact = prepare_transcript_export("hello\nworld".to_owned(), "srt".to_owned())
+            .expect("srt export should succeed");
+
+        assert_eq!(artifact.extension, "srt");
+        assert!(
+            artifact
+                .content
+                .contains("1\n00:00:00,000 --> 00:00:02,000\nhello")
+        );
+        assert!(
+            artifact
+                .content
+                .contains("2\n00:00:02,000 --> 00:00:04,000\nworld")
+        );
+    }
+
+    #[test]
+    fn prepare_transcript_export_renders_json() {
+        let artifact = prepare_transcript_export("hello".to_owned(), "json".to_owned())
+            .expect("json export should succeed");
+
+        assert_eq!(artifact.extension, "json");
+        assert!(artifact.content.contains("\"text\": \"hello\""));
+        assert!(artifact.content.contains("\"segments\""));
     }
 }

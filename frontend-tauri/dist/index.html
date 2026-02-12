@@ -99,6 +99,12 @@
         padding: 0.75rem;
         color: #d1d5db;
       }
+      .actions {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+        margin-bottom: 0.75rem;
+      }
     </style>
   </head>
   <body>
@@ -142,6 +148,12 @@
 
       <section class="card">
         <label for="transcript">Transcript</label>
+        <div class="actions">
+          <button id="exportTxtBtn" class="secondary" type="button">Export TXT</button>
+          <button id="exportSrtBtn" class="secondary" type="button">Export SRT</button>
+          <button id="exportVttBtn" class="secondary" type="button">Export VTT</button>
+          <button id="exportJsonBtn" class="secondary" type="button">Export JSON</button>
+        </div>
         <pre id="transcript">(no transcript yet)</pre>
       </section>
     </main>
@@ -152,6 +164,8 @@
       const modelPathEl = document.getElementById("modelPath");
       const audioPathEl = document.getElementById("audioPath");
       const runBtn = document.getElementById("runBtn");
+      let latestTranscript = "";
+      let runStartedAt = null;
 
       function setStatus(message, kind = "") {
         statusEl.textContent = message;
@@ -162,6 +176,28 @@
         const code = error?.code ? `[${error.code}] ` : "";
         const message = error?.message || String(error);
         setStatus(`${prefix}: ${code}${message}`, "error");
+      }
+
+      function requireTranscript() {
+        const transcript = latestTranscript.trim();
+        if (!transcript) {
+          throw new Error("No transcript available to export");
+        }
+        return transcript;
+      }
+
+      async function exportTranscript(format) {
+        try {
+          const transcript = requireTranscript();
+          setStatus(`Exporting ${format.toUpperCase()}...`);
+          const savedPath = await invoke("export_transcript_command", {
+            transcript,
+            format,
+          });
+          setStatus(`Exported ${format.toUpperCase()} to ${savedPath}`, "ok");
+        } catch (error) {
+          showError(`Export ${format.toUpperCase()} failed`, error);
+        }
       }
 
       async function invoke(command, args = {}) {
@@ -212,7 +248,8 @@
 
       runBtn.addEventListener("click", async () => {
         runBtn.disabled = true;
-        setStatus("Running transcription...");
+        runStartedAt = Date.now();
+        setStatus("Running transcription...", "");
         transcriptEl.textContent = "(running)";
 
         try {
@@ -220,12 +257,20 @@
             modelPath: modelPathEl.value,
             audioPath: audioPathEl.value,
           });
-          transcriptEl.textContent = response.transcript || "(empty transcript)";
-          setStatus("Transcription completed", "ok");
+          latestTranscript = (response.transcript || "").trim();
+          transcriptEl.textContent = latestTranscript || "(empty transcript)";
+          const elapsedMs = Date.now() - runStartedAt;
+          setStatus(`Transcription completed in ${(elapsedMs / 1000).toFixed(2)}s`, "ok");
         } catch (error) {
+          latestTranscript = "";
           transcriptEl.textContent = "(failed)";
+          const elapsedMs = runStartedAt ? Date.now() - runStartedAt : 0;
+          if (elapsedMs > 0) {
+            setStatus(`Failed after ${(elapsedMs / 1000).toFixed(2)}s`, "error");
+          }
           showError("Transcription failed", error);
         } finally {
+          runStartedAt = null;
           runBtn.disabled = false;
         }
       });
@@ -251,6 +296,11 @@
           showError("Audio selection failed", error);
         }
       });
+
+      document.getElementById("exportTxtBtn").addEventListener("click", () => exportTranscript("txt"));
+      document.getElementById("exportSrtBtn").addEventListener("click", () => exportTranscript("srt"));
+      document.getElementById("exportVttBtn").addEventListener("click", () => exportTranscript("vtt"));
+      document.getElementById("exportJsonBtn").addEventListener("click", () => exportTranscript("json"));
     </script>
   </body>
 </html>

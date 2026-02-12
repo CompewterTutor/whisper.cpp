@@ -61,6 +61,32 @@ pub fn run_transcription_with_options_command(
 }
 
 #[tauri::command]
+pub fn export_transcript_command(transcript: String, format: String) -> TauriCommandResult<String> {
+    let artifact = commands::prepare_transcript_export(transcript, format)?;
+
+    let Some(path) = rfd::FileDialog::new()
+        .add_filter(
+            format!("Transcript ({})", artifact.extension).as_str(),
+            &[artifact.extension.as_str()],
+        )
+        .set_file_name(&artifact.file_name)
+        .save_file()
+    else {
+        return Err(ApiError {
+            code: "selection_cancelled".to_owned(),
+            message: "export destination selection cancelled".to_owned(),
+        });
+    };
+
+    std::fs::write(&path, artifact.content).map_err(|error| ApiError {
+        code: "io_error".to_owned(),
+        message: format!("failed to write export file: {error}"),
+    })?;
+
+    Ok(path.to_string_lossy().into_owned())
+}
+
+#[tauri::command]
 pub fn pick_model_path_command() -> TauriCommandResult<String> {
     pick_file_with_filter(&[("Whisper Model", &["bin"])])
 }
@@ -89,8 +115,9 @@ fn pick_file_with_filter(filters: &[(&str, &[&str])]) -> TauriCommandResult<Stri
 #[cfg(test)]
 mod tests {
     use super::{
-        app_health_command, run_transcription_command, run_transcription_with_options_command,
-        system_capability_command, validate_audio_path_command, validate_model_path_command,
+        app_health_command, export_transcript_command, run_transcription_command,
+        run_transcription_with_options_command, system_capability_command,
+        validate_audio_path_command, validate_model_path_command,
     };
     use crate::contracts::TranscriptionRunStatus;
     use std::fs;
@@ -166,5 +193,13 @@ mod tests {
         .expect_err("cancelled command should fail");
 
         assert_eq!(error.code, "execution_cancelled");
+    }
+
+    #[test]
+    fn export_transcript_command_rejects_invalid_format() {
+        let error = export_transcript_command("hello".to_owned(), "xml".to_owned())
+            .expect_err("invalid format should fail before dialog");
+
+        assert_eq!(error.code, "invalid_input");
     }
 }
