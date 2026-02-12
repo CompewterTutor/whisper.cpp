@@ -56,6 +56,9 @@
 - Validation also completed via Makefile alias:
 	- `make check`
 - Latest test count: 30 passing tests in lib target, with optional 1 ignored real smoke test behind feature flag.
+- Real execution verified on Windows:
+	- direct CLI run: `build/bin/Release/whisper-cli.exe -m models/ggml-base.en.bin -f samples/jfk.wav -np`
+	- frontend smoke: `cargo test --features real-whisper-smoke --lib real_whisper_cli_smoke_test -- --ignored`
 
 ### Test harness note
 
@@ -72,5 +75,5 @@
 
 ### Next immediate action
 
-- Prepare release commit message proposal for latest verification/doc updates and ask user approval.
+- Prepare release commit message proposal for real-run verification notes and ask user approval.
 

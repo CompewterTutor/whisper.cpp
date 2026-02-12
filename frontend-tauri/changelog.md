@@ -50,7 +50,7 @@ The format is based on Keep a Changelog, and the project follows Semantic Versio
 
 ### Fixed
 
-- N/A
+- Verified real Windows execution path using `whisper-cli.exe` and validated frontend feature-gated smoke test with local model/audio inputs.
 
 ## [0.1.0] - 2026-02-12
 

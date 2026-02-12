@@ -65,6 +65,7 @@ Notes:
 - Added new `execution` service with `CliRunner` abstraction, `ProcessCliRunner`, CLI arg builder, stdout transcript parser, and mocked-runner tests.
 - Added timeout/cancel control path via `RunTranscriptionOptions`, `CliRunOptions`, and timeout-aware `run_transcription_with_execution` command path.
 - Added feature-gated ignored smoke test (`real-whisper-smoke`) requiring explicit `WHISPER_CLI_PATH`, `WHISPER_MODEL_PATH`, and `WHISPER_AUDIO_PATH` env vars.
+- Verified real run on Windows with `build/bin/Release/whisper-cli.exe` and validated `real_whisper_cli_smoke_test` using local model/audio paths.
 
 ## M4 — Release readiness
 
