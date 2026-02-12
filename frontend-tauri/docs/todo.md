@@ -35,9 +35,9 @@ Notes:
 
 ## M2 — MVP UI
 
-- [~] Add model picker UI.
-- [~] Add audio picker UI.
-- [~] Add transcript output panel.
+- [x] Add model picker UI.
+- [x] Add audio picker UI.
+- [x] Add transcript output panel.
 - [x] Add loading/success/error states.
 - [x] Wire UI to backend commands.
 - [x] Add component tests for core states.
@@ -47,6 +47,7 @@ Notes:
 
 Notes:
 - M2 interaction layer expanded in `ui_state` with model/audio picker setters, start-button eligibility, transcript panel rendering text, and error banner text.
+- Added `tauri_commands` wrappers and `mvp_binding` reducer/view-model to represent webview action wiring.
 
 ## M3 — whisper.cpp execution
 

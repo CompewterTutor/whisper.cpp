@@ -25,6 +25,9 @@ The format is based on Keep a Changelog, and the project follows Semantic Versio
 - Added tests for MVP run success/failure and workflow state transitions.
 - Added MVP interaction helpers for model picker, audio picker, start button eligibility, transcript panel text, and error banner text.
 - Added integration test covering select inputs -> run -> render transcript flow.
+- Added Tauri command wrappers for health, capability, path validation, and transcription execution in `src/tauri_commands.rs`.
+- Added MVP webview binding layer (`MvpAction`, `MvpViewModel`, `dispatch_action`) in `src/mvp_binding.rs`.
+- Added tests for command wrapper success paths and reducer-driven interaction flow.
 
 ### Changed
 
