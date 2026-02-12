@@ -1,5 +1,5 @@
-fn app_health() -> &'static str {
-    "ok"
+fn app_health() -> String {
+    frontend_tauri::commands::app_health().status
 }
 
 fn main() {
@@ -12,6 +12,6 @@ mod tests {
 
     #[test]
     fn app_health_is_ok() {
-        assert_eq!(app_health(), "ok");
+        assert_eq!(app_health(), "ok".to_owned());
     }
 }

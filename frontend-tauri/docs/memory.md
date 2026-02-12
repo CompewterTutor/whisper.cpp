@@ -21,6 +21,12 @@
 
 - Completed: repository skim and frontend planning initialization.
 - Completed: M0 baseline implementation (README, task aliases, CI workflow, smoke test).
+- Completed: M1 backend shell implementation:
+	- typed contracts in `src/contracts.rs`
+	- error mapping in `src/errors.rs`
+	- config persistence in `src/config.rs`
+	- model/audio validators in `src/commands.rs`
+	- module export in `src/lib.rs`
 - Validation completed via Cargo commands:
 	- `cargo fmt --check`
 	- `cargo clippy --all-targets --all-features -- -D warnings`
@@ -39,5 +45,5 @@
 
 ### Next immediate action
 
-- Prepare the first M0 commit message proposal and ask user approval before committing.
+- Prepare the M1 commit message proposal and ask user approval before committing.
 

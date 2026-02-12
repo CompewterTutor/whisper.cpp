@@ -17,20 +17,20 @@ Legend: `[ ]` pending, `[~]` in progress, `[x]` done
 - [x] Add minimal CI workflow for frontend checks.
 - [x] Add smoke unit test (`app metadata` / `health`).
 - [x] Run tests: fmt + lint + unit.
-- [ ] Prepare commit message and ask for approval before commit.
+- [x] Prepare commit message and ask for approval before commit.
 
 Notes:
 - `make check` now runs successfully on Windows in this environment.
 
 ## M1 — Backend shell
 
-- [ ] Define typed Tauri command inputs/outputs.
-- [ ] Implement config model and persistence layer.
-- [ ] Implement model path validation command.
-- [ ] Implement audio file validation command.
-- [ ] Add unit tests for each command.
-- [ ] Add error mapping tests.
-- [ ] Run test suite.
+- [x] Define typed Tauri command inputs/outputs.
+- [x] Implement config model and persistence layer.
+- [x] Implement model path validation command.
+- [x] Implement audio file validation command.
+- [x] Add unit tests for each command.
+- [x] Add error mapping tests.
+- [x] Run test suite.
 - [ ] Prepare commit message and ask for approval before commit.
 
 ## M2 — MVP UI

@@ -13,11 +13,18 @@ The format is based on Keep a Changelog, and the project follows Semantic Versio
 - Added `frontend-tauri/Makefile` task aliases for `fmt`, `lint`, `test`, `check`, and `dev`.
 - Added frontend-only CI workflow at `.github/workflows/frontend-tauri-ci.yml`.
 - Added smoke unit test for backend health in `src/main.rs`.
+- Added typed backend contracts for health/capability/model/audio commands in `src/contracts.rs`.
+- Added backend command shell for system capability and path validation in `src/commands.rs`.
+- Added config persistence service in `src/config.rs`.
+- Added typed frontend error mapping (`FrontendError` -> `ApiError`) in `src/errors.rs`.
+- Added backend module export surface in `src/lib.rs`.
+- Added unit tests for config persistence, validators, and error mapping.
 
 ### Changed
 
 - Updated `src/main.rs` from hello-world to a minimal health function with test coverage.
 - Verified Windows workflow supports `make check` for frontend quality gates.
+- Refactored crate layout from bin-only modules to `lib + main` to satisfy strict linting with reusable backend modules.
 
 ### Fixed
 
