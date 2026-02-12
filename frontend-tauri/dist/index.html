@@ -119,6 +119,26 @@
       .hint.neutral {
         color: #9ca3af;
       }
+      .meta {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.5rem;
+        margin-bottom: 0.75rem;
+      }
+      .meta-item {
+        border: 1px solid #374151;
+        background: #111827;
+        border-radius: 0.5rem;
+        padding: 0.5rem 0.6rem;
+      }
+      .meta-label {
+        display: block;
+        font-size: 0.75rem;
+        color: #9ca3af;
+      }
+      .meta-value {
+        font-weight: 600;
+      }
       .settings {
         display: grid;
         gap: 0.6rem;
@@ -177,6 +197,16 @@
 
       <section class="card">
         <label for="transcript">Transcript</label>
+        <div class="meta">
+          <div class="meta-item">
+            <span class="meta-label">Segments</span>
+            <span class="meta-value" id="segmentCount">0</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">Estimated duration</span>
+            <span class="meta-value" id="estimatedDuration">0.0s</span>
+          </div>
+        </div>
         <div class="actions">
           <button id="exportTxtBtn" class="secondary" type="button">Export TXT</button>
           <button id="exportSrtBtn" class="secondary" type="button">Export SRT</button>
@@ -216,6 +246,8 @@
       const audioHintEl = document.getElementById("audioHint");
       const runBtn = document.getElementById("runBtn");
       const openOutputFolderBtn = document.getElementById("openOutputFolderBtn");
+      const segmentCountEl = document.getElementById("segmentCount");
+      const estimatedDurationEl = document.getElementById("estimatedDuration");
       const startInBackgroundToggle = document.getElementById("startInBackgroundToggle");
       const launchOnLoginToggle = document.getElementById("launchOnLoginToggle");
       const backgroundHintEl = document.getElementById("backgroundHint");
@@ -251,6 +283,18 @@
 
       function updateRunAvailability() {
         runBtn.disabled = isRunning || !modelValid || !audioValid;
+      }
+
+      function updateTranscriptMetadata(transcript) {
+        const lines = transcript
+          .split(/\r?\n/)
+          .map((line) => line.trim())
+          .filter(Boolean);
+        const segmentCount = lines.length;
+        const estimatedDurationSeconds = segmentCount * 2;
+
+        segmentCountEl.textContent = String(segmentCount);
+        estimatedDurationEl.textContent = `${estimatedDurationSeconds.toFixed(1)}s`;
       }
 
       function persistState() {
@@ -423,11 +467,13 @@
           });
           latestTranscript = (response.transcript || "").trim();
           transcriptEl.textContent = latestTranscript || "(empty transcript)";
+          updateTranscriptMetadata(latestTranscript);
           const elapsedMs = Date.now() - runStartedAt;
           setStatus(`Transcription completed in ${(elapsedMs / 1000).toFixed(2)}s`, "ok");
         } catch (error) {
           latestTranscript = "";
           transcriptEl.textContent = "(failed)";
+          updateTranscriptMetadata("");
           const elapsedMs = runStartedAt ? Date.now() - runStartedAt : 0;
           if (elapsedMs > 0) {
             setStatus(`Failed after ${(elapsedMs / 1000).toFixed(2)}s`, "error");
@@ -514,6 +560,7 @@
         backgroundHintEl.textContent =
           "Launch on login is saved as preference; OS autostart wiring is next.";
       }
+      updateTranscriptMetadata(latestTranscript);
       updateRunAvailability();
     </script>
   </body>
