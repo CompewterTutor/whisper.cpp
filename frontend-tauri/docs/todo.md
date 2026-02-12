@@ -11,15 +11,21 @@ Legend: `[ ]` pending, `[~]` in progress, `[x]` done
 - [x] Core Rust backend contracts/commands/execution path implemented and tested.
 - [x] Minimal interactive UI shell wired to command invocations.
 - [x] Native model/audio file pickers integrated.
+- [x] Transcript export actions integrated (`txt`, `srt`, `vtt`, `json`).
+- [x] Inline validation and run gating integrated.
+- [x] Open output folder action integrated after export.
+- [x] Last-used model/audio/export context persisted locally.
 
 ## Now — Next feature slice (P1)
 
-- [ ] Add transcript export actions (`txt`, `srt`, `vtt`, `json`) in UI + backend command.
-- [ ] Add clearer run-state panel (idle/running/success/error + elapsed time).
-- [ ] Add inline validation messages next to model/audio fields.
-- [ ] Add "open output folder" action after successful run.
-- [ ] Add tests for export request validation and run-state transitions.
-- [ ] Run `fmt`, `clippy`, `test`, and `build --release`.
+- [x] Add transcript export actions (`txt`, `srt`, `vtt`, `json`) in UI + backend command.
+- [x] Add clearer run-state panel (idle/running/success/error + elapsed time).
+- [x] Add inline validation messages next to model/audio fields.
+- [x] Add "open output folder" action after successful run.
+- [x] Add tests for export request validation and run-state transitions.
+- [x] Run `fmt`, `clippy`, `test`, and `build --release`.
+- [ ] Add transcript metadata summary (line/segment count, estimated duration).
+- [ ] Add explicit recoverable error hints panel for common failures.
 
 ## P1 — Complete single-file transcribe UX
 
@@ -44,6 +50,17 @@ Acceptance criteria:
 - [ ] One-click basic workflow remains unchanged.
 - [ ] Advanced options survive app restart.
 
+## P2.5 — Background mode + global actions foundation
+
+- [ ] Add tray/menu bar app mode with quick actions (open, start/stop, quit).
+- [ ] Add settings toggles: start in background and launch at login.
+- [ ] Add global shortcut registration UI and persistence.
+- [ ] Add conflict detection/rebind UX for shortcuts.
+
+Acceptance criteria:
+- [ ] App can stay running hidden with tray/menu bar control.
+- [ ] At least two global shortcuts are configurable and persisted.
+
 ## P3 — Batch processing + history
 
 - [ ] Add batch queue view with multi-file add/remove/reorder.
@@ -65,6 +82,21 @@ Acceptance criteria:
 Acceptance criteria:
 - [ ] Release build verified on Windows with packaged startup + transcription smoke.
 - [ ] Settings and defaults persist and are reversible.
+
+## P5 — Push-to-talk + output routing
+
+- [ ] Add microphone capture session model (`idle/listening/transcribing/error`).
+- [ ] Add push-to-talk shortcut modes (`hold` and `toggle`).
+- [ ] Add output routing actions:
+	- [ ] capture result to clipboard
+	- [ ] capture result to text file
+	- [ ] emulate typing into focused app (opt-in)
+- [ ] Add tests for capture lifecycle and routing adapters.
+
+Acceptance criteria:
+- [ ] User can trigger a PTT session entirely via global shortcut.
+- [ ] Result can be routed to clipboard or file without opening main window.
+- [ ] Type emulation is explicit opt-in and can be disabled globally.
 
 ## Process checklist (per slice)
 

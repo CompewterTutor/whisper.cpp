@@ -71,6 +71,28 @@ Advanced panel (collapsed by default):
 - Paths: default output directory, model directory.
 - Privacy: local-only statement, optional diagnostics logging toggle.
 
+## 6) `Background Agent` mode (tray/menu bar)
+
+- App can run hidden in background with quick actions.
+- **Windows**: system tray icon menu (`Start/Stop listening`, `Open app`, `Quit`).
+- **macOS**: menu bar status item with equivalent actions.
+- Optional startup behavior: launch hidden at login.
+- Visual indicator for active listening/transcribing state.
+
+## 7) `Global Actions` (hotkeys)
+
+Core global shortcuts:
+- Push-to-talk hold/toggle: start/stop capture + transcription.
+- Capture result to clipboard.
+- Capture result to file (append/new file behavior configurable).
+- Emulate typing into focused app.
+
+Safety/UX controls:
+- Enable/disable each shortcut independently.
+- Shortcut conflict detection and remapping UI.
+- Privacy indicator while microphone capture is active.
+- Confirmation/review mode before type-emulation (optional toggle).
+
 ## Feature inventory (prioritized)
 
 ### Must-have (v0.2-v0.4)
@@ -87,11 +109,14 @@ Advanced panel (collapsed by default):
 - Preset management (save/load/duplicate).
 - History and rerun.
 - Advanced decoding controls.
+- Background tray/menu bar mode.
+- Global hotkeys for clipboard/file capture.
 
 ### Nice-to-have (v0.8+)
 
 - Waveform with segment jump.
-- Hotkeys for core actions.
+- Full push-to-talk workflow with live/near-live capture pipeline.
+- Type-emulation with per-app safety controls.
 - Optional speaker-segmentation integration path.
 - Plugin/extension hooks for post-processing.
 
@@ -100,12 +125,29 @@ Advanced panel (collapsed by default):
 `app`:
 - theme: `system | light | dark`
 - show_timestamps_default: `bool`
+- start_in_background: `bool`
+- launch_on_login: `bool`
 
 `execution`:
 - timeout_ms_default: `u64`
 - thread_count_default: `u16`
 - default_task: `transcribe | translate`
 - language_default: `auto | <lang_code>`
+
+`shortcuts`:
+- ptt_mode: `hold | toggle`
+- ptt_binding: `string`
+- capture_to_clipboard_binding: `string`
+- capture_to_file_binding: `string`
+- type_emulation_binding: `string`
+- shortcuts_enabled: `bool`
+
+`capture`:
+- microphone_device_id: `string | null`
+- auto_copy_to_clipboard: `bool`
+- auto_append_to_file: `bool`
+- default_capture_file: `string | null`
+- confirm_before_typing: `bool`
 
 `io`:
 - default_model_path: `string`
@@ -159,6 +201,37 @@ Goal: make desktop app robust and supportable.
 Tests:
 - Packaged artifact smoke tests.
 - Settings persistence regression tests.
+
+### P5 — Background mode + global shortcuts
+
+Goal: make transcription available system-wide without keeping the main window open.
+- Add tray/menu bar presence and stateful quick actions.
+- Add global shortcut registration and conflict-safe configuration.
+- Add output routing actions: clipboard, file, type-emulation.
+
+Tests:
+- Shortcut registration lifecycle tests (register/unregister/rebind).
+- Output routing tests (clipboard/file/type adapters mocked).
+- Background startup and tray/menu action smoke tests.
+
+### P6 — Push-to-talk audio capture pipeline
+
+Goal: capture microphone input directly and transcribe on hotkey-driven sessions.
+- Add microphone device selection and capture lifecycle.
+- Buffer and segment captured audio for transcription.
+- Integrate capture session with existing execution + result routing.
+
+Tests:
+- Capture state machine tests (`idle/listening/transcribing/error`).
+- Adapter tests for audio buffering/encoding boundaries.
+- End-to-end PTT smoke test behind feature flag.
+
+## Feasibility and constraints
+
+- **Feasible in Tauri**: tray/menu bar, global shortcuts, clipboard/file actions are standard desktop capabilities.
+- **Typing emulation** is feasible but platform-sensitive and should be behind explicit opt-in.
+- **Push-to-talk** is feasible but requires a new mic capture pipeline (currently app is file-based transcription).
+- Security/permissions and clear user affordances are required (especially mic access on macOS and global input behavior).
 
 ## Definition of done (per feature slice)
 
