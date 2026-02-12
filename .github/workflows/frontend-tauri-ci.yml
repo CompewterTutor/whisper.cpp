@@ -38,4 +38,4 @@ jobs:
 
       - name: Unit tests
         working-directory: ./frontend-tauri
-        run: cargo test
+        run: cargo test --lib

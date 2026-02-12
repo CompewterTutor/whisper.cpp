@@ -35,6 +35,7 @@
 	- integration sequence test for select inputs -> run -> render transcript
 	- tauri command wrappers in `src/tauri_commands.rs`
 	- webview reducer/view-model binding in `src/mvp_binding.rs`
+	- command registration wiring in `src/main.rs`
 - In progress: M3 whisper execution bridge (initial service slice):
 	- `execution` module with CLI runner abstraction and process runner
 	- whisper-cli arg builder and stdout parser
@@ -47,7 +48,7 @@
 - Validation completed via Cargo commands:
 	- `cargo fmt --check`
 	- `cargo clippy --all-targets --all-features -- -D warnings`
-	- `cargo test`
+	- `cargo test --lib`
 - Validation also completed via Makefile alias:
 	- `make check`
 - Latest test count: 31 passing tests (30 lib + 1 main), plus 1 ignored real smoke test behind feature flag.
@@ -63,5 +64,5 @@
 
 ### Next immediate action
 
-- Wire Tauri command registration in `main.rs` so implemented commands are app-ready.
+- Prepare M4 release-readiness docs (release checklist + version bump flow) and update CI documentation.
 

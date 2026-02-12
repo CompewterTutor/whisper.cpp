@@ -21,7 +21,7 @@ From `frontend-tauri/`:
 
 - `make fmt` - format check
 - `make lint` - clippy warnings as errors
-- `make test` - run unit tests
+- `make test` - run library unit tests
 - `make check` - run all local quality checks
 - `make dev` - run app locally
 
@@ -29,7 +29,7 @@ Direct cargo equivalents:
 
 - `cargo fmt --check`
 - `cargo clippy --all-targets --all-features -- -D warnings`
-- `cargo test`
+- `cargo test --lib`
 - `cargo run`
 
 ## Workflow constraints

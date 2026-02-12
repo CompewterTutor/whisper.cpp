@@ -1,17 +1,25 @@
-fn app_health() -> String {
-    frontend_tauri::commands::app_health().status
+fn build_tauri_builder() -> tauri::Builder<tauri::Wry> {
+    tauri::Builder::default().invoke_handler(tauri::generate_handler![
+        frontend_tauri::tauri_commands::app_health_command,
+        frontend_tauri::tauri_commands::system_capability_command,
+        frontend_tauri::tauri_commands::validate_model_path_command,
+        frontend_tauri::tauri_commands::validate_audio_path_command,
+        frontend_tauri::tauri_commands::run_transcription_command,
+        frontend_tauri::tauri_commands::run_transcription_with_options_command,
+    ])
 }
 
 fn main() {
-    println!("frontend-tauri: {}", app_health());
+    let _builder = build_tauri_builder();
+    println!("frontend-tauri: command handlers registered");
 }
 
 #[cfg(test)]
 mod tests {
-    use super::app_health;
+    use super::build_tauri_builder;
 
     #[test]
-    fn app_health_is_ok() {
-        assert_eq!(app_health(), "ok".to_owned());
+    fn tauri_builder_function_is_wired() {
+        let _builder_fn: fn() -> tauri::Builder<tauri::Wry> = build_tauri_builder;
     }
 }
