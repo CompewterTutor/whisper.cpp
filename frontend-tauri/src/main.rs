@@ -10,8 +10,9 @@ fn build_tauri_builder() -> tauri::Builder<tauri::Wry> {
 }
 
 fn main() {
-    let _builder = build_tauri_builder();
-    println!("frontend-tauri: command handlers registered");
+    build_tauri_builder()
+        .run(tauri::generate_context!())
+        .expect("failed to run frontend-tauri");
 }
 
 #[cfg(test)]

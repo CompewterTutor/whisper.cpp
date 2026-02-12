@@ -3,6 +3,9 @@
   "productName": "frontend-tauri",
   "version": "0.1.0",
   "identifier": "org.ggml.frontendtauri",
+  "build": {
+    "frontendDist": "dist"
+  },
   "app": {
     "windows": [
       {
