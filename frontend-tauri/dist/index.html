@@ -152,6 +152,10 @@
         width: auto;
         margin: 0;
       }
+      .shortcuts-grid {
+        display: grid;
+        gap: 0.6rem;
+      }
     </style>
   </head>
   <body>
@@ -235,6 +239,35 @@
           </p>
         </div>
       </section>
+
+      <section class="card">
+        <label>Global shortcuts (scaffold)</label>
+        <div class="shortcuts-grid">
+          <label class="toggle">
+            <input id="shortcutsEnabledToggle" type="checkbox" />
+            <span>Enable global shortcuts</span>
+          </label>
+          <div class="field">
+            <label for="pttShortcut">Push-to-talk shortcut</label>
+            <input id="pttShortcut" placeholder="Ctrl+Shift+Space" />
+          </div>
+          <div class="field">
+            <label for="typeShortcut">Type emulation shortcut</label>
+            <input id="typeShortcut" placeholder="Ctrl+Shift+T" />
+          </div>
+          <div class="field">
+            <label for="clipboardShortcut">Capture-to-clipboard shortcut</label>
+            <input id="clipboardShortcut" placeholder="Ctrl+Shift+C" />
+          </div>
+          <div class="field">
+            <label for="fileShortcut">Capture-to-file shortcut</label>
+            <input id="fileShortcut" placeholder="Ctrl+Shift+F" />
+          </div>
+          <p class="hint neutral" id="shortcutsHint">
+            Shortcut registration wiring is next. These bindings are saved now.
+          </p>
+        </div>
+      </section>
     </main>
 
     <script>
@@ -251,12 +284,23 @@
       const startInBackgroundToggle = document.getElementById("startInBackgroundToggle");
       const launchOnLoginToggle = document.getElementById("launchOnLoginToggle");
       const backgroundHintEl = document.getElementById("backgroundHint");
+      const shortcutsEnabledToggle = document.getElementById("shortcutsEnabledToggle");
+      const pttShortcutEl = document.getElementById("pttShortcut");
+      const typeShortcutEl = document.getElementById("typeShortcut");
+      const clipboardShortcutEl = document.getElementById("clipboardShortcut");
+      const fileShortcutEl = document.getElementById("fileShortcut");
+      const shortcutsHintEl = document.getElementById("shortcutsHint");
       const STORAGE_KEYS = {
         modelPath: "frontend-tauri.modelPath",
         audioPath: "frontend-tauri.audioPath",
         exportPath: "frontend-tauri.lastExportPath",
         startInBackground: "frontend-tauri.startInBackground",
         launchOnLogin: "frontend-tauri.launchOnLogin",
+        shortcutsEnabled: "frontend-tauri.shortcutsEnabled",
+        pttShortcut: "frontend-tauri.shortcuts.ptt",
+        typeShortcut: "frontend-tauri.shortcuts.type",
+        clipboardShortcut: "frontend-tauri.shortcuts.clipboard",
+        fileShortcut: "frontend-tauri.shortcuts.file",
       };
       let latestTranscript = "";
       let latestExportPath = "";
@@ -309,6 +353,14 @@
           STORAGE_KEYS.launchOnLogin,
           launchOnLoginToggle.checked ? "true" : "false"
         );
+        localStorage.setItem(
+          STORAGE_KEYS.shortcutsEnabled,
+          shortcutsEnabledToggle.checked ? "true" : "false"
+        );
+        localStorage.setItem(STORAGE_KEYS.pttShortcut, pttShortcutEl.value.trim());
+        localStorage.setItem(STORAGE_KEYS.typeShortcut, typeShortcutEl.value.trim());
+        localStorage.setItem(STORAGE_KEYS.clipboardShortcut, clipboardShortcutEl.value.trim());
+        localStorage.setItem(STORAGE_KEYS.fileShortcut, fileShortcutEl.value.trim());
       }
 
       function restoreState() {
@@ -319,6 +371,8 @@
           localStorage.getItem(STORAGE_KEYS.startInBackground) === "true";
         const restoredLaunchOnLogin =
           localStorage.getItem(STORAGE_KEYS.launchOnLogin) === "true";
+        const restoredShortcutsEnabled =
+          localStorage.getItem(STORAGE_KEYS.shortcutsEnabled) === "true";
 
         if (restoredModelPath) {
           modelPathEl.value = restoredModelPath;
@@ -332,6 +386,15 @@
         openOutputFolderBtn.disabled = !latestExportPath;
         startInBackgroundToggle.checked = restoredStartInBackground;
         launchOnLoginToggle.checked = restoredLaunchOnLogin;
+        shortcutsEnabledToggle.checked = restoredShortcutsEnabled;
+        pttShortcutEl.value =
+          localStorage.getItem(STORAGE_KEYS.pttShortcut) || "Ctrl+Shift+Space";
+        typeShortcutEl.value =
+          localStorage.getItem(STORAGE_KEYS.typeShortcut) || "Ctrl+Shift+T";
+        clipboardShortcutEl.value =
+          localStorage.getItem(STORAGE_KEYS.clipboardShortcut) || "Ctrl+Shift+C";
+        fileShortcutEl.value =
+          localStorage.getItem(STORAGE_KEYS.fileShortcut) || "Ctrl+Shift+F";
       }
 
       function resetModelValidationHint() {
@@ -549,6 +612,21 @@
         setStatus("Launch-on-login preference updated (scaffold).", "ok");
       });
 
+      shortcutsEnabledToggle.addEventListener("change", () => {
+        persistState();
+        shortcutsHintEl.textContent = shortcutsEnabledToggle.checked
+          ? "Global shortcuts enabled in preferences. Registration wiring is next."
+          : "Global shortcuts disabled in preferences.";
+        setStatus("Global shortcut preference updated (scaffold).", "ok");
+      });
+
+      [pttShortcutEl, typeShortcutEl, clipboardShortcutEl, fileShortcutEl].forEach((element) => {
+        element.addEventListener("change", () => {
+          persistState();
+          setStatus("Shortcut binding saved (scaffold).", "ok");
+        });
+      });
+
       restoreState();
       if (modelPathEl.value.trim()) {
         validateModelPath();
@@ -559,6 +637,10 @@
       if (launchOnLoginToggle.checked) {
         backgroundHintEl.textContent =
           "Launch on login is saved as preference; OS autostart wiring is next.";
+      }
+      if (shortcutsEnabledToggle.checked) {
+        shortcutsHintEl.textContent =
+          "Global shortcuts enabled in preferences. Registration wiring is next.";
       }
       updateTranscriptMetadata(latestTranscript);
       updateRunAvailability();
