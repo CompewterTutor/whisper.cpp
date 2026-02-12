@@ -105,6 +105,20 @@
         flex-wrap: wrap;
         margin-bottom: 0.75rem;
       }
+      .hint {
+        min-height: 1.1rem;
+        font-size: 0.85rem;
+        opacity: 0.9;
+      }
+      .hint.ok {
+        color: #86efac;
+      }
+      .hint.error {
+        color: #fca5a5;
+      }
+      .hint.neutral {
+        color: #9ca3af;
+      }
     </style>
   </head>
   <body>
@@ -117,6 +131,7 @@
           <div class="field">
             <label for="modelPath">Model path (.bin)</label>
             <input id="modelPath" placeholder="C:\\models\\ggml-base.en.bin" />
+            <p id="modelHint" class="hint neutral">Model not validated yet.</p>
           </div>
           <div>
             <button id="pickModelBtn" class="secondary" type="button">Browse...</button>
@@ -130,6 +145,7 @@
           <div class="field">
             <label for="audioPath">Audio path (.wav, .mp3, .flac, .ogg, .m4a)</label>
             <input id="audioPath" placeholder="C:\\samples\\jfk.wav" />
+            <p id="audioHint" class="hint neutral">Audio not validated yet.</p>
           </div>
           <div>
             <button id="pickAudioBtn" class="secondary" type="button">Browse...</button>
@@ -163,9 +179,14 @@
       const transcriptEl = document.getElementById("transcript");
       const modelPathEl = document.getElementById("modelPath");
       const audioPathEl = document.getElementById("audioPath");
+      const modelHintEl = document.getElementById("modelHint");
+      const audioHintEl = document.getElementById("audioHint");
       const runBtn = document.getElementById("runBtn");
       let latestTranscript = "";
       let runStartedAt = null;
+      let isRunning = false;
+      let modelValid = false;
+      let audioValid = false;
 
       function setStatus(message, kind = "") {
         statusEl.textContent = message;
@@ -176,6 +197,27 @@
         const code = error?.code ? `[${error.code}] ` : "";
         const message = error?.message || String(error);
         setStatus(`${prefix}: ${code}${message}`, "error");
+      }
+
+      function setHint(element, message, kind) {
+        element.textContent = message;
+        element.className = `hint ${kind}`;
+      }
+
+      function updateRunAvailability() {
+        runBtn.disabled = isRunning || !modelValid || !audioValid;
+      }
+
+      function resetModelValidationHint() {
+        modelValid = false;
+        setHint(modelHintEl, "Model not validated yet.", "neutral");
+        updateRunAvailability();
+      }
+
+      function resetAudioValidationHint() {
+        audioValid = false;
+        setHint(audioHintEl, "Audio not validated yet.", "neutral");
+        updateRunAvailability();
       }
 
       function requireTranscript() {
@@ -208,6 +250,48 @@
         return tauriInvoke(command, args);
       }
 
+      async function validateModelPath() {
+        setStatus("Validating model path...");
+        try {
+          const response = await invoke("validate_model_path_command", {
+            path: modelPathEl.value,
+          });
+          modelValid = true;
+          setHint(modelHintEl, `Valid model: ${response.normalized_path}`, "ok");
+          setStatus("Model validation succeeded.", "ok");
+          updateRunAvailability();
+          return true;
+        } catch (error) {
+          modelValid = false;
+          const message = error?.message || "Model path is invalid.";
+          setHint(modelHintEl, message, "error");
+          showError("Model validation failed", error);
+          updateRunAvailability();
+          return false;
+        }
+      }
+
+      async function validateAudioPath() {
+        setStatus("Validating audio path...");
+        try {
+          const response = await invoke("validate_audio_path_command", {
+            path: audioPathEl.value,
+          });
+          audioValid = true;
+          setHint(audioHintEl, `Valid audio: ${response.normalized_path}`, "ok");
+          setStatus("Audio validation succeeded.", "ok");
+          updateRunAvailability();
+          return true;
+        } catch (error) {
+          audioValid = false;
+          const message = error?.message || "Audio path is invalid.";
+          setHint(audioHintEl, message, "error");
+          showError("Audio validation failed", error);
+          updateRunAvailability();
+          return false;
+        }
+      }
+
       document.getElementById("healthBtn").addEventListener("click", async () => {
         setStatus("Checking app health...");
         try {
@@ -220,34 +304,25 @@
 
       document
         .getElementById("validateModelBtn")
-        .addEventListener("click", async () => {
-          setStatus("Validating model path...");
-          try {
-            const response = await invoke("validate_model_path_command", {
-              path: modelPathEl.value,
-            });
-            setStatus(`Model valid: ${response.normalized_path}`, "ok");
-          } catch (error) {
-            showError("Model validation failed", error);
-          }
-        });
+        .addEventListener("click", validateModelPath);
 
       document
         .getElementById("validateAudioBtn")
-        .addEventListener("click", async () => {
-          setStatus("Validating audio path...");
-          try {
-            const response = await invoke("validate_audio_path_command", {
-              path: audioPathEl.value,
-            });
-            setStatus(`Audio valid: ${response.normalized_path}`, "ok");
-          } catch (error) {
-            showError("Audio validation failed", error);
-          }
-        });
+        .addEventListener("click", validateAudioPath);
+
+      modelPathEl.addEventListener("input", resetModelValidationHint);
+      audioPathEl.addEventListener("input", resetAudioValidationHint);
 
       runBtn.addEventListener("click", async () => {
-        runBtn.disabled = true;
+        const isModelOk = await validateModelPath();
+        const isAudioOk = await validateAudioPath();
+        if (!isModelOk || !isAudioOk) {
+          setStatus("Fix validation errors before running transcription.", "error");
+          return;
+        }
+
+        isRunning = true;
+        updateRunAvailability();
         runStartedAt = Date.now();
         setStatus("Running transcription...", "");
         transcriptEl.textContent = "(running)";
@@ -271,7 +346,8 @@
           showError("Transcription failed", error);
         } finally {
           runStartedAt = null;
-          runBtn.disabled = false;
+          isRunning = false;
+          updateRunAvailability();
         }
       });
 
@@ -281,6 +357,7 @@
           const selectedPath = await invoke("pick_model_path_command");
           modelPathEl.value = selectedPath;
           setStatus("Model file selected", "ok");
+          await validateModelPath();
         } catch (error) {
           showError("Model selection failed", error);
         }
@@ -292,6 +369,7 @@
           const selectedPath = await invoke("pick_audio_path_command");
           audioPathEl.value = selectedPath;
           setStatus("Audio file selected", "ok");
+          await validateAudioPath();
         } catch (error) {
           showError("Audio selection failed", error);
         }
@@ -301,6 +379,8 @@
       document.getElementById("exportSrtBtn").addEventListener("click", () => exportTranscript("srt"));
       document.getElementById("exportVttBtn").addEventListener("click", () => exportTranscript("vtt"));
       document.getElementById("exportJsonBtn").addEventListener("click", () => exportTranscript("json"));
+
+      updateRunAvailability();
     </script>
   </body>
 </html>
