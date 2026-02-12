@@ -31,12 +31,15 @@
 	- run command contract and placeholder transcript flow in `src/commands.rs`
 	- transcription run request/response types in `src/contracts.rs`
 	- UI workflow state model with loading/success/error transitions in `src/ui_state.rs`
+	- interaction helpers for model/audio pickers, start availability, transcript panel, and error banner in `src/ui_state.rs`
+	- integration sequence test for select inputs -> run -> render transcript
 - Validation completed via Cargo commands:
 	- `cargo fmt --check`
 	- `cargo clippy --all-targets --all-features -- -D warnings`
 	- `cargo test`
 - Validation also completed via Makefile alias:
 	- `make check`
+- Latest test count: 18 passing tests (17 lib + 1 main).
 - Created/updated planning docs:
 	- `frontend-tauri/docs/plan.md`
 	- `frontend-tauri/docs/todo.md`
@@ -49,5 +52,5 @@
 
 ### Next immediate action
 
-- Build the actual M2 UI layer (model/audio pickers + transcript panel) and bind it to the new run workflow.
+- Add concrete Tauri command wrappers and frontend binding path (JS/webview layer) for the existing MVP workflow model.
 

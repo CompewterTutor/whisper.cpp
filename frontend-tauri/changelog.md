@@ -23,6 +23,8 @@ The format is based on Keep a Changelog, and the project follows Semantic Versio
 - Added `run_transcription_mvp` workflow command in `src/commands.rs`.
 - Added `MvpUiState` workflow model with loading/success/error transitions in `src/ui_state.rs`.
 - Added tests for MVP run success/failure and workflow state transitions.
+- Added MVP interaction helpers for model picker, audio picker, start button eligibility, transcript panel text, and error banner text.
+- Added integration test covering select inputs -> run -> render transcript flow.
 
 ### Changed
 

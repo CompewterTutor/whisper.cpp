@@ -32,6 +32,38 @@ impl Default for MvpUiState {
 }
 
 impl MvpUiState {
+    pub fn set_model_path(&mut self, path: impl Into<String>) {
+        self.model_path = path.into();
+        if matches!(self.state, UiWorkflowState::Error) {
+            self.state = UiWorkflowState::Idle;
+            self.error = None;
+        }
+    }
+
+    pub fn set_audio_path(&mut self, path: impl Into<String>) {
+        self.audio_path = path.into();
+        if matches!(self.state, UiWorkflowState::Error) {
+            self.state = UiWorkflowState::Idle;
+            self.error = None;
+        }
+    }
+
+    pub fn can_start_transcription(&self) -> bool {
+        !self.model_path.trim().is_empty() && !self.audio_path.trim().is_empty()
+    }
+
+    pub fn transcript_panel_text(&self) -> &str {
+        if self.transcript.is_empty() {
+            "Transcript output will appear here."
+        } else {
+            &self.transcript
+        }
+    }
+
+    pub fn error_banner_text(&self) -> Option<&str> {
+        self.error.as_ref().map(|value| value.message.as_str())
+    }
+
     pub fn run_with<Runner>(&mut self, runner: Runner)
     where
         Runner: FnOnce(RunTranscriptionRequest) -> CommandResult<RunTranscriptionResponse>,
@@ -117,5 +149,50 @@ mod tests {
             Some("missing_path")
         );
         assert!(state.transcript.is_empty());
+    }
+
+    #[test]
+    fn pickers_enable_start_only_when_both_paths_present() {
+        let mut state = MvpUiState::default();
+        assert!(!state.can_start_transcription());
+
+        state.set_model_path("models/ggml-base.en.bin");
+        assert!(!state.can_start_transcription());
+
+        state.set_audio_path("samples/jfk.wav");
+        assert!(state.can_start_transcription());
+    }
+
+    #[test]
+    fn transcript_panel_returns_placeholder_when_empty() {
+        let state = MvpUiState::default();
+        assert_eq!(
+            state.transcript_panel_text(),
+            "Transcript output will appear here."
+        );
+    }
+
+    #[test]
+    fn integration_select_inputs_run_and_render_transcript() {
+        let model_path = unique_path("bin");
+        let audio_path = unique_path("wav");
+        fs::write(&model_path, b"model").expect("should write temp model file");
+        fs::write(&audio_path, b"audio").expect("should write temp audio file");
+
+        let mut state = MvpUiState::default();
+        state.set_model_path(model_path.display().to_string());
+        state.set_audio_path(audio_path.display().to_string());
+
+        assert!(state.can_start_transcription());
+
+        state.run_with(run_transcription_mvp);
+
+        assert_eq!(state.state, UiWorkflowState::Success);
+        assert!(state.error_banner_text().is_none());
+        assert!(
+            state
+                .transcript_panel_text()
+                .contains("MVP transcript placeholder")
+        );
     }
 }

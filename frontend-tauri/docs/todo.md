@@ -35,18 +35,18 @@ Notes:
 
 ## M2 — MVP UI
 
-- [ ] Add model picker UI.
-- [ ] Add audio picker UI.
-- [ ] Add transcript output panel.
-- [~] Add loading/success/error states.
-- [~] Wire UI to backend commands.
-- [ ] Add component tests for core states.
-- [ ] Add integration test for end-to-end UI flow (mock backend).
+- [~] Add model picker UI.
+- [~] Add audio picker UI.
+- [~] Add transcript output panel.
+- [x] Add loading/success/error states.
+- [x] Wire UI to backend commands.
+- [x] Add component tests for core states.
+- [x] Add integration test for end-to-end UI flow (mock backend).
 - [x] Run test suite.
 - [ ] Prepare commit message and ask for approval before commit.
 
 Notes:
-- M2 bootstrap complete on backend side: added `run_transcription_mvp` command contract and a `ui_state` workflow model with success/error transition tests.
+- M2 interaction layer expanded in `ui_state` with model/audio picker setters, start-button eligibility, transcript panel rendering text, and error banner text.
 
 ## M3 — whisper.cpp execution
 
