@@ -67,4 +67,8 @@ local.properties
 
 # Rust / Tauri
 /frontend-tauri/target/
+/frontend-tauri/gen/
 **/*.rs.bk
+
+# Java binding generated binaries
+/bindings/java/bin/
