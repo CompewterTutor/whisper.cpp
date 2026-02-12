@@ -186,6 +186,11 @@
       const audioHintEl = document.getElementById("audioHint");
       const runBtn = document.getElementById("runBtn");
       const openOutputFolderBtn = document.getElementById("openOutputFolderBtn");
+      const STORAGE_KEYS = {
+        modelPath: "frontend-tauri.modelPath",
+        audioPath: "frontend-tauri.audioPath",
+        exportPath: "frontend-tauri.lastExportPath",
+      };
       let latestTranscript = "";
       let latestExportPath = "";
       let runStartedAt = null;
@@ -213,15 +218,40 @@
         runBtn.disabled = isRunning || !modelValid || !audioValid;
       }
 
+      function persistState() {
+        localStorage.setItem(STORAGE_KEYS.modelPath, modelPathEl.value.trim());
+        localStorage.setItem(STORAGE_KEYS.audioPath, audioPathEl.value.trim());
+        localStorage.setItem(STORAGE_KEYS.exportPath, latestExportPath);
+      }
+
+      function restoreState() {
+        const restoredModelPath = localStorage.getItem(STORAGE_KEYS.modelPath) || "";
+        const restoredAudioPath = localStorage.getItem(STORAGE_KEYS.audioPath) || "";
+        const restoredExportPath = localStorage.getItem(STORAGE_KEYS.exportPath) || "";
+
+        if (restoredModelPath) {
+          modelPathEl.value = restoredModelPath;
+        }
+
+        if (restoredAudioPath) {
+          audioPathEl.value = restoredAudioPath;
+        }
+
+        latestExportPath = restoredExportPath;
+        openOutputFolderBtn.disabled = !latestExportPath;
+      }
+
       function resetModelValidationHint() {
         modelValid = false;
         setHint(modelHintEl, "Model not validated yet.", "neutral");
+        persistState();
         updateRunAvailability();
       }
 
       function resetAudioValidationHint() {
         audioValid = false;
         setHint(audioHintEl, "Audio not validated yet.", "neutral");
+        persistState();
         updateRunAvailability();
       }
 
@@ -243,6 +273,7 @@
           });
           latestExportPath = savedPath;
           openOutputFolderBtn.disabled = false;
+          persistState();
           setStatus(`Exported ${format.toUpperCase()} to ${savedPath}`, "ok");
         } catch (error) {
           showError(`Export ${format.toUpperCase()} failed`, error);
@@ -265,6 +296,7 @@
           });
           modelValid = true;
           setHint(modelHintEl, `Valid model: ${response.normalized_path}`, "ok");
+          persistState();
           setStatus("Model validation succeeded.", "ok");
           updateRunAvailability();
           return true;
@@ -286,6 +318,7 @@
           });
           audioValid = true;
           setHint(audioHintEl, `Valid audio: ${response.normalized_path}`, "ok");
+          persistState();
           setStatus("Audio validation succeeded.", "ok");
           updateRunAvailability();
           return true;
@@ -403,6 +436,13 @@
         }
       });
 
+      restoreState();
+      if (modelPathEl.value.trim()) {
+        validateModelPath();
+      }
+      if (audioPathEl.value.trim()) {
+        validateAudioPath();
+      }
       updateRunAvailability();
     </script>
   </body>
