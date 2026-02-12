@@ -28,12 +28,16 @@ The format is based on Keep a Changelog, and the project follows Semantic Versio
 - Added Tauri command wrappers for health, capability, path validation, and transcription execution in `src/tauri_commands.rs`.
 - Added MVP webview binding layer (`MvpAction`, `MvpViewModel`, `dispatch_action`) in `src/mvp_binding.rs`.
 - Added tests for command wrapper success paths and reducer-driven interaction flow.
+- Added `execution` service module with `CliRunner` abstraction and `ProcessCliRunner` implementation.
+- Added whisper-cli argument builder and stdout transcript parser utilities.
+- Added mocked-runner integration tests for command execution and transcript parsing.
 
 ### Changed
 
 - Updated `src/main.rs` from hello-world to a minimal health function with test coverage.
 - Verified Windows workflow supports `make check` for frontend quality gates.
 - Refactored crate layout from bin-only modules to `lib + main` to satisfy strict linting with reusable backend modules.
+- Updated MVP transcription path to reuse shared transcript parsing logic from `execution` service.
 
 ### Fixed
 

@@ -35,13 +35,18 @@
 	- integration sequence test for select inputs -> run -> render transcript
 	- tauri command wrappers in `src/tauri_commands.rs`
 	- webview reducer/view-model binding in `src/mvp_binding.rs`
+- In progress: M3 whisper execution bridge (initial service slice):
+	- `execution` module with CLI runner abstraction and process runner
+	- whisper-cli arg builder and stdout parser
+	- mocked runner integration tests
+	- parser integration used in `run_transcription_mvp`
 - Validation completed via Cargo commands:
 	- `cargo fmt --check`
 	- `cargo clippy --all-targets --all-features -- -D warnings`
 	- `cargo test`
 - Validation also completed via Makefile alias:
 	- `make check`
-- Latest test count: 25 passing tests (24 lib + 1 main).
+- Latest test count: 28 passing tests (27 lib + 1 main).
 - Created/updated planning docs:
 	- `frontend-tauri/docs/plan.md`
 	- `frontend-tauri/docs/todo.md`
@@ -54,5 +59,5 @@
 
 ### Next immediate action
 
-- Add executable Tauri app wiring in `main.rs` with command registration and preserve testability.
+- Add cancellation/timeout support to `execution` runner and expose timeout-aware command path.
 

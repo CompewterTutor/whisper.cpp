@@ -51,15 +51,18 @@ Notes:
 
 ## M3 — whisper.cpp execution
 
-- [ ] Implement `whisper-cli` invocation service.
-- [ ] Implement argument builder with validation.
-- [ ] Implement stdout/stderr parser into transcript model.
+- [x] Implement `whisper-cli` invocation service.
+- [x] Implement argument builder with validation.
+- [x] Implement stdout/stderr parser into transcript model.
 - [ ] Add cancellation/timeout handling.
-- [ ] Add unit tests for arg builder and parser.
-- [ ] Add mocked process integration tests.
+- [x] Add unit tests for arg builder and parser.
+- [x] Add mocked process integration tests.
 - [ ] Add optional real sample smoke test.
-- [ ] Run test suite.
+- [x] Run test suite.
 - [ ] Prepare commit message and ask for approval before commit.
+
+Notes:
+- Added new `execution` service with `CliRunner` abstraction, `ProcessCliRunner`, CLI arg builder, stdout transcript parser, and mocked-runner tests.
 
 ## M4 — Release readiness
 

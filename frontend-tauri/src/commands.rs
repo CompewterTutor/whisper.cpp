@@ -4,6 +4,7 @@ use crate::contracts::{
     RunTranscriptionResponse, SystemCapabilityResponse, TranscriptionRunStatus,
 };
 use crate::errors::{ApiError, FrontendError};
+use crate::execution::parse_whisper_cli_stdout;
 use std::path::{Path, PathBuf};
 
 pub type CommandResult<T> = Result<T, ApiError>;
@@ -72,7 +73,9 @@ pub fn run_transcription_mvp(
 
     Ok(RunTranscriptionResponse {
         status: TranscriptionRunStatus::Success,
-        transcript: format!("MVP transcript placeholder for {audio_name} with model {model_name}"),
+        transcript: parse_whisper_cli_stdout(&format!(
+            "[00:00.000 --> 00:01.000]  MVP transcript placeholder for {audio_name} with model {model_name}"
+        )),
     })
 }
 
