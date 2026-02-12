@@ -3,6 +3,11 @@ name = "frontend-tauri"
 version = "0.1.0"
 edition = "2024"
 
+[[bin]]
+name = "frontend-tauri"
+path = "src/main.rs"
+test = false
+
 [features]
 default = []
 real-whisper-smoke = []

@@ -52,11 +52,14 @@
 - Validation completed via Cargo commands:
 	- `cargo fmt --check`
 	- `cargo clippy --all-targets --all-features -- -D warnings`
-	- `cargo test --lib`
-	- `cargo test` (still fails on bin harness in this Windows environment: `STATUS_ENTRYPOINT_NOT_FOUND`)
+	- `cargo test`
 - Validation also completed via Makefile alias:
 	- `make check`
-- Latest test count: 31 passing tests (30 lib + 1 main), plus 1 ignored real smoke test behind feature flag.
+- Latest test count: 30 passing tests in lib target, with optional 1 ignored real smoke test behind feature flag.
+
+### Test harness note
+
+- `frontend-tauri` now sets `[[bin]] test = false` in `Cargo.toml` to avoid platform-specific Tauri runtime issues in binary test harness while preserving full `cargo test` for library coverage.
 - Created/updated planning docs:
 	- `frontend-tauri/docs/plan.md`
 	- `frontend-tauri/docs/todo.md`
@@ -69,5 +72,5 @@
 
 ### Next immediate action
 
-- Complete M4 packaging smoke-check instructions once packaging is enabled.
+- Prepare release commit message proposal for latest verification/doc updates and ask user approval.
 

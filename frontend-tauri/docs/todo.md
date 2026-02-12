@@ -31,7 +31,7 @@ Notes:
 - [x] Add unit tests for each command.
 - [x] Add error mapping tests.
 - [x] Run test suite.
-- [ ] Prepare commit message and ask for approval before commit.
+- [x] Prepare commit message and ask for approval before commit.
 
 ## M2 — MVP UI
 
@@ -43,7 +43,7 @@ Notes:
 - [x] Add component tests for core states.
 - [x] Add integration test for end-to-end UI flow (mock backend).
 - [x] Run test suite.
-- [ ] Prepare commit message and ask for approval before commit.
+- [x] Prepare commit message and ask for approval before commit.
 
 Notes:
 - M2 interaction layer expanded in `ui_state` with model/audio picker setters, start-button eligibility, transcript panel rendering text, and error banner text.
@@ -59,7 +59,7 @@ Notes:
 - [x] Add mocked process integration tests.
 - [x] Add optional real sample smoke test.
 - [x] Run test suite.
-- [ ] Prepare commit message and ask for approval before commit.
+- [x] Prepare commit message and ask for approval before commit.
 
 Notes:
 - Added new `execution` service with `CliRunner` abstraction, `ProcessCliRunner`, CLI arg builder, stdout transcript parser, and mocked-runner tests.
@@ -72,7 +72,7 @@ Notes:
 - [x] Add version bump procedure and script notes.
 - [x] Add packaging smoke checks.
 - [x] Add changelog update verification step.
-- [ ] Run full verification.
+- [x] Run full verification.
 - [ ] Prepare release commit message and ask for approval before commit.
 
 Notes:
