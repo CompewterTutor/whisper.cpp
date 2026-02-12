@@ -291,4 +291,43 @@ system_info: n_threads = 8
 
         assert!(matches!(error, FrontendError::ExecutionCancelled));
     }
+
+    #[cfg(feature = "real-whisper-smoke")]
+    #[test]
+    #[ignore = "runs real whisper-cli and requires explicit environment setup"]
+    fn real_whisper_cli_smoke_test() {
+        use super::ProcessCliRunner;
+        use std::env;
+
+        let cli_path = match env::var("WHISPER_CLI_PATH") {
+            Ok(value) => value,
+            Err(_) => return,
+        };
+        let model_path = match env::var("WHISPER_MODEL_PATH") {
+            Ok(value) => value,
+            Err(_) => return,
+        };
+        let audio_path = match env::var("WHISPER_AUDIO_PATH") {
+            Ok(value) => value,
+            Err(_) => return,
+        };
+
+        let request = WhisperCliRequest {
+            model_path: PathBuf::from(model_path),
+            audio_path: PathBuf::from(audio_path),
+        };
+
+        let output = run_with_runner(
+            Path::new(&cli_path),
+            &request,
+            &ProcessCliRunner,
+            CliRunOptions {
+                timeout_ms: Some(120_000),
+                cancel_requested: false,
+            },
+        )
+        .expect("real whisper-cli smoke run should succeed");
+
+        assert!(!output.raw_stdout.trim().is_empty());
+    }
 }

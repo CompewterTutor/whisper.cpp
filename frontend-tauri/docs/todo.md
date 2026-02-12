@@ -57,13 +57,14 @@ Notes:
 - [x] Add cancellation/timeout handling.
 - [x] Add unit tests for arg builder and parser.
 - [x] Add mocked process integration tests.
-- [ ] Add optional real sample smoke test.
+- [x] Add optional real sample smoke test.
 - [x] Run test suite.
 - [ ] Prepare commit message and ask for approval before commit.
 
 Notes:
 - Added new `execution` service with `CliRunner` abstraction, `ProcessCliRunner`, CLI arg builder, stdout transcript parser, and mocked-runner tests.
 - Added timeout/cancel control path via `RunTranscriptionOptions`, `CliRunOptions`, and timeout-aware `run_transcription_with_execution` command path.
+- Added feature-gated ignored smoke test (`real-whisper-smoke`) requiring explicit `WHISPER_CLI_PATH`, `WHISPER_MODEL_PATH`, and `WHISPER_AUDIO_PATH` env vars.
 
 ## M4 — Release readiness
 

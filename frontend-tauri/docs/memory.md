@@ -43,13 +43,14 @@
 	- timeout/cancel run controls with `CliRunOptions`
 	- timeout-aware process runner loop and cancellation short-circuit
 	- timeout/cancel option wiring through contracts, commands, and tauri commands
+	- feature-gated ignored real smoke test (`real-whisper-smoke`) with env-driven inputs
 - Validation completed via Cargo commands:
 	- `cargo fmt --check`
 	- `cargo clippy --all-targets --all-features -- -D warnings`
 	- `cargo test`
 - Validation also completed via Makefile alias:
 	- `make check`
-- Latest test count: 31 passing tests (30 lib + 1 main).
+- Latest test count: 31 passing tests (30 lib + 1 main), plus 1 ignored real smoke test behind feature flag.
 - Created/updated planning docs:
 	- `frontend-tauri/docs/plan.md`
 	- `frontend-tauri/docs/todo.md`
@@ -62,5 +63,5 @@
 
 ### Next immediate action
 
-- Add optional real sample smoke test path for M3 (feature-gated and non-blocking in CI).
+- Wire Tauri command registration in `main.rs` so implemented commands are app-ready.
 

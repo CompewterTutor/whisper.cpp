@@ -34,6 +34,7 @@ The format is based on Keep a Changelog, and the project follows Semantic Versio
 - Added execution timeout and cancellation controls via `RunTranscriptionOptions` and `CliRunOptions`.
 - Added timeout-aware process execution path and cancellation short-circuit behavior.
 - Added timeout/cancel-aware Tauri command endpoint (`run_transcription_with_options_command`).
+- Added optional feature-gated real whisper-cli smoke test (`real-whisper-smoke`) with env-configured paths.
 
 ### Changed
 
@@ -41,6 +42,7 @@ The format is based on Keep a Changelog, and the project follows Semantic Versio
 - Verified Windows workflow supports `make check` for frontend quality gates.
 - Refactored crate layout from bin-only modules to `lib + main` to satisfy strict linting with reusable backend modules.
 - Updated MVP transcription path to reuse shared transcript parsing logic from `execution` service.
+- Added Cargo feature flags to isolate optional real smoke test from default CI/dev runs.
 
 ### Fixed
 
