@@ -5,6 +5,8 @@ use crate::contracts::{
 };
 use crate::errors::ApiError;
 use std::path::PathBuf;
+#[cfg(desktop)]
+use tauri_plugin_global_shortcut::GlobalShortcutExt;
 
 pub type TauriCommandResult<T> = Result<T, ApiError>;
 
@@ -140,6 +142,58 @@ pub fn open_output_folder_command(file_path: String) -> TauriCommandResult<()> {
 }
 
 #[tauri::command]
+pub fn register_global_shortcut_command(
+    app: tauri::AppHandle,
+    shortcut: String,
+) -> TauriCommandResult<()> {
+    let trimmed = validate_shortcut_input(&shortcut)?;
+
+    #[cfg(desktop)]
+    {
+        app.global_shortcut()
+            .register(trimmed)
+            .map_err(|error| ApiError {
+                code: "shortcut_register_failed".to_owned(),
+                message: format!("failed to register shortcut '{trimmed}': {error}"),
+            })?;
+    }
+
+    Ok(())
+}
+
+#[tauri::command]
+pub fn unregister_global_shortcut_command(
+    app: tauri::AppHandle,
+    shortcut: String,
+) -> TauriCommandResult<()> {
+    let trimmed = validate_shortcut_input(&shortcut)?;
+
+    #[cfg(desktop)]
+    {
+        app.global_shortcut()
+            .unregister(trimmed)
+            .map_err(|error| ApiError {
+                code: "shortcut_unregister_failed".to_owned(),
+                message: format!("failed to unregister shortcut '{trimmed}': {error}"),
+            })?;
+    }
+
+    Ok(())
+}
+
+fn validate_shortcut_input(shortcut: &str) -> TauriCommandResult<&str> {
+    let trimmed = shortcut.trim();
+    if trimmed.is_empty() {
+        return Err(ApiError {
+            code: "invalid_input".to_owned(),
+            message: "shortcut cannot be empty".to_owned(),
+        });
+    }
+
+    Ok(trimmed)
+}
+
+#[tauri::command]
 pub fn pick_model_path_command() -> TauriCommandResult<String> {
     pick_file_with_filter(&[("Whisper Model", &["bin"])])
 }
@@ -171,6 +225,7 @@ mod tests {
         app_health_command, export_transcript_command, open_output_folder_command,
         run_transcription_command, run_transcription_with_options_command,
         system_capability_command, validate_audio_path_command, validate_model_path_command,
+        validate_shortcut_input,
     };
     use crate::contracts::TranscriptionRunStatus;
     use std::fs;
@@ -262,5 +317,20 @@ mod tests {
             .expect_err("empty path should be rejected");
 
         assert_eq!(error.code, "invalid_input");
+    }
+
+    #[test]
+    fn validate_shortcut_input_rejects_empty_shortcut() {
+        let error = validate_shortcut_input("   ").expect_err("empty shortcut should be rejected");
+
+        assert_eq!(error.code, "invalid_input");
+    }
+
+    #[test]
+    fn validate_shortcut_input_accepts_valid_shortcut() {
+        let shortcut = validate_shortcut_input("CmdOrCtrl+Shift+Space")
+            .expect("valid shortcut should be accepted");
+
+        assert_eq!(shortcut, "CmdOrCtrl+Shift+Space");
     }
 }

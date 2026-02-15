@@ -308,6 +308,7 @@
       let isRunning = false;
       let modelValid = false;
       let audioValid = false;
+      let activeRegisteredShortcuts = new Set();
 
       function setStatus(message, kind = "") {
         statusEl.textContent = message;
@@ -442,6 +443,51 @@
           throw new Error("Tauri invoke API not available");
         }
         return tauriInvoke(command, args);
+      }
+
+      function collectShortcutBindings() {
+        return [
+          pttShortcutEl.value.trim(),
+          typeShortcutEl.value.trim(),
+          clipboardShortcutEl.value.trim(),
+          fileShortcutEl.value.trim(),
+        ].filter(Boolean);
+      }
+
+      async function unregisterActiveShortcuts() {
+        for (const shortcut of Array.from(activeRegisteredShortcuts)) {
+          try {
+            await invoke("unregister_global_shortcut_command", { shortcut });
+          } catch (_error) {
+          }
+        }
+        activeRegisteredShortcuts = new Set();
+      }
+
+      async function applyShortcutRegistration(enabled) {
+        if (!enabled) {
+          await unregisterActiveShortcuts();
+          return;
+        }
+
+        const bindings = collectShortcutBindings();
+        const desired = new Set(bindings);
+
+        for (const shortcut of Array.from(activeRegisteredShortcuts)) {
+          if (!desired.has(shortcut)) {
+            await invoke("unregister_global_shortcut_command", { shortcut });
+            activeRegisteredShortcuts.delete(shortcut);
+          }
+        }
+
+        for (const shortcut of bindings) {
+          if (activeRegisteredShortcuts.has(shortcut)) {
+            continue;
+          }
+
+          await invoke("register_global_shortcut_command", { shortcut });
+          activeRegisteredShortcuts.add(shortcut);
+        }
       }
 
       async function validateModelPath() {
@@ -613,17 +659,43 @@
       });
 
       shortcutsEnabledToggle.addEventListener("change", () => {
-        persistState();
-        shortcutsHintEl.textContent = shortcutsEnabledToggle.checked
-          ? "Global shortcuts enabled in preferences. Registration wiring is next."
-          : "Global shortcuts disabled in preferences.";
-        setStatus("Global shortcut preference updated (scaffold).", "ok");
+        (async () => {
+          persistState();
+          try {
+            await applyShortcutRegistration(shortcutsEnabledToggle.checked);
+            shortcutsHintEl.textContent = shortcutsEnabledToggle.checked
+              ? "Global shortcuts enabled and registered."
+              : "Global shortcuts disabled.";
+            setStatus("Global shortcut preference updated.", "ok");
+          } catch (error) {
+            shortcutsEnabledToggle.checked = false;
+            persistState();
+            shortcutsHintEl.textContent =
+              "Global shortcut registration failed. Update bindings and try again.";
+            showError("Global shortcut setup failed", error);
+          }
+        })();
       });
 
       [pttShortcutEl, typeShortcutEl, clipboardShortcutEl, fileShortcutEl].forEach((element) => {
         element.addEventListener("change", () => {
-          persistState();
-          setStatus("Shortcut binding saved (scaffold).", "ok");
+          (async () => {
+            persistState();
+            if (!shortcutsEnabledToggle.checked) {
+              setStatus("Shortcut binding saved.", "ok");
+              return;
+            }
+
+            try {
+              await applyShortcutRegistration(true);
+              shortcutsHintEl.textContent = "Global shortcuts enabled and registered.";
+              setStatus("Shortcut bindings updated and re-registered.", "ok");
+            } catch (error) {
+              shortcutsHintEl.textContent =
+                "Shortcut update failed. Check for conflicts and try another binding.";
+              showError("Shortcut binding update failed", error);
+            }
+          })();
         });
       });
 
@@ -639,8 +711,17 @@
           "Launch on login is saved as preference; OS autostart wiring is next.";
       }
       if (shortcutsEnabledToggle.checked) {
-        shortcutsHintEl.textContent =
-          "Global shortcuts enabled in preferences. Registration wiring is next.";
+        applyShortcutRegistration(true)
+          .then(() => {
+            shortcutsHintEl.textContent = "Global shortcuts enabled and registered.";
+          })
+          .catch((error) => {
+            shortcutsEnabledToggle.checked = false;
+            persistState();
+            shortcutsHintEl.textContent =
+              "Global shortcut registration failed on startup. Please review bindings.";
+            showError("Global shortcut startup registration failed", error);
+          });
       }
       updateTranscriptMetadata(latestTranscript);
       updateRunAvailability();

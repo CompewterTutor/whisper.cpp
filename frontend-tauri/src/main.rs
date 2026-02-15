@@ -1,6 +1,7 @@
 use tauri::Manager;
 use tauri::menu::{Menu, MenuItem};
 use tauri::tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent};
+use tauri_plugin_global_shortcut::Builder as GlobalShortcutBuilder;
 
 fn build_tauri_builder() -> tauri::Builder<tauri::Wry> {
     tauri::Builder::default()
@@ -15,7 +16,20 @@ fn build_tauri_builder() -> tauri::Builder<tauri::Wry> {
             frontend_tauri::tauri_commands::run_transcription_with_options_command,
             frontend_tauri::tauri_commands::export_transcript_command,
             frontend_tauri::tauri_commands::open_output_folder_command,
+            frontend_tauri::tauri_commands::register_global_shortcut_command,
+            frontend_tauri::tauri_commands::unregister_global_shortcut_command,
         ])
+        .plugin(
+            GlobalShortcutBuilder::new()
+                .with_handler(|_app, shortcut, event| {
+                    println!(
+                        "frontend-tauri: global shortcut event - {:?} ({:?})",
+                        shortcut,
+                        event.state()
+                    );
+                })
+                .build(),
+        )
         .setup(|app| {
             let open_item = MenuItem::with_id(app, "open", "Open App", true, None::<&str>)?;
             let hide_item = MenuItem::with_id(app, "hide", "Hide App", true, None::<&str>)?;
