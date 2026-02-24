@@ -1,10 +1,13 @@
 use crate::commands;
+use crate::config::ConfigStore;
 use crate::contracts::{
-    AppHealthResponse, AudioPathValidationResponse, ModelPathValidationResponse,
-    RunTranscriptionOptions, RunTranscriptionResponse, SystemCapabilityResponse,
+    AppHealthResponse, AppSettingsResponse, AudioPathValidationResponse,
+    ModelPathValidationResponse, RunTranscriptionOptions, RunTranscriptionResponse,
+    SystemCapabilityResponse,
 };
 use crate::errors::ApiError;
 use std::path::PathBuf;
+use tauri::State;
 #[cfg(desktop)]
 use tauri_plugin_global_shortcut::GlobalShortcutExt;
 
@@ -208,6 +211,72 @@ fn pick_file_with_filter(filters: &[(&str, &[&str])]) -> TauriCommandResult<Stri
     };
 
     Ok(path.to_string_lossy().into_owned())
+}
+
+#[tauri::command]
+pub fn get_app_settings_command(
+    config_store: State<'_, ConfigStore>,
+) -> TauriCommandResult<AppSettingsResponse> {
+    let config = config_store.load().map_err(|error| {
+        ApiError::new("config_error", format!("failed to load settings: {error}"))
+    })?;
+
+    Ok(AppSettingsResponse {
+        start_in_background: config.start_in_background,
+        launch_on_login: config.launch_on_login,
+    })
+}
+
+#[tauri::command]
+pub fn set_start_in_background_command(
+    enabled: bool,
+    config_store: State<'_, ConfigStore>,
+) -> TauriCommandResult<()> {
+    config_store
+        .set_start_in_background(enabled)
+        .map_err(|error| {
+            ApiError::new(
+                "config_error",
+                format!("failed to save start_in_background setting: {error}"),
+            )
+        })?;
+    Ok(())
+}
+
+#[tauri::command]
+pub fn set_launch_on_login_command(
+    app: tauri::AppHandle,
+    enabled: bool,
+    config_store: State<'_, ConfigStore>,
+) -> TauriCommandResult<()> {
+    #[cfg(desktop)]
+    {
+        use tauri_plugin_autostart::ManagerExt;
+
+        if enabled {
+            app.autolaunch().enable().map_err(|error| {
+                ApiError::new(
+                    "autostart_error",
+                    format!("failed to enable autostart: {error}"),
+                )
+            })?;
+        } else {
+            app.autolaunch().disable().map_err(|error| {
+                ApiError::new(
+                    "autostart_error",
+                    format!("failed to disable autostart: {error}"),
+                )
+            })?;
+        }
+    }
+
+    config_store.set_launch_on_login(enabled).map_err(|error| {
+        ApiError::new(
+            "config_error",
+            format!("failed to save launch_on_login setting: {error}"),
+        )
+    })?;
+    Ok(())
 }
 
 #[cfg(test)]

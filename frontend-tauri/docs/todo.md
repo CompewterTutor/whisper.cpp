@@ -52,14 +52,14 @@ Acceptance criteria:
 
 ## P2.5 — Background mode + global actions foundation
 
-- [ ] Add tray/menu bar app mode with quick actions (open, start/stop, quit).
-- [ ] Add settings toggles: start in background and launch at login.
-- [ ] Add global shortcut registration UI and persistence.
+- [x] Add tray/menu bar app mode with quick actions (open, start/stop, quit).
+- [x] Add settings toggles: start in background and launch at login.
+- [x] Add global shortcut registration UI and persistence.
 - [ ] Add conflict detection/rebind UX for shortcuts.
 
 Acceptance criteria:
-- [ ] App can stay running hidden with tray/menu bar control.
-- [ ] At least two global shortcuts are configurable and persisted.
+- [x] App can stay running hidden with tray/menu bar control.
+- [x] At least two global shortcuts are configurable and persisted.
 
 ## P3 — Batch processing + history
 

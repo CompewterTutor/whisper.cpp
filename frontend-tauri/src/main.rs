@@ -1,10 +1,15 @@
+use frontend_tauri::config::ConfigStore;
 use tauri::Manager;
 use tauri::menu::{Menu, MenuItem};
 use tauri::tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent};
+use tauri_plugin_autostart::MacosLauncher;
 use tauri_plugin_global_shortcut::Builder as GlobalShortcutBuilder;
 
 fn build_tauri_builder() -> tauri::Builder<tauri::Wry> {
+    let config_store = ConfigStore::new(config_path());
+
     tauri::Builder::default()
+        .manage(config_store)
         .invoke_handler(tauri::generate_handler![
             frontend_tauri::tauri_commands::app_health_command,
             frontend_tauri::tauri_commands::system_capability_command,
@@ -18,6 +23,9 @@ fn build_tauri_builder() -> tauri::Builder<tauri::Wry> {
             frontend_tauri::tauri_commands::open_output_folder_command,
             frontend_tauri::tauri_commands::register_global_shortcut_command,
             frontend_tauri::tauri_commands::unregister_global_shortcut_command,
+            frontend_tauri::tauri_commands::get_app_settings_command,
+            frontend_tauri::tauri_commands::set_start_in_background_command,
+            frontend_tauri::tauri_commands::set_launch_on_login_command,
         ])
         .plugin(
             GlobalShortcutBuilder::new()
@@ -30,7 +38,15 @@ fn build_tauri_builder() -> tauri::Builder<tauri::Wry> {
                 })
                 .build(),
         )
+        .plugin(tauri_plugin_autostart::init(
+            MacosLauncher::LaunchAgent,
+            Some(vec!["--hidden"]),
+        ))
         .setup(|app| {
+            let config_store = app.state::<ConfigStore>();
+            let config = config_store.load().unwrap_or_default();
+            let start_in_background = config.start_in_background;
+
             let open_item = MenuItem::with_id(app, "open", "Open App", true, None::<&str>)?;
             let hide_item = MenuItem::with_id(app, "hide", "Hide App", true, None::<&str>)?;
             let quit_item = MenuItem::with_id(app, "quit", "Quit", true, None::<&str>)?;
@@ -81,6 +97,11 @@ fn build_tauri_builder() -> tauri::Builder<tauri::Wry> {
                 })
                 .build(app)?;
 
+            // Hide window on startup if start_in_background is enabled
+            if start_in_background && let Some(window) = app.get_webview_window("main") {
+                let _ = window.hide();
+            }
+
             Ok(())
         })
         .on_window_event(|window, event| {
@@ -89,6 +110,13 @@ fn build_tauri_builder() -> tauri::Builder<tauri::Wry> {
                 let _ = window.hide();
             }
         })
+}
+
+fn config_path() -> std::path::PathBuf {
+    let mut path = dirs::config_dir().unwrap_or_else(|| std::path::PathBuf::from("."));
+    path.push("frontend-tauri");
+    path.push("config.json");
+    path
 }
 
 fn main() {

@@ -8,6 +8,9 @@
 - `ApiError` struct now includes optional `hint` field that is automatically populated from error code.
 - UI layout benefits from clear section headers for progressive disclosure (Input Files, Controls, Transcript, Settings).
 - Grouping related inputs (model + audio) into a single section improves visual hierarchy.
+- `tauri-plugin-autostart` uses `autolaunch()` method with `enable()`/`disable()` (not `set_enabled()`).
+- Settings that affect app behavior at startup (start-in-background, launch-on-login) must be persisted via backend, not localStorage.
+- Tauri state management uses `State<'_, T>` in command signatures and `app.manage(store)` in setup.
 
 ### Constraints to preserve
 
@@ -20,6 +23,15 @@
 
 ### Current progress
 
+- Completed: P2.5 background mode + global actions foundation:
+	- Added `tauri-plugin-autostart` for OS-level launch-on-login
+	- Added `AppConfig.start_in_background` and `AppConfig.launch_on_login` fields
+	- Added `ConfigStore::set_start_in_background` and `set_launch_on_login` methods
+	- Added `get_app_settings_command`, `set_start_in_background_command`, `set_launch_on_login_command`
+	- Window now hides on startup when start-in-background is enabled
+	- UI toggles now persist via backend commands instead of localStorage
+	- Tray/menu bar already working with Open/Hide/Quit actions
+	- Global shortcut registration already working
 - Completed: P1 layout refinements:
 	- Added section headers: "Input Files", "Controls", "Transcript", "Settings"
 	- Combined model and audio pickers into unified Input Files section
@@ -36,7 +48,8 @@
 
 ### Next immediate action
 
-- P1 is complete. Ready to proceed to P2 (Advanced controls + presets) or P2.5 (Background mode completion).
+- P2.5 is mostly complete. Remaining item: conflict detection/rebind UX for shortcuts.
+- Alternatively, proceed to P2 (Advanced controls + presets).
 
 ## 2026-02-12
 

@@ -7,6 +7,8 @@ use std::path::{Path, PathBuf};
 pub struct AppConfig {
     pub model_path: Option<PathBuf>,
     pub preferred_language: Option<String>,
+    pub start_in_background: bool,
+    pub launch_on_login: bool,
 }
 
 #[derive(Debug, Clone)]
@@ -66,6 +68,20 @@ impl ConfigStore {
         self.save(&config)?;
         Ok(config)
     }
+
+    pub fn set_start_in_background(&self, enabled: bool) -> Result<AppConfig, FrontendError> {
+        let mut config = self.load()?;
+        config.start_in_background = enabled;
+        self.save(&config)?;
+        Ok(config)
+    }
+
+    pub fn set_launch_on_login(&self, enabled: bool) -> Result<AppConfig, FrontendError> {
+        let mut config = self.load()?;
+        config.launch_on_login = enabled;
+        self.save(&config)?;
+        Ok(config)
+    }
 }
 
 #[cfg(test)]
@@ -100,6 +116,8 @@ mod tests {
         let config = AppConfig {
             model_path: Some(PathBuf::from("models/ggml-base.en.bin")),
             preferred_language: Some("en".to_owned()),
+            start_in_background: true,
+            launch_on_login: false,
         };
 
         store.save(&config).expect("save should succeed");

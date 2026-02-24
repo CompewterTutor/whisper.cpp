@@ -292,11 +292,11 @@
             </label>
             <label class="toggle">
               <input id="launchOnLoginToggle" type="checkbox" />
-              <span>Launch on login (scaffold)</span>
+              <span>Launch on login</span>
             </label>
           </div>
           <p class="hint neutral" id="backgroundHint">
-            Background/tray behavior is active; login autostart wiring comes next.
+            App hides to tray on close. Enable start-in-background to hide on launch.
           </p>
         </div>
 
@@ -356,8 +356,6 @@
         modelPath: "frontend-tauri.modelPath",
         audioPath: "frontend-tauri.audioPath",
         exportPath: "frontend-tauri.lastExportPath",
-        startInBackground: "frontend-tauri.startInBackground",
-        launchOnLogin: "frontend-tauri.launchOnLogin",
         shortcutsEnabled: "frontend-tauri.shortcutsEnabled",
         pttShortcut: "frontend-tauri.shortcuts.ptt",
         typeShortcut: "frontend-tauri.shortcuts.type",
@@ -419,14 +417,6 @@
         localStorage.setItem(STORAGE_KEYS.audioPath, audioPathEl.value.trim());
         localStorage.setItem(STORAGE_KEYS.exportPath, latestExportPath);
         localStorage.setItem(
-          STORAGE_KEYS.startInBackground,
-          startInBackgroundToggle.checked ? "true" : "false"
-        );
-        localStorage.setItem(
-          STORAGE_KEYS.launchOnLogin,
-          launchOnLoginToggle.checked ? "true" : "false"
-        );
-        localStorage.setItem(
           STORAGE_KEYS.shortcutsEnabled,
           shortcutsEnabledToggle.checked ? "true" : "false"
         );
@@ -440,10 +430,6 @@
         const restoredModelPath = localStorage.getItem(STORAGE_KEYS.modelPath) || "";
         const restoredAudioPath = localStorage.getItem(STORAGE_KEYS.audioPath) || "";
         const restoredExportPath = localStorage.getItem(STORAGE_KEYS.exportPath) || "";
-        const restoredStartInBackground =
-          localStorage.getItem(STORAGE_KEYS.startInBackground) === "true";
-        const restoredLaunchOnLogin =
-          localStorage.getItem(STORAGE_KEYS.launchOnLogin) === "true";
         const restoredShortcutsEnabled =
           localStorage.getItem(STORAGE_KEYS.shortcutsEnabled) === "true";
 
@@ -457,8 +443,6 @@
 
         latestExportPath = restoredExportPath;
         openOutputFolderBtn.disabled = !latestExportPath;
-        startInBackgroundToggle.checked = restoredStartInBackground;
-        launchOnLoginToggle.checked = restoredLaunchOnLogin;
         shortcutsEnabledToggle.checked = restoredShortcutsEnabled;
         pttShortcutEl.value =
           localStorage.getItem(STORAGE_KEYS.pttShortcut) || "Ctrl+Shift+Space";
@@ -468,6 +452,16 @@
           localStorage.getItem(STORAGE_KEYS.clipboardShortcut) || "Ctrl+Shift+C";
         fileShortcutEl.value =
           localStorage.getItem(STORAGE_KEYS.fileShortcut) || "Ctrl+Shift+F";
+      }
+
+      async function loadAppSettings() {
+        try {
+          const settings = await invoke("get_app_settings_command");
+          startInBackgroundToggle.checked = settings.start_in_background;
+          launchOnLoginToggle.checked = settings.launch_on_login;
+        } catch (error) {
+          console.warn("Failed to load app settings:", error);
+        }
       }
 
       function resetModelValidationHint() {
@@ -713,21 +707,44 @@
       });
 
       startInBackgroundToggle.addEventListener("change", () => {
-        persistState();
-        setStatus(
-          startInBackgroundToggle.checked
-            ? "Start-in-background enabled for next launch."
-            : "Start-in-background disabled.",
-          "ok"
-        );
+        (async () => {
+          try {
+            await invoke("set_start_in_background_command", {
+              enabled: startInBackgroundToggle.checked,
+            });
+            setStatus(
+              startInBackgroundToggle.checked
+                ? "Start-in-background enabled for next launch."
+                : "Start-in-background disabled.",
+              "ok"
+            );
+          } catch (error) {
+            showError("Failed to save start-in-background setting", error);
+            startInBackgroundToggle.checked = !startInBackgroundToggle.checked;
+          }
+        })();
       });
 
       launchOnLoginToggle.addEventListener("change", () => {
-        persistState();
-        backgroundHintEl.textContent = launchOnLoginToggle.checked
-          ? "Launch on login is saved as preference; OS autostart wiring is next."
-          : "Launch on login disabled. Background tray mode remains available.";
-        setStatus("Launch-on-login preference updated (scaffold).", "ok");
+        (async () => {
+          try {
+            await invoke("set_launch_on_login_command", {
+              enabled: launchOnLoginToggle.checked,
+            });
+            backgroundHintEl.textContent = launchOnLoginToggle.checked
+              ? "App will launch automatically on login."
+              : "Launch on login disabled. Background tray mode remains available.";
+            setStatus(
+              launchOnLoginToggle.checked
+                ? "Launch on login enabled."
+                : "Launch on login disabled.",
+              "ok"
+            );
+          } catch (error) {
+            showError("Failed to save launch on login setting", error);
+            launchOnLoginToggle.checked = !launchOnLoginToggle.checked;
+          }
+        })();
       });
 
       shortcutsEnabledToggle.addEventListener("change", () => {
@@ -772,15 +789,12 @@
       });
 
       restoreState();
+      loadAppSettings();
       if (modelPathEl.value.trim()) {
         validateModelPath();
       }
       if (audioPathEl.value.trim()) {
         validateAudioPath();
-      }
-      if (launchOnLoginToggle.checked) {
-        backgroundHintEl.textContent =
-          "Launch on login is saved as preference; OS autostart wiring is next.";
       }
       if (shortcutsEnabledToggle.checked) {
         applyShortcutRegistration(true)

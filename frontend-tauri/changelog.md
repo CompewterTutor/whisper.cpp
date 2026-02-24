@@ -8,10 +8,21 @@ The format is based on Keep a Changelog, and the project follows Semantic Versio
 
 ### Added
 
+- Added backend persistence for start-in-background and launch-on-login settings.
+- Added `tauri-plugin-autostart` for OS-level launch-on-login registration.
+- Added `get_app_settings_command`, `set_start_in_background_command`, and `set_launch_on_login_command` Tauri commands.
+- Added startup behavior that hides window when start-in-background is enabled.
+- Added `dirs` crate dependency for cross-platform config directory resolution.
 - Added clear section headers for UI layout: Input Files, Controls, Transcript, Settings.
 - Added visual divider between main workflow and settings sections.
 - Combined model and audio pickers into a unified Input Files section for better grouping.
 - Added recoverable error hints panel in UI that displays actionable recovery suggestions when errors occur.
+
+### Changed
+
+- Settings toggles now persist via backend config instead of localStorage.
+- Updated UI hint text to reflect implemented background mode functionality.
+- Refined UI layout into clear sections with headers: inputs, controls, transcript, and settings.
 - Added `hint` field to `ApiError` struct with automatic derivation from error code.
 - Added `ApiError::new` constructor that auto-populates hints for known error codes.
 - Added error hint mapping for common failures: missing paths, file not found, invalid extensions, I/O errors, execution timeouts, cancellations, and shortcut registration failures.

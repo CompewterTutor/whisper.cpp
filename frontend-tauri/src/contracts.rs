@@ -61,3 +61,14 @@ pub struct RunTranscriptionResponse {
     pub status: TranscriptionRunStatus,
     pub transcript: String,
 }
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct AppSettingsResponse {
+    pub start_in_background: bool,
+    pub launch_on_login: bool,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct SetSettingRequest {
+    pub enabled: bool,
+}
