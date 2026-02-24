@@ -11,6 +11,9 @@
 - `tauri-plugin-autostart` uses `autolaunch()` method with `enable()`/`disable()` (not `set_enabled()`).
 - Settings that affect app behavior at startup (start-in-background, launch-on-login) must be persisted via backend, not localStorage.
 - Tauri state management uses `State<'_, T>` in command signatures and `app.manage(store)` in setup.
+- Temperature is stored as integer * 100 in `TranscriptionAdvancedOptions` to avoid f32 comparison issues in Eq.
+- Collapsible drawer UI pattern uses CSS classes `.drawer-toggle`, `.drawer-content`, and `.open` for visibility.
+- Presets are stored in a `HashMap<String, TranscriptionPreset>` within `AppConfig`.
 
 ### Constraints to preserve
 
@@ -23,6 +26,14 @@
 
 ### Current progress
 
+- Completed: P2 advanced controls + presets:
+	- Added `TranscriptionAdvancedOptions` with task, language, threads, beam_size, best_of, temperature
+	- Extended `WhisperCliRequest` and `build_whisper_cli_args` for advanced flags
+	- Added `TranscriptionPreset` struct and preset methods to `ConfigStore`
+	- Added preset Tauri commands: list, get, save, delete, set_default, get_default
+	- Added collapsible advanced options drawer in UI
+	- Added preset dropdown with save/load/delete and default preset toggle
+	- Advanced options persist via localStorage, presets via backend config
 - Completed: P2.5 background mode + global actions foundation:
 	- Added `tauri-plugin-autostart` for OS-level launch-on-login
 	- Added `AppConfig.start_in_background` and `AppConfig.launch_on_login` fields
@@ -48,8 +59,9 @@
 
 ### Next immediate action
 
-- P2.5 is mostly complete. Remaining item: conflict detection/rebind UX for shortcuts.
-- Alternatively, proceed to P2 (Advanced controls + presets).
+- P1, P2, P2.5 are complete.
+- Remaining P2.5 item: conflict detection/rebind UX for shortcuts (optional).
+- Next phases: P3 (Batch processing + history) or P4 (Final hardening + release UX).
 
 ## 2026-02-12
 

@@ -1,5 +1,7 @@
+use crate::contracts::TranscriptionAdvancedOptions;
 use crate::errors::FrontendError;
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 use std::fs;
 use std::path::{Path, PathBuf};
 
@@ -9,6 +11,14 @@ pub struct AppConfig {
     pub preferred_language: Option<String>,
     pub start_in_background: bool,
     pub launch_on_login: bool,
+    pub default_preset: Option<String>,
+    pub presets: HashMap<String, TranscriptionPreset>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct TranscriptionPreset {
+    pub name: String,
+    pub advanced: TranscriptionAdvancedOptions,
 }
 
 #[derive(Debug, Clone)]
@@ -82,6 +92,47 @@ impl ConfigStore {
         self.save(&config)?;
         Ok(config)
     }
+
+    pub fn save_preset(
+        &self,
+        name: String,
+        advanced: TranscriptionAdvancedOptions,
+    ) -> Result<AppConfig, FrontendError> {
+        let mut config = self.load()?;
+        config
+            .presets
+            .insert(name.clone(), TranscriptionPreset { name, advanced });
+        self.save(&config)?;
+        Ok(config)
+    }
+
+    pub fn delete_preset(&self, name: &str) -> Result<AppConfig, FrontendError> {
+        let mut config = self.load()?;
+        config.presets.remove(name);
+        if config.default_preset.as_deref() == Some(name) {
+            config.default_preset = None;
+        }
+        self.save(&config)?;
+        Ok(config)
+    }
+
+    pub fn set_default_preset(&self, name: Option<String>) -> Result<AppConfig, FrontendError> {
+        let mut config = self.load()?;
+        config.default_preset = name;
+        self.save(&config)?;
+        Ok(config)
+    }
+
+    pub fn get_preset(&self, name: &str) -> Option<TranscriptionPreset> {
+        self.load().ok()?.presets.get(name).cloned()
+    }
+
+    pub fn list_presets(&self) -> Result<Vec<TranscriptionPreset>, FrontendError> {
+        let config = self.load()?;
+        let mut presets: Vec<_> = config.presets.values().cloned().collect();
+        presets.sort_by(|a, b| a.name.cmp(&b.name));
+        Ok(presets)
+    }
 }
 
 #[cfg(test)]
@@ -118,6 +169,7 @@ mod tests {
             preferred_language: Some("en".to_owned()),
             start_in_background: true,
             launch_on_login: false,
+            ..Default::default()
         };
 
         store.save(&config).expect("save should succeed");
@@ -139,5 +191,86 @@ mod tests {
             updated.model_path,
             Some(PathBuf::from("models/ggml-small.bin"))
         );
+    }
+
+    #[test]
+    fn save_and_list_presets() {
+        use crate::contracts::TranscriptionAdvancedOptions;
+
+        let path = unique_config_path();
+        let store = ConfigStore::new(&path);
+
+        let advanced = TranscriptionAdvancedOptions {
+            task: Some("translate".to_owned()),
+            language: Some("fr".to_owned()),
+            threads: Some(8),
+            ..Default::default()
+        };
+
+        store
+            .save_preset("French Translate".to_owned(), advanced.clone())
+            .expect("save_preset should succeed");
+
+        let presets = store.list_presets().expect("list_presets should succeed");
+        assert_eq!(presets.len(), 1);
+        assert_eq!(presets[0].name, "French Translate");
+        assert_eq!(presets[0].advanced.task, Some("translate".to_owned()));
+    }
+
+    #[test]
+    fn delete_preset_removes_from_list() {
+        use crate::contracts::TranscriptionAdvancedOptions;
+
+        let path = unique_config_path();
+        let store = ConfigStore::new(&path);
+
+        let advanced = TranscriptionAdvancedOptions::default();
+        store
+            .save_preset("Test Preset".to_owned(), advanced)
+            .expect("save_preset should succeed");
+
+        assert_eq!(store.list_presets().expect("list should work").len(), 1);
+
+        store
+            .delete_preset("Test Preset")
+            .expect("delete_preset should succeed");
+
+        assert_eq!(store.list_presets().expect("list should work").len(), 0);
+    }
+
+    #[test]
+    fn set_default_preset_persists() {
+        let path = unique_config_path();
+        let store = ConfigStore::new(&path);
+
+        store
+            .set_default_preset(Some("My Default".to_owned()))
+            .expect("set_default_preset should succeed");
+
+        let config = store.load().expect("load should succeed");
+        assert_eq!(config.default_preset, Some("My Default".to_owned()));
+    }
+
+    #[test]
+    fn deleting_default_preset_clears_reference() {
+        use crate::contracts::TranscriptionAdvancedOptions;
+
+        let path = unique_config_path();
+        let store = ConfigStore::new(&path);
+
+        let advanced = TranscriptionAdvancedOptions::default();
+        store
+            .save_preset("Default Preset".to_owned(), advanced)
+            .expect("save_preset should succeed");
+        store
+            .set_default_preset(Some("Default Preset".to_owned()))
+            .expect("set_default_preset should succeed");
+
+        store
+            .delete_preset("Default Preset")
+            .expect("delete_preset should succeed");
+
+        let config = store.load().expect("load should succeed");
+        assert_eq!(config.default_preset, None);
     }
 }

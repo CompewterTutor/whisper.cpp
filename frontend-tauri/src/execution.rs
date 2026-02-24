@@ -1,3 +1,4 @@
+use crate::contracts::TranscriptionAdvancedOptions;
 use crate::errors::FrontendError;
 use std::ffi::OsString;
 use std::path::{Path, PathBuf};
@@ -9,6 +10,7 @@ use std::time::{Duration, Instant};
 pub struct WhisperCliRequest {
     pub model_path: PathBuf,
     pub audio_path: PathBuf,
+    pub advanced: Option<TranscriptionAdvancedOptions>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -126,14 +128,58 @@ fn run_process_with_timeout(
 }
 
 pub fn build_whisper_cli_args(request: &WhisperCliRequest) -> Vec<OsString> {
-    vec![
+    let mut args = vec![
         OsString::from("-m"),
         request.model_path.as_os_str().to_os_string(),
         OsString::from("-f"),
         request.audio_path.as_os_str().to_os_string(),
         OsString::from("-otxt"),
         OsString::from("-np"),
-    ]
+    ];
+
+    if let Some(ref advanced) = request.advanced {
+        // Task: translate flag
+        if let Some(ref task) = advanced.task
+            && task == "translate"
+        {
+            args.push(OsString::from("-tr"));
+        }
+
+        // Language
+        if let Some(ref lang) = advanced.language
+            && lang != "auto"
+        {
+            args.push(OsString::from("-l"));
+            args.push(OsString::from(lang));
+        }
+
+        // Threads
+        if let Some(threads) = advanced.threads {
+            args.push(OsString::from("-t"));
+            args.push(OsString::from(threads.to_string()));
+        }
+
+        // Beam size
+        if let Some(beam_size) = advanced.beam_size {
+            args.push(OsString::from("-bs"));
+            args.push(OsString::from(beam_size.to_string()));
+        }
+
+        // Best of
+        if let Some(best_of) = advanced.best_of {
+            args.push(OsString::from("-bo"));
+            args.push(OsString::from(best_of.to_string()));
+        }
+
+        // Temperature (stored as integer * 100, convert back to float string)
+        if let Some(temp) = advanced.temperature {
+            let temp_float = temp as f32 / 100.0;
+            args.push(OsString::from("-temp"));
+            args.push(OsString::from(format!("{temp_float:.2}")));
+        }
+    }
+
+    args
 }
 
 pub fn parse_whisper_cli_stdout(stdout: &str) -> String {
@@ -217,6 +263,7 @@ mod tests {
         let request = WhisperCliRequest {
             model_path: PathBuf::from("models/ggml-base.en.bin"),
             audio_path: PathBuf::from("samples/jfk.wav"),
+            advanced: None,
         };
 
         let args = build_whisper_cli_args(&request);
@@ -225,6 +272,58 @@ mod tests {
         assert_eq!(args[2], OsString::from("-f"));
         assert!(args.iter().any(|arg| arg == &OsString::from("-otxt")));
         assert!(args.iter().any(|arg| arg == &OsString::from("-np")));
+    }
+
+    #[test]
+    fn build_whisper_cli_args_includes_advanced_options() {
+        use crate::contracts::TranscriptionAdvancedOptions;
+
+        let request = WhisperCliRequest {
+            model_path: PathBuf::from("models/ggml-base.en.bin"),
+            audio_path: PathBuf::from("samples/jfk.wav"),
+            advanced: Some(TranscriptionAdvancedOptions {
+                task: Some("translate".to_owned()),
+                language: Some("fr".to_owned()),
+                threads: Some(8),
+                beam_size: Some(5),
+                best_of: Some(3),
+                temperature: Some(80), // 0.80 stored as 80
+            }),
+        };
+
+        let args = build_whisper_cli_args(&request);
+        let args_str: Vec<&str> = args.iter().filter_map(|a| a.to_str()).collect();
+
+        assert!(args_str.contains(&"-tr")); // translate
+        assert!(args_str.contains(&"-l"));
+        assert!(args_str.contains(&"fr"));
+        assert!(args_str.contains(&"-t"));
+        assert!(args_str.contains(&"8"));
+        assert!(args_str.contains(&"-bs"));
+        assert!(args_str.contains(&"5"));
+        assert!(args_str.contains(&"-bo"));
+        assert!(args_str.contains(&"3"));
+        assert!(args_str.contains(&"-temp"));
+        assert!(args_str.contains(&"0.80"));
+    }
+
+    #[test]
+    fn build_whisper_cli_args_omits_auto_language() {
+        use crate::contracts::TranscriptionAdvancedOptions;
+
+        let request = WhisperCliRequest {
+            model_path: PathBuf::from("models/ggml-base.en.bin"),
+            audio_path: PathBuf::from("samples/jfk.wav"),
+            advanced: Some(TranscriptionAdvancedOptions {
+                language: Some("auto".to_owned()),
+                ..Default::default()
+            }),
+        };
+
+        let args = build_whisper_cli_args(&request);
+        let args_str: Vec<&str> = args.iter().filter_map(|a| a.to_str()).collect();
+
+        assert!(!args_str.contains(&"-l"));
     }
 
     #[test]
@@ -247,6 +346,7 @@ system_info: n_threads = 8
         let request = WhisperCliRequest {
             model_path: PathBuf::from("models/ggml-base.en.bin"),
             audio_path: PathBuf::from("samples/jfk.wav"),
+            advanced: None,
         };
         let runner = MockRunner {
             expected_executable: executable.clone(),
@@ -315,6 +415,7 @@ system_info: n_threads = 8
         let request = WhisperCliRequest {
             model_path: PathBuf::from(model_path),
             audio_path: PathBuf::from(audio_path),
+            advanced: None,
         };
 
         let output = run_with_runner(

@@ -198,6 +198,74 @@
         border-top: 1px solid #374151;
         margin: 1.5rem 0;
       }
+      .drawer-toggle {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: transparent;
+        border: none;
+        color: #9ca3af;
+        cursor: pointer;
+        font-size: 0.85rem;
+        padding: 0.5rem 0;
+        margin-bottom: 0.5rem;
+      }
+      .drawer-toggle:hover {
+        color: #e5e7eb;
+      }
+      .drawer-toggle::before {
+        content: "▶";
+        font-size: 0.7rem;
+        transition: transform 0.2s;
+      }
+      .drawer-toggle.open::before {
+        transform: rotate(90deg);
+      }
+      .drawer-content {
+        display: none;
+      }
+      .drawer-content.open {
+        display: block;
+      }
+      .options-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.75rem;
+      }
+      @media (max-width: 600px) {
+        .options-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+      .options-grid .field {
+        gap: 0.25rem;
+      }
+      .options-grid label {
+        font-size: 0.8rem;
+      }
+      .options-grid input,
+      .options-grid select {
+        font-size: 0.9rem;
+        padding: 0.4rem 0.6rem;
+      }
+      .preset-row {
+        display: flex;
+        gap: 0.5rem;
+        align-items: flex-end;
+        margin-bottom: 0.75rem;
+      }
+      .preset-row .field {
+        flex: 1;
+      }
+      select {
+        width: 100%;
+        box-sizing: border-box;
+        border: 1px solid #4b5563;
+        background: #111827;
+        color: #e5e7eb;
+        border-radius: 0.5rem;
+        padding: 0.6rem 0.75rem;
+      }
     </style>
   </head>
   <body>
@@ -248,6 +316,73 @@
           <div id="errorHint" class="error-hint">
             <p class="error-hint-title">How to fix this:</p>
             <p id="errorHintText"></p>
+          </div>
+        </div>
+
+        <!-- Advanced Options Drawer -->
+        <div class="card">
+          <button id="advancedToggle" class="drawer-toggle" type="button">
+            Advanced Options
+          </button>
+          <div id="advancedDrawer" class="drawer-content">
+            <!-- Preset Management -->
+            <div class="preset-row">
+              <div class="field">
+                <label for="presetSelect">Preset</label>
+                <select id="presetSelect">
+                  <option value="">-- Select preset --</option>
+                </select>
+              </div>
+              <button id="savePresetBtn" class="secondary" type="button">Save As...</button>
+              <button id="deletePresetBtn" class="secondary" type="button" disabled>Delete</button>
+              <label class="toggle" style="margin-bottom: 0.3rem;">
+                <input id="defaultPresetToggle" type="checkbox" />
+                <span style="font-size: 0.8rem;">Default</span>
+              </label>
+            </div>
+
+            <!-- Options Grid -->
+            <div class="options-grid">
+              <div class="field">
+                <label for="taskSelect">Task</label>
+                <select id="taskSelect">
+                  <option value="transcribe">Transcribe</option>
+                  <option value="translate">Translate to English</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="languageSelect">Language</label>
+                <select id="languageSelect">
+                  <option value="auto">Auto-detect</option>
+                  <option value="en">English</option>
+                  <option value="fr">French</option>
+                  <option value="de">German</option>
+                  <option value="es">Spanish</option>
+                  <option value="it">Italian</option>
+                  <option value="pt">Portuguese</option>
+                  <option value="ja">Japanese</option>
+                  <option value="ko">Korean</option>
+                  <option value="zh">Chinese</option>
+                  <option value="ru">Russian</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="threadsInput">Threads</label>
+                <input id="threadsInput" type="number" min="1" max="64" placeholder="Auto" />
+              </div>
+              <div class="field">
+                <label for="beamSizeInput">Beam size</label>
+                <input id="beamSizeInput" type="number" min="1" max="10" placeholder="5" />
+              </div>
+              <div class="field">
+                <label for="bestOfInput">Best of</label>
+                <input id="bestOfInput" type="number" min="1" max="10" placeholder="5" />
+              </div>
+              <div class="field">
+                <label for="temperatureInput">Temperature</label>
+                <input id="temperatureInput" type="number" min="0" max="1" step="0.1" placeholder="0.0" />
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -352,6 +487,21 @@
       const clipboardShortcutEl = document.getElementById("clipboardShortcut");
       const fileShortcutEl = document.getElementById("fileShortcut");
       const shortcutsHintEl = document.getElementById("shortcutsHint");
+
+      // Advanced options elements
+      const advancedToggle = document.getElementById("advancedToggle");
+      const advancedDrawer = document.getElementById("advancedDrawer");
+      const presetSelect = document.getElementById("presetSelect");
+      const savePresetBtn = document.getElementById("savePresetBtn");
+      const deletePresetBtn = document.getElementById("deletePresetBtn");
+      const defaultPresetToggle = document.getElementById("defaultPresetToggle");
+      const taskSelect = document.getElementById("taskSelect");
+      const languageSelect = document.getElementById("languageSelect");
+      const threadsInput = document.getElementById("threadsInput");
+      const beamSizeInput = document.getElementById("beamSizeInput");
+      const bestOfInput = document.getElementById("bestOfInput");
+      const temperatureInput = document.getElementById("temperatureInput");
+
       const STORAGE_KEYS = {
         modelPath: "frontend-tauri.modelPath",
         audioPath: "frontend-tauri.audioPath",
@@ -361,6 +511,7 @@
         typeShortcut: "frontend-tauri.shortcuts.type",
         clipboardShortcut: "frontend-tauri.shortcuts.clipboard",
         fileShortcut: "frontend-tauri.shortcuts.file",
+        advancedOptions: "frontend-tauri.advancedOptions",
       };
       let latestTranscript = "";
       let latestExportPath = "";
@@ -369,6 +520,7 @@
       let modelValid = false;
       let audioValid = false;
       let activeRegisteredShortcuts = new Set();
+      let presets = [];
 
       function setStatus(message, kind = "") {
         statusEl.textContent = message;
@@ -462,6 +614,79 @@
         } catch (error) {
           console.warn("Failed to load app settings:", error);
         }
+      }
+
+      // Advanced options functions
+      function getAdvancedOptions() {
+        const threads = threadsInput.value ? parseInt(threadsInput.value, 10) : null;
+        const beamSize = beamSizeInput.value ? parseInt(beamSizeInput.value, 10) : null;
+        const bestOf = bestOfInput.value ? parseInt(bestOfInput.value, 10) : null;
+        const tempFloat = temperatureInput.value ? parseFloat(temperatureInput.value) : null;
+
+        return {
+          task: taskSelect.value || null,
+          language: languageSelect.value || null,
+          threads: threads && threads > 0 ? threads : null,
+          beam_size: beamSize && beamSize > 0 ? beamSize : null,
+          best_of: bestOf && bestOf > 0 ? bestOf : null,
+          temperature: tempFloat !== null ? Math.round(tempFloat * 100) : null,
+        };
+      }
+
+      function setAdvancedOptions(options) {
+        taskSelect.value = options.task || "transcribe";
+        languageSelect.value = options.language || "auto";
+        threadsInput.value = options.threads || "";
+        beamSizeInput.value = options.beam_size || "";
+        bestOfInput.value = options.best_of || "";
+        temperatureInput.value =
+          options.temperature !== null ? (options.temperature / 100).toFixed(2) : "";
+      }
+
+      function persistAdvancedOptions() {
+        const options = getAdvancedOptions();
+        localStorage.setItem(STORAGE_KEYS.advancedOptions, JSON.stringify(options));
+      }
+
+      function restoreAdvancedOptions() {
+        const stored = localStorage.getItem(STORAGE_KEYS.advancedOptions);
+        if (stored) {
+          try {
+            const options = JSON.parse(stored);
+            setAdvancedOptions(options);
+          } catch (e) {
+            console.warn("Failed to restore advanced options:", e);
+          }
+        }
+      }
+
+      async function loadPresets() {
+        try {
+          presets = await invoke("list_presets_command");
+          updatePresetDropdown();
+
+          const defaultPreset = await invoke("get_default_preset_command");
+          if (defaultPreset) {
+            presetSelect.value = defaultPreset;
+            const preset = presets.find((p) => p.name === defaultPreset);
+            if (preset) {
+              setAdvancedOptions(preset.advanced);
+              defaultPresetToggle.checked = true;
+            }
+          }
+        } catch (error) {
+          console.warn("Failed to load presets:", error);
+        }
+      }
+
+      function updatePresetDropdown() {
+        presetSelect.innerHTML = '<option value="">-- Select preset --</option>';
+        presets.forEach((preset) => {
+          const option = document.createElement("option");
+          option.value = preset.name;
+          option.textContent = preset.name;
+          presetSelect.appendChild(option);
+        });
       }
 
       function resetModelValidationHint() {
@@ -788,8 +1013,101 @@
         });
       });
 
+      // Advanced options drawer toggle
+      advancedToggle.addEventListener("click", () => {
+        advancedToggle.classList.toggle("open");
+        advancedDrawer.classList.toggle("open");
+      });
+
+      // Persist advanced options on change
+      [taskSelect, languageSelect, threadsInput, beamSizeInput, bestOfInput, temperatureInput].forEach(
+        (element) => {
+          element.addEventListener("change", () => {
+            persistAdvancedOptions();
+            setStatus("Advanced options saved.", "ok");
+          });
+        }
+      );
+
+      // Preset selection
+      presetSelect.addEventListener("change", () => {
+        const selectedName = presetSelect.value;
+        deletePresetBtn.disabled = !selectedName;
+
+        if (selectedName) {
+          const preset = presets.find((p) => p.name === selectedName);
+          if (preset) {
+            setAdvancedOptions(preset.advanced);
+            persistAdvancedOptions();
+            setStatus(`Loaded preset: ${selectedName}`, "ok");
+          }
+        }
+      });
+
+      // Save preset
+      savePresetBtn.addEventListener("click", () => {
+        const name = prompt("Enter preset name:");
+        if (!name || !name.trim()) return;
+
+        const advanced = getAdvancedOptions();
+        (async () => {
+          try {
+            await invoke("save_preset_command", { name: name.trim(), advanced });
+            setStatus(`Preset "${name}" saved.`, "ok");
+            await loadPresets();
+            presetSelect.value = name.trim();
+            deletePresetBtn.disabled = false;
+          } catch (error) {
+            showError("Failed to save preset", error);
+          }
+        })();
+      });
+
+      // Delete preset
+      deletePresetBtn.addEventListener("click", () => {
+        const name = presetSelect.value;
+        if (!name) return;
+
+        if (!confirm(`Delete preset "${name}"?`)) return;
+
+        (async () => {
+          try {
+            await invoke("delete_preset_command", { name });
+            setStatus(`Preset "${name}" deleted.`, "ok");
+            await loadPresets();
+            deletePresetBtn.disabled = true;
+            defaultPresetToggle.checked = false;
+          } catch (error) {
+            showError("Failed to delete preset", error);
+          }
+        })();
+      });
+
+      // Default preset toggle
+      defaultPresetToggle.addEventListener("change", () => {
+        const name = presetSelect.value;
+        (async () => {
+          try {
+            await invoke("set_default_preset_command", {
+              name: defaultPresetToggle.checked ? name : null,
+            });
+            setStatus(
+              defaultPresetToggle.checked
+                ? `"${name}" set as default preset.`
+                : "Default preset cleared.",
+              "ok"
+            );
+          } catch (error) {
+            showError("Failed to set default preset", error);
+            defaultPresetToggle.checked = !defaultPresetToggle.checked;
+          }
+        })();
+      });
+
       restoreState();
+      restoreAdvancedOptions();
       loadAppSettings();
+      loadPresets();
       if (modelPathEl.value.trim()) {
         validateModelPath();
       }

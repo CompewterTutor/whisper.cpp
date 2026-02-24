@@ -143,6 +143,7 @@ pub fn run_transcription_with_execution(
         &WhisperCliRequest {
             model_path: PathBuf::from(model.normalized_path),
             audio_path: PathBuf::from(audio.normalized_path),
+            advanced: request.advanced,
         },
         &ProcessCliRunner,
         execution_options,
@@ -472,6 +473,7 @@ mod tests {
             model_path: model_path.display().to_string(),
             audio_path: audio_path.display().to_string(),
             options: None,
+            advanced: None,
         })
         .expect("run_transcription_mvp should succeed");
 
@@ -489,6 +491,7 @@ mod tests {
             model_path: missing_model.display().to_string(),
             audio_path: audio_path.display().to_string(),
             options: None,
+            advanced: None,
         })
         .expect_err("run_transcription_mvp should fail when model is missing");
 
@@ -509,6 +512,7 @@ mod tests {
                 timeout_ms: None,
                 cancel_requested: true,
             }),
+            advanced: None,
         })
         .expect_err("execution run should return cancellation error");
 

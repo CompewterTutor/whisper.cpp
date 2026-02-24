@@ -48,12 +48,29 @@ pub struct RunTranscriptionRequest {
     pub model_path: String,
     pub audio_path: String,
     pub options: Option<RunTranscriptionOptions>,
+    pub advanced: Option<TranscriptionAdvancedOptions>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
 pub struct RunTranscriptionOptions {
     pub timeout_ms: Option<u64>,
     pub cancel_requested: bool,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
+pub struct TranscriptionAdvancedOptions {
+    /// Task type: "transcribe" or "translate"
+    pub task: Option<String>,
+    /// Language code (e.g., "en", "fr", "auto" for auto-detect)
+    pub language: Option<String>,
+    /// Number of threads to use (default: system default)
+    pub threads: Option<u16>,
+    /// Beam size for decoding
+    pub beam_size: Option<u8>,
+    /// Best-of candidates
+    pub best_of: Option<u8>,
+    /// Temperature for sampling (stored as integer * 100 to avoid f32 comparison issues)
+    pub temperature: Option<u16>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]

@@ -26,6 +26,12 @@ fn build_tauri_builder() -> tauri::Builder<tauri::Wry> {
             frontend_tauri::tauri_commands::get_app_settings_command,
             frontend_tauri::tauri_commands::set_start_in_background_command,
             frontend_tauri::tauri_commands::set_launch_on_login_command,
+            frontend_tauri::tauri_commands::list_presets_command,
+            frontend_tauri::tauri_commands::get_preset_command,
+            frontend_tauri::tauri_commands::save_preset_command,
+            frontend_tauri::tauri_commands::delete_preset_command,
+            frontend_tauri::tauri_commands::set_default_preset_command,
+            frontend_tauri::tauri_commands::get_default_preset_command,
         ])
         .plugin(
             GlobalShortcutBuilder::new()

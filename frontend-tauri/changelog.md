@@ -8,6 +8,12 @@ The format is based on Keep a Changelog, and the project follows Semantic Versio
 
 ### Added
 
+- Added advanced transcription options: task (transcribe/translate), language, threads, beam size, best-of, temperature.
+- Added preset management: save, load, delete, and set default presets.
+- Added collapsible advanced options drawer in UI with preset dropdown.
+- Added `TranscriptionAdvancedOptions` contract for whisper-cli advanced flags.
+- Added `TranscriptionPreset` struct and preset management to `ConfigStore`.
+- Added Tauri commands: `list_presets_command`, `get_preset_command`, `save_preset_command`, `delete_preset_command`, `set_default_preset_command`, `get_default_preset_command`.
 - Added backend persistence for start-in-background and launch-on-login settings.
 - Added `tauri-plugin-autostart` for OS-level launch-on-login registration.
 - Added `get_app_settings_command`, `set_start_in_background_command`, and `set_launch_on_login_command` Tauri commands.
@@ -20,6 +26,8 @@ The format is based on Keep a Changelog, and the project follows Semantic Versio
 
 ### Changed
 
+- Extended `WhisperCliRequest` to support advanced transcription options.
+- Updated `build_whisper_cli_args` to include language, task, threads, beam size, best-of, and temperature flags.
 - Settings toggles now persist via backend config instead of localStorage.
 - Updated UI hint text to reflect implemented background mode functionality.
 - Refined UI layout into clear sections with headers: inputs, controls, transcript, and settings.

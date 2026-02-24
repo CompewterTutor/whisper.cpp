@@ -1,9 +1,9 @@
 use crate::commands;
-use crate::config::ConfigStore;
+use crate::config::{ConfigStore, TranscriptionPreset};
 use crate::contracts::{
     AppHealthResponse, AppSettingsResponse, AudioPathValidationResponse,
     ModelPathValidationResponse, RunTranscriptionOptions, RunTranscriptionResponse,
-    SystemCapabilityResponse,
+    SystemCapabilityResponse, TranscriptionAdvancedOptions,
 };
 use crate::errors::ApiError;
 use std::path::PathBuf;
@@ -46,6 +46,7 @@ pub fn run_transcription_command(
         model_path,
         audio_path,
         options: None,
+        advanced: None,
     })
 }
 
@@ -63,6 +64,7 @@ pub fn run_transcription_with_options_command(
             timeout_ms,
             cancel_requested,
         }),
+        advanced: None,
     })
 }
 
@@ -277,6 +279,70 @@ pub fn set_launch_on_login_command(
         )
     })?;
     Ok(())
+}
+
+#[tauri::command]
+pub fn list_presets_command(
+    config_store: State<'_, ConfigStore>,
+) -> TauriCommandResult<Vec<TranscriptionPreset>> {
+    config_store
+        .list_presets()
+        .map_err(|error| ApiError::new("config_error", format!("failed to list presets: {error}")))
+}
+
+#[tauri::command]
+pub fn get_preset_command(
+    name: String,
+    config_store: State<'_, ConfigStore>,
+) -> TauriCommandResult<Option<TranscriptionPreset>> {
+    Ok(config_store.get_preset(&name))
+}
+
+#[tauri::command]
+pub fn save_preset_command(
+    name: String,
+    advanced: TranscriptionAdvancedOptions,
+    config_store: State<'_, ConfigStore>,
+) -> TauriCommandResult<()> {
+    config_store.save_preset(name, advanced).map_err(|error| {
+        ApiError::new("config_error", format!("failed to save preset: {error}"))
+    })?;
+    Ok(())
+}
+
+#[tauri::command]
+pub fn delete_preset_command(
+    name: String,
+    config_store: State<'_, ConfigStore>,
+) -> TauriCommandResult<()> {
+    config_store.delete_preset(&name).map_err(|error| {
+        ApiError::new("config_error", format!("failed to delete preset: {error}"))
+    })?;
+    Ok(())
+}
+
+#[tauri::command]
+pub fn set_default_preset_command(
+    name: Option<String>,
+    config_store: State<'_, ConfigStore>,
+) -> TauriCommandResult<()> {
+    config_store.set_default_preset(name).map_err(|error| {
+        ApiError::new(
+            "config_error",
+            format!("failed to set default preset: {error}"),
+        )
+    })?;
+    Ok(())
+}
+
+#[tauri::command]
+pub fn get_default_preset_command(
+    config_store: State<'_, ConfigStore>,
+) -> TauriCommandResult<Option<String>> {
+    let config = config_store.load().map_err(|error| {
+        ApiError::new("config_error", format!("failed to load config: {error}"))
+    })?;
+    Ok(config.default_preset)
 }
 
 #[cfg(test)]

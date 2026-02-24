@@ -41,14 +41,14 @@ Acceptance criteria:
 
 ## P2 — Advanced controls + presets
 
-- [ ] Add advanced options drawer (task, language, beam, best-of, temp, threads, timeout).
-- [ ] Add preset save/load/delete flow.
-- [ ] Add default preset selection in settings.
-- [ ] Add reducer + serialization tests for preset and advanced options.
+- [x] Add advanced options drawer (task, language, beam, best-of, temp, threads, timeout).
+- [x] Add preset save/load/delete flow.
+- [x] Add default preset selection in settings.
+- [x] Add reducer + serialization tests for preset and advanced options.
 
 Acceptance criteria:
-- [ ] One-click basic workflow remains unchanged.
-- [ ] Advanced options survive app restart.
+- [x] One-click basic workflow remains unchanged.
+- [x] Advanced options survive app restart.
 
 ## P2.5 — Background mode + global actions foundation
 

@@ -75,6 +75,7 @@ impl MvpUiState {
             model_path: self.model_path.clone(),
             audio_path: self.audio_path.clone(),
             options: None,
+            advanced: None,
         };
 
         match runner(request) {
