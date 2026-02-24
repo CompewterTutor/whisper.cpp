@@ -1,5 +1,33 @@
 # Careless Memory
 
+## 2026-02-24 (R1.2 Base Layout + Theming)
+
+### What was learned
+
+- CSS custom properties work well for theming in SvelteKit - define in `:root` and override with `[data-theme='light']` or `[data-theme='dark']`.
+- Svelte stores can be used for theme state with localStorage persistence.
+- The `$app/environment` module provides `browser` flag to detect client-side execution.
+- `window.matchMedia('(prefers-color-scheme: dark)')` can detect system theme preference.
+- CSS files can be imported directly in Svelte components with `<script>` imports.
+
+### Architecture decisions
+
+- Created `web/src/lib/styles/theme.css` with CSS custom properties for colors, spacing, typography.
+- Created `web/src/lib/styles/base.css` with global element styles (reset, body, buttons, inputs, etc.).
+- Created `web/src/lib/stores/theme.ts` with a Svelte store for theme management (system/light/dark).
+- Theme is applied via `data-theme` attribute on `<html>` element.
+- Styles are imported in `+layout.svelte` to apply globally.
+
+### Files created
+
+- `web/src/lib/styles/theme.css` - CSS custom properties for theming
+- `web/src/lib/styles/base.css` - Global base styles
+- `web/src/lib/stores/theme.ts` - Theme store with localStorage persistence
+
+### Next immediate action
+
+- R1.3: Extract UI components - Input section (model/audio pickers, validation)
+
 ## 2026-02-24 (SvelteKit Refactor)
 
 ### What was learned

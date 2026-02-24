@@ -20,6 +20,9 @@ The format is based on Keep a Changelog, and the project follows Semantic Versio
 - R1: Added `@tauri-apps/api` for type-safe Tauri integration
 - R1: Added npm workspace configuration for unified build commands
 - R1: Added Makefile targets: `web-install`, `web-build`, `web-dev`
+- R1.2: Added CSS custom properties theming system with light/dark mode support
+- R1.2: Added Svelte store for theme state with localStorage persistence
+- R1.2: Added base layout component with global styles imported
 - P6: Added PTT audio settings UI with microphone selector and mode toggle.
 - P6: Added PTT status indicator (idle/listening/transcribing/error) with timer.
 - P6: Added global shortcut event handling for PTT (ptt-start/ptt-stop events).
