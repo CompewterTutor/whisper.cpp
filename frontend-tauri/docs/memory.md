@@ -4,6 +4,12 @@
 
 ### What was learned
 
+- P6 audio capture uses `cpal` crate for cross-platform microphone input.
+- `hound` crate handles WAV encoding for whisper-cli compatibility.
+- Audio samples are captured as f32, converted to mono, and can be resampled to 16kHz.
+- `AudioCaptureSession` manages device selection, capture lifecycle, and sample buffering.
+- Capture state machine: Idle -> Listening -> (Transcribing|Error) -> Idle.
+- Tauri state with `Mutex<AudioCaptureSession>` allows thread-safe access from commands.
 - Error hints can be derived from error codes and serialized to frontend for display.
 - `ApiError` struct now includes optional `hint` field that is automatically populated from error code.
 - UI layout benefits from clear section headers for progressive disclosure (Input Files, Controls, Transcript, Settings).
@@ -31,6 +37,16 @@
 
 ### Current progress
 
+- In progress: P6 push-to-talk audio capture pipeline:
+	- Added `cpal` dependency for cross-platform audio capture
+	- Added `hound` dependency for WAV encoding
+	- Added `tempfile` dependency for temporary file handling
+	- Created `src/audio.rs` module with `AudioCaptureSession`
+	- Added audio device enumeration and selection
+	- Added capture lifecycle (start/stop) with sample buffering
+	- Added WAV file writing with resampling to 16kHz
+	- Added 6 Tauri commands for audio control
+	- Added 5 new tests for audio module
 - Completed: P4 final hardening + release UX:
 	- Extended `AppConfig` with theme, default_output_dir, default_model_dir, diagnostics_enabled, default_threads, default_timeout_ms
 	- Added 8 new Tauri commands for settings management
@@ -87,8 +103,9 @@
 
 ### Next immediate action
 
-- P1, P2, P2.5, P3, P4 are now fully complete.
-- Next phases: P5 (Push-to-talk + output routing) or P6 (Audio capture pipeline).
+- P1, P2, P2.5, P3, P4 are fully complete.
+- P6 audio capture backend is complete. Remaining: wire global shortcut to PTT flow, add UI for device selection.
+- P5 output routing UI is partially complete.
 
 ## 2026-02-12
 
