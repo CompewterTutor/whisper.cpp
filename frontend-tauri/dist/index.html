@@ -428,9 +428,47 @@
         padding: 1rem;
         font-size: 0.9rem;
       }
+      .loading-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(17, 24, 39, 0.95);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        flex-direction: column;
+        gap: 1rem;
+      }
+      .loading-overlay.hidden {
+        display: none;
+      }
+      .loading-spinner {
+        width: 40px;
+        height: 40px;
+        border: 3px solid #374151;
+        border-top-color: #3b82f6;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+      @keyframes spin {
+        to { transform: rotate(360deg); }
+      }
+      .loading-text {
+        color: #9ca3af;
+        font-size: 0.9rem;
+      }
     </style>
   </head>
   <body>
+    <!-- Loading overlay -->
+    <div id="loadingOverlay" class="loading-overlay">
+      <div class="loading-spinner"></div>
+      <div class="loading-text">Initializing...</div>
+    </div>
+
     <main class="app">
       <h1>frontend-tauri</h1>
       <p class="subtitle">Minimal interactive shell wired to Tauri commands.</p>
@@ -1351,12 +1389,37 @@
         }
       }
 
+      // Wait for Tauri API with timeout
+      function waitForTauriApi(timeoutMs = 5000) {
+        return new Promise((resolve, reject) => {
+          const startTime = Date.now();
+
+          function check() {
+            if (window.__TAURI__?.core?.invoke) {
+              resolve(window.__TAURI__.core.invoke);
+              return;
+            }
+
+            if (Date.now() - startTime > timeoutMs) {
+              reject(new Error("Tauri API not available after timeout. If running in browser, use 'make dev' instead."));
+              return;
+            }
+
+            setTimeout(check, 50);
+          }
+
+          check();
+        });
+      }
+
+      // Cached invoke function
+      let _tauriInvoke = null;
+
       async function invoke(command, args = {}) {
-        const tauriInvoke = window.__TAURI__?.core?.invoke;
-        if (!tauriInvoke) {
-          throw new Error("Tauri invoke API not available");
+        if (!_tauriInvoke) {
+          _tauriInvoke = await waitForTauriApi();
         }
-        return tauriInvoke(command, args);
+        return _tauriInvoke(command, args);
       }
 
       function collectShortcutBindings() {
@@ -2168,44 +2231,59 @@
       });
 
       // Wait for Tauri API to be available, then initialize
-      function initApp() {
-        if (!window.__TAURI__) {
-          console.warn("Tauri API not yet available, retrying in 100ms...");
-          setTimeout(initApp, 100);
-          return;
-        }
-        console.log("Tauri API available, initializing app...");
+      async function initApp() {
+        const loadingOverlay = document.getElementById("loadingOverlay");
+        const loadingText = loadingOverlay.querySelector(".loading-text");
 
-        restoreState();
-        restoreAdvancedOptions();
-        loadAppSettings();
-        loadPttRouting();
-        loadPresets();
-        loadQueue();
-        loadHistory();
-        loadAudioDevices(); // P6: Load audio devices
-        updateShortcutConflictUI();
-        if (modelPathEl.value.trim()) {
-          validateModelPath();
-        }
-        if (audioPathEl.value.trim()) {
-          validateAudioPath();
-        }
-        if (shortcutsEnabledToggle.checked) {
-          applyShortcutRegistration(true)
-            .then(() => {
+        try {
+          loadingText.textContent = "Connecting to backend...";
+          // Wait for Tauri API with timeout
+          await waitForTauriApi();
+          console.log("Tauri API available, initializing app...");
+
+          loadingText.textContent = "Restoring state...";
+          restoreState();
+          restoreAdvancedOptions();
+
+          loadingText.textContent = "Loading settings...";
+          await loadAppSettings();
+          await loadPttRouting();
+          await loadPresets();
+          await loadQueue();
+          await loadHistory();
+
+          loadingText.textContent = "Loading audio devices...";
+          await loadAudioDevices();
+
+          updateShortcutConflictUI();
+          if (modelPathEl.value.trim()) {
+            validateModelPath();
+          }
+          if (audioPathEl.value.trim()) {
+            validateAudioPath();
+          }
+          if (shortcutsEnabledToggle.checked) {
+            try {
+              await applyShortcutRegistration(true);
               updateShortcutConflictUI();
-            })
-            .catch((error) => {
+            } catch (error) {
               shortcutsEnabledToggle.checked = false;
               persistState();
               shortcutsHintEl.textContent =
                 "Global shortcut registration failed on startup. Please review bindings.";
               showError("Global shortcut startup registration failed", error);
-            });
+            }
+          }
+          updateTranscriptMetadata(latestTranscript);
+          updateRunAvailability();
+
+          // Hide loading overlay
+          loadingOverlay.classList.add("hidden");
+        } catch (error) {
+          console.error("Initialization failed:", error);
+          loadingText.textContent = error.message || "Failed to initialize. Please restart the app.";
+          loadingText.style.color = "#fca5a5";
         }
-        updateTranscriptMetadata(latestTranscript);
-        updateRunAvailability();
       }
 
       // Start initialization
