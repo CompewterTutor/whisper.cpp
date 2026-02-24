@@ -221,9 +221,7 @@ fn validate_shortcut_input(shortcut: &str) -> TauriCommandResult<&str> {
 }
 
 #[tauri::command]
-pub async fn pick_model_path_command(
-    app: tauri::AppHandle,
-) -> TauriCommandResult<String> {
+pub async fn pick_model_path_command(app: tauri::AppHandle) -> TauriCommandResult<String> {
     use tauri_plugin_dialog::DialogExt;
 
     let file_path = app
@@ -243,9 +241,7 @@ pub async fn pick_model_path_command(
 }
 
 #[tauri::command]
-pub async fn pick_audio_path_command(
-    app: tauri::AppHandle,
-) -> TauriCommandResult<String> {
+pub async fn pick_audio_path_command(app: tauri::AppHandle) -> TauriCommandResult<String> {
     use tauri_plugin_dialog::DialogExt;
 
     let file_path = app
@@ -703,9 +699,7 @@ pub fn set_default_timeout_command(
 }
 
 #[tauri::command]
-pub async fn pick_directory_command(
-    app: tauri::AppHandle,
-) -> TauriCommandResult<String> {
+pub async fn pick_directory_command(app: tauri::AppHandle) -> TauriCommandResult<String> {
     use tauri_plugin_dialog::DialogExt;
 
     let folder_path = app.dialog().file().blocking_pick_folder();
@@ -797,10 +791,9 @@ pub fn get_current_audio_device_command(
 #[cfg(test)]
 mod tests {
     use super::{
-        app_health_command, export_transcript_command, open_output_folder_command,
-        run_transcription_command, run_transcription_with_options_command,
-        system_capability_command, validate_audio_path_command, validate_model_path_command,
-        validate_shortcut_input,
+        app_health_command, open_output_folder_command, run_transcription_command,
+        run_transcription_with_options_command, system_capability_command,
+        validate_audio_path_command, validate_model_path_command, validate_shortcut_input,
     };
     use crate::contracts::TranscriptionRunStatus;
     use std::fs;
@@ -878,13 +871,9 @@ mod tests {
         assert_eq!(error.code, "execution_cancelled");
     }
 
-    #[test]
-    fn export_transcript_command_rejects_invalid_format() {
-        let error = export_transcript_command("hello".to_owned(), "xml".to_owned())
-            .expect_err("invalid format should fail before dialog");
-
-        assert_eq!(error.code, "invalid_input");
-    }
+    // Note: export_transcript_command format validation is tested via
+    // commands::prepare_transcript_export tests - the command wrapper requires
+    // AppHandle which isn't available in unit tests
 
     #[test]
     fn open_output_folder_command_rejects_empty_path() {

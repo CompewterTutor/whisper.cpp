@@ -1,0 +1,11 @@
+{
+  "name": "careless-root",
+  "private": true,
+  "scripts": {
+    "dev": "npm run dev --workspace=web",
+    "build": "npm run build --workspace=web"
+  },
+  "workspaces": [
+    "web"
+  ]
+}

@@ -1,0 +1,7 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+target/
+web/build/
+web/.svelte-kit/

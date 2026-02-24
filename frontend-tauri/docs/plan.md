@@ -1,6 +1,7 @@
-# frontend-tauri Product + UI Plan
+# Careless Product + UI Plan
 
-Date: 2026-02-12  
+Date: 2026-02-12
+Last updated: 2026-02-24
 Scope: Define the end-goal UX and feature set for a modern desktop wrapper around `whisper.cpp`.
 
 ## Product vision
@@ -161,7 +162,23 @@ Safety/UX controls:
 
 ## Delivery phases from current state
 
-### P1 — Solid MVP UI completion
+### R1 — SvelteKit Refactor (CURRENT)
+
+Goal: break up monolithic HTML into modular SvelteKit components.
+- Set up Vite + SvelteKit 5 with TypeScript.
+- Configure static adapter for Tauri compatibility.
+- Extract CSS theming system into Svelte stores.
+- Extract UI components: Input, Options, Transcript, Batch, History, Settings, PTT.
+- Create Tauri service layer with type-safe API wrappers.
+- Wire up state management with Svelte stores.
+- Remove legacy `dist/index.html`.
+
+Tests:
+- TypeScript compilation and type checking.
+- Build output verification.
+- Hot reload development workflow.
+
+### P1 — Solid MVP UI completion (DONE)
 
 Goal: polish existing single-page shell into a complete single-file transcribe experience.
 - Add clear layout sections (input, run controls, transcript, export).
@@ -172,7 +189,7 @@ Tests:
 - UI integration: happy path from pickers to transcript render.
 - Command-level tests for export request validation.
 
-### P2 — Advanced controls + presets
+### P2 — Advanced controls + presets (DONE)
 
 Goal: keep one-click flow while exposing power-user controls.
 - Add advanced options drawer.
@@ -182,7 +199,7 @@ Tests:
 - State reducer tests for option changes and preset application.
 - Serialization round-trip tests for presets.
 
-### P3 — Batch and history
+### P3 — Batch and history (DONE)
 
 Goal: support production workflows.
 - Add queue orchestration and run history.
@@ -192,7 +209,7 @@ Tests:
 - Queue state transition tests.
 - Integration tests for rerun from history.
 
-### P4 — Hardening + release UX
+### P4 — Hardening + release UX (DONE)
 
 Goal: make desktop app robust and supportable.
 - Add settings page and diagnostics toggles.
@@ -202,7 +219,7 @@ Tests:
 - Packaged artifact smoke tests.
 - Settings persistence regression tests.
 
-### P5 — Background mode + global shortcuts
+### P5 — Background mode + global shortcuts (IN PROGRESS)
 
 Goal: make transcription available system-wide without keeping the main window open.
 - Add tray/menu bar presence and stateful quick actions.
@@ -214,7 +231,7 @@ Tests:
 - Output routing tests (clipboard/file/type adapters mocked).
 - Background startup and tray/menu action smoke tests.
 
-### P6 — Push-to-talk audio capture pipeline
+### P6 — Push-to-talk audio capture pipeline (MOSTLY DONE)
 
 Goal: capture microphone input directly and transcribe on hotkey-driven sessions.
 - Add microphone device selection and capture lifecycle.

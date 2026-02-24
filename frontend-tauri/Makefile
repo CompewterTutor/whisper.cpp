@@ -1,4 +1,4 @@
-.PHONY: fmt lint test check smoke-real verify-release dev
+.PHONY: fmt lint test check smoke-real verify-release dev web-install web-build web-dev
 
 fmt:
 	cargo fmt --check
@@ -20,5 +20,16 @@ smoke-real:
 
 verify-release: check smoke-real
 
+# Frontend (SvelteKit) commands
+web-install:
+	npm install
+
+web-build:
+	npm run build
+
+web-dev:
+	npm run dev
+
+# Tauri development (starts both frontend dev server and Tauri)
 dev:
-	cargo run
+	cargo tauri dev

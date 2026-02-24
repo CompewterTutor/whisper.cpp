@@ -1,13 +1,25 @@
 # Changelog
 
-All notable changes to `frontend-tauri` will be documented in this file.
+All notable changes to Careless will be documented in this file.
 
 The format is based on Keep a Changelog, and the project follows Semantic Versioning.
 
 ## [Unreleased]
 
+### Changed
+
+- **BREAKING**: Renamed application from "frontend-tauri" to "Careless"
+- Migrated frontend from monolithic HTML to SvelteKit 5 + TypeScript + Vite
+- Updated build system to use npm workspaces for better Windows compatibility
+- Updated Tauri configuration for SvelteKit dev server integration
+
 ### Added
 
+- R1: Added SvelteKit project structure in `web/` directory
+- R1: Added static adapter configuration for Tauri SPA compatibility
+- R1: Added `@tauri-apps/api` for type-safe Tauri integration
+- R1: Added npm workspace configuration for unified build commands
+- R1: Added Makefile targets: `web-install`, `web-build`, `web-dev`
 - P6: Added PTT audio settings UI with microphone selector and mode toggle.
 - P6: Added PTT status indicator (idle/listening/transcribing/error) with timer.
 - P6: Added global shortcut event handling for PTT (ptt-start/ptt-stop events).

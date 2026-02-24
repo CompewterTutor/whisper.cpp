@@ -1,42 +1,63 @@
-# frontend-tauri
+# Careless
 
-Rust/Tauri frontend workspace for `whisper.cpp`.
+A Tauri-based desktop frontend for `whisper.cpp` speech recognition.
 
-## Current status
+## Tech Stack
 
-This frontend is in bootstrap phase.
-Current milestone: M0 (baseline setup, quality gates, and CI checks).
+- **Backend**: Rust + Tauri 2.x
+- **Frontend**: SvelteKit 5 + TypeScript + Vite
 
 ## Prerequisites
 
 - Rust toolchain (stable)
-- Cargo
-- Tauri system prerequisites for your OS
+- Node.js 18+ and npm
+- Tauri system prerequisites: <https://v2.tauri.app/start/prerequisites/>
 
-For Tauri requirements, follow: <https://v2.tauri.app/start/prerequisites/>
-
-## Local development
+## Local Development
 
 From `frontend-tauri/`:
 
-- `make fmt` - format check
-- `make lint` - clippy warnings as errors
-- `make test` - run unit tests
-- `make check` - run all local quality checks
-- `make smoke-real` - run optional real whisper smoke test if env vars are set
-- `make verify-release` - run release verification (`check` + optional smoke)
-- `make dev` - run app locally
+```bash
+# Install dependencies
+make web-install   # or: npm install
 
-Direct cargo equivalents:
+# Development (starts Vite dev server + Tauri)
+make dev           # or: cargo tauri dev
 
-- `cargo fmt --check`
-- `cargo clippy --all-targets --all-features -- -D warnings`
-- `cargo test`
-- `cargo run`
+# Build frontend only
+make web-build     # or: npm run build
 
-## Workflow constraints
+# Rust quality checks
+make check         # fmt + lint + test
 
-- Always ask for approval before committing.
-- Use Conventional Commits for all commit messages.
-- Follow Semantic Versioning (`MAJOR.MINOR.PATCH`) for frontend releases.
-- Keep `changelog.md` updated for user-visible changes.
+# Release verification
+make verify-release
+```
+
+## Project Structure
+
+```
+frontend-tauri/
+├── src/           # Rust backend (Tauri commands, config, execution)
+├── web/           # SvelteKit frontend
+│   ├── src/
+│   │   ├── routes/    # SvelteKit routes/pages
+│   │   └── lib/       # Shared components and utilities
+│   └── build/         # Production build output
+├── docs/          # Project documentation
+└── dist/          # Legacy monolithic HTML (to be removed)
+```
+
+## Documentation
+
+- `docs/plan.md` - Product vision and feature roadmap
+- `docs/todo.md` - Current task tracking
+- `docs/memory.md` - Development notes and decisions
+- `changelog.md` - User-visible changes
+
+## Workflow
+
+- Use Conventional Commits for all commit messages
+- Follow Semantic Versioning for releases
+- Keep `changelog.md` updated for user-visible changes
+- Always ask for approval before committing

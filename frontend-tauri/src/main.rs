@@ -1,5 +1,5 @@
-use frontend_tauri::audio::AudioCaptureSession;
-use frontend_tauri::config::ConfigStore;
+use careless::audio::AudioCaptureSession;
+use careless::config::ConfigStore;
 use std::sync::Mutex;
 use tauri::menu::{Menu, MenuItem};
 use tauri::tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent};
@@ -15,54 +15,54 @@ fn build_tauri_builder() -> tauri::Builder<tauri::Wry> {
         .manage(config_store)
         .manage(capture_session)
         .invoke_handler(tauri::generate_handler![
-            frontend_tauri::tauri_commands::app_health_command,
-            frontend_tauri::tauri_commands::system_capability_command,
-            frontend_tauri::tauri_commands::validate_model_path_command,
-            frontend_tauri::tauri_commands::validate_audio_path_command,
-            frontend_tauri::tauri_commands::pick_model_path_command,
-            frontend_tauri::tauri_commands::pick_audio_path_command,
-            frontend_tauri::tauri_commands::run_transcription_command,
-            frontend_tauri::tauri_commands::run_transcription_with_options_command,
-            frontend_tauri::tauri_commands::export_transcript_command,
-            frontend_tauri::tauri_commands::open_output_folder_command,
-            frontend_tauri::tauri_commands::register_global_shortcut_command,
-            frontend_tauri::tauri_commands::unregister_global_shortcut_command,
-            frontend_tauri::tauri_commands::is_shortcut_registered_command,
-            frontend_tauri::tauri_commands::get_app_settings_command,
-            frontend_tauri::tauri_commands::set_start_in_background_command,
-            frontend_tauri::tauri_commands::set_launch_on_login_command,
-            frontend_tauri::tauri_commands::list_presets_command,
-            frontend_tauri::tauri_commands::get_preset_command,
-            frontend_tauri::tauri_commands::save_preset_command,
-            frontend_tauri::tauri_commands::delete_preset_command,
-            frontend_tauri::tauri_commands::set_default_preset_command,
-            frontend_tauri::tauri_commands::get_default_preset_command,
-            frontend_tauri::tauri_commands::add_to_queue_command,
-            frontend_tauri::tauri_commands::remove_from_queue_command,
-            frontend_tauri::tauri_commands::reorder_queue_command,
-            frontend_tauri::tauri_commands::get_queue_command,
-            frontend_tauri::tauri_commands::clear_completed_queue_command,
-            frontend_tauri::tauri_commands::update_queue_item_status_command,
-            frontend_tauri::tauri_commands::add_to_history_command,
-            frontend_tauri::tauri_commands::get_history_command,
-            frontend_tauri::tauri_commands::clear_history_command,
-            frontend_tauri::tauri_commands::copy_to_clipboard_command,
-            frontend_tauri::tauri_commands::get_clipboard_text_command,
-            frontend_tauri::tauri_commands::get_ptt_routing_command,
-            frontend_tauri::tauri_commands::set_ptt_routing_command,
-            frontend_tauri::tauri_commands::set_theme_command,
-            frontend_tauri::tauri_commands::set_default_output_dir_command,
-            frontend_tauri::tauri_commands::set_default_model_dir_command,
-            frontend_tauri::tauri_commands::set_diagnostics_enabled_command,
-            frontend_tauri::tauri_commands::set_default_threads_command,
-            frontend_tauri::tauri_commands::set_default_timeout_command,
-            frontend_tauri::tauri_commands::pick_directory_command,
-            frontend_tauri::tauri_commands::list_audio_devices_command,
-            frontend_tauri::tauri_commands::select_audio_device_command,
-            frontend_tauri::tauri_commands::get_capture_state_command,
-            frontend_tauri::tauri_commands::start_capture_command,
-            frontend_tauri::tauri_commands::stop_capture_command,
-            frontend_tauri::tauri_commands::get_current_audio_device_command,
+            careless::tauri_commands::app_health_command,
+            careless::tauri_commands::system_capability_command,
+            careless::tauri_commands::validate_model_path_command,
+            careless::tauri_commands::validate_audio_path_command,
+            careless::tauri_commands::pick_model_path_command,
+            careless::tauri_commands::pick_audio_path_command,
+            careless::tauri_commands::run_transcription_command,
+            careless::tauri_commands::run_transcription_with_options_command,
+            careless::tauri_commands::export_transcript_command,
+            careless::tauri_commands::open_output_folder_command,
+            careless::tauri_commands::register_global_shortcut_command,
+            careless::tauri_commands::unregister_global_shortcut_command,
+            careless::tauri_commands::is_shortcut_registered_command,
+            careless::tauri_commands::get_app_settings_command,
+            careless::tauri_commands::set_start_in_background_command,
+            careless::tauri_commands::set_launch_on_login_command,
+            careless::tauri_commands::list_presets_command,
+            careless::tauri_commands::get_preset_command,
+            careless::tauri_commands::save_preset_command,
+            careless::tauri_commands::delete_preset_command,
+            careless::tauri_commands::set_default_preset_command,
+            careless::tauri_commands::get_default_preset_command,
+            careless::tauri_commands::add_to_queue_command,
+            careless::tauri_commands::remove_from_queue_command,
+            careless::tauri_commands::reorder_queue_command,
+            careless::tauri_commands::get_queue_command,
+            careless::tauri_commands::clear_completed_queue_command,
+            careless::tauri_commands::update_queue_item_status_command,
+            careless::tauri_commands::add_to_history_command,
+            careless::tauri_commands::get_history_command,
+            careless::tauri_commands::clear_history_command,
+            careless::tauri_commands::copy_to_clipboard_command,
+            careless::tauri_commands::get_clipboard_text_command,
+            careless::tauri_commands::get_ptt_routing_command,
+            careless::tauri_commands::set_ptt_routing_command,
+            careless::tauri_commands::set_theme_command,
+            careless::tauri_commands::set_default_output_dir_command,
+            careless::tauri_commands::set_default_model_dir_command,
+            careless::tauri_commands::set_diagnostics_enabled_command,
+            careless::tauri_commands::set_default_threads_command,
+            careless::tauri_commands::set_default_timeout_command,
+            careless::tauri_commands::pick_directory_command,
+            careless::tauri_commands::list_audio_devices_command,
+            careless::tauri_commands::select_audio_device_command,
+            careless::tauri_commands::get_capture_state_command,
+            careless::tauri_commands::start_capture_command,
+            careless::tauri_commands::stop_capture_command,
+            careless::tauri_commands::get_current_audio_device_command,
         ])
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_clipboard_manager::init())
@@ -72,7 +72,7 @@ fn build_tauri_builder() -> tauri::Builder<tauri::Wry> {
                     use tauri_plugin_global_shortcut::ShortcutState;
 
                     println!(
-                        "frontend-tauri: global shortcut event - {:?} ({:?})",
+                        "careless: global shortcut event - {:?} ({:?})",
                         shortcut,
                         event.state()
                     );
@@ -165,7 +165,7 @@ fn build_tauri_builder() -> tauri::Builder<tauri::Wry> {
 
 fn config_path() -> std::path::PathBuf {
     let mut path = dirs::config_dir().unwrap_or_else(|| std::path::PathBuf::from("."));
-    path.push("frontend-tauri");
+    path.push("careless");
     path.push("config.json");
     path
 }
@@ -173,7 +173,7 @@ fn config_path() -> std::path::PathBuf {
 fn main() {
     build_tauri_builder()
         .run(tauri::generate_context!())
-        .expect("failed to run frontend-tauri");
+        .expect("failed to run careless");
 }
 
 #[cfg(test)]
