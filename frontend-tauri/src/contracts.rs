@@ -114,3 +114,42 @@ pub struct HistoryItem {
     pub output_path: Option<String>,
     pub success: bool,
 }
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub enum PttSessionState {
+    Idle,
+    Listening,
+    Transcribing,
+    Error,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub enum PttMode {
+    Hold,
+    Toggle,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct PttOutputRouting {
+    pub copy_to_clipboard: bool,
+    pub save_to_file: bool,
+    pub type_emulation: bool,
+}
+
+impl Default for PttOutputRouting {
+    fn default() -> Self {
+        Self {
+            copy_to_clipboard: true,
+            save_to_file: false,
+            type_emulation: false,
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct PttSession {
+    pub state: PttSessionState,
+    pub mode: PttMode,
+    pub routing: PttOutputRouting,
+    pub error_message: Option<String>,
+}

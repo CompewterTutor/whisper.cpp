@@ -1,4 +1,6 @@
-use crate::contracts::{HistoryItem, QueueItem, QueueItemStatus, TranscriptionAdvancedOptions};
+use crate::contracts::{
+    HistoryItem, PttOutputRouting, QueueItem, QueueItemStatus, TranscriptionAdvancedOptions,
+};
 use crate::errors::FrontendError;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -17,6 +19,7 @@ pub struct AppConfig {
     pub presets: HashMap<String, TranscriptionPreset>,
     pub queue: Vec<QueueItem>,
     pub history: Vec<HistoryItem>,
+    pub ptt_routing: Option<PttOutputRouting>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -251,6 +254,21 @@ impl ConfigStore {
         config.history.clear();
         self.save(&config)?;
         Ok(())
+    }
+
+    // PTT routing settings
+    pub fn set_ptt_routing(
+        &self,
+        routing: PttOutputRouting,
+    ) -> Result<(), FrontendError> {
+        let mut config = self.load()?;
+        config.ptt_routing = Some(routing);
+        self.save(&config)?;
+        Ok(())
+    }
+
+    pub fn get_ptt_routing(&self) -> Option<PttOutputRouting> {
+        self.load().ok()?.ptt_routing
     }
 }
 

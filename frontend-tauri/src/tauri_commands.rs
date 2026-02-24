@@ -469,6 +469,75 @@ pub fn clear_history_command(config_store: State<'_, ConfigStore>) -> TauriComma
         .map_err(|error| ApiError::new("config_error", format!("failed to clear history: {error}")))
 }
 
+// Clipboard commands for PTT output routing
+#[tauri::command]
+pub fn copy_to_clipboard_command(
+    app: tauri::AppHandle,
+    text: String,
+) -> TauriCommandResult<()> {
+    #[cfg(desktop)]
+    {
+        use tauri_plugin_clipboard_manager::ClipboardExt;
+
+        app.clipboard()
+            .write_text(&text)
+            .map_err(|error| {
+                ApiError::new("clipboard_error", format!("failed to copy to clipboard: {error}"))
+            })?;
+    }
+
+    #[cfg(not(desktop))]
+    {
+        let _ = (app, text);
+    }
+
+    Ok(())
+}
+
+#[tauri::command]
+pub fn get_clipboard_text_command(app: tauri::AppHandle) -> TauriCommandResult<String> {
+    #[cfg(desktop)]
+    {
+        use tauri_plugin_clipboard_manager::ClipboardExt;
+
+        let text = app.clipboard().read_text().map_err(|error| {
+            ApiError::new("clipboard_error", format!("failed to read clipboard: {error}"))
+        })?;
+
+        Ok(text)
+    }
+
+    #[cfg(not(desktop))]
+    {
+        let _ = app;
+        Ok(String::new())
+    }
+}
+
+// PTT output routing settings
+#[tauri::command]
+pub fn get_ptt_routing_command(
+    config_store: State<'_, ConfigStore>,
+) -> TauriCommandResult<crate::contracts::PttOutputRouting> {
+    let config = config_store.load().map_err(|error| {
+        ApiError::new("config_error", format!("failed to load config: {error}"))
+    })?;
+
+    Ok(config
+        .ptt_routing
+        .unwrap_or_else(crate::contracts::PttOutputRouting::default))
+}
+
+#[tauri::command]
+pub fn set_ptt_routing_command(
+    routing: crate::contracts::PttOutputRouting,
+    config_store: State<'_, ConfigStore>,
+) -> TauriCommandResult<()> {
+    config_store.set_ptt_routing(routing).map_err(|error| {
+        ApiError::new("config_error", format!("failed to save PTT routing: {error}"))
+    })
+}
+
 #[cfg(test)]
 mod tests {
     use super::{

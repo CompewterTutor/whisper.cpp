@@ -466,6 +466,7 @@
             </div>
           </div>
           <div class="actions">
+            <button id="copyToClipboardBtn" class="secondary" type="button">Copy</button>
             <button id="exportTxtBtn" class="secondary" type="button">Export TXT</button>
             <button id="exportSrtBtn" class="secondary" type="button">Export SRT</button>
             <button id="exportVttBtn" class="secondary" type="button">Export VTT</button>
@@ -554,6 +555,27 @@
             Shortcut registration wiring is next. These bindings are saved now.
           </p>
         </div>
+
+        <div class="card">
+          <div class="section-header" style="margin-bottom: 0.75rem;">PTT Output Routing</div>
+          <div class="settings">
+            <label class="toggle">
+              <input id="copyToClipboardToggle" type="checkbox" />
+              <span>Copy transcript to clipboard</span>
+            </label>
+            <label class="toggle">
+              <input id="saveToFileToggle" type="checkbox" />
+              <span>Save transcript to file</span>
+            </label>
+            <label class="toggle">
+              <input id="typeEmulationToggle" type="checkbox" />
+              <span>Type emulation (paste transcript)</span>
+            </label>
+          </div>
+          <p class="hint neutral" id="routingHint">
+            Configure where PTT transcripts are sent after transcription.
+          </p>
+        </div>
       </div>
     </main>
 
@@ -579,6 +601,13 @@
       const clipboardShortcutEl = document.getElementById("clipboardShortcut");
       const fileShortcutEl = document.getElementById("fileShortcut");
       const shortcutsHintEl = document.getElementById("shortcutsHint");
+
+      // PTT routing elements
+      const copyToClipboardToggle = document.getElementById("copyToClipboardToggle");
+      const saveToFileToggle = document.getElementById("saveToFileToggle");
+      const typeEmulationToggle = document.getElementById("typeEmulationToggle");
+      const routingHintEl = document.getElementById("routingHint");
+      const copyToClipboardBtn = document.getElementById("copyToClipboardBtn");
 
       // Advanced options elements
       const advancedToggle = document.getElementById("advancedToggle");
@@ -716,6 +745,46 @@
           launchOnLoginToggle.checked = settings.launch_on_login;
         } catch (error) {
           console.warn("Failed to load app settings:", error);
+        }
+      }
+
+      // PTT routing functions
+      async function loadPttRouting() {
+        try {
+          const routing = await invoke("get_ptt_routing_command");
+          copyToClipboardToggle.checked = routing.copy_to_clipboard;
+          saveToFileToggle.checked = routing.save_to_file;
+          typeEmulationToggle.checked = routing.type_emulation;
+        } catch (error) {
+          console.warn("Failed to load PTT routing:", error);
+          // Set defaults
+          copyToClipboardToggle.checked = true;
+          saveToFileToggle.checked = false;
+          typeEmulationToggle.checked = false;
+        }
+      }
+
+      async function savePttRouting() {
+        const routing = {
+          copy_to_clipboard: copyToClipboardToggle.checked,
+          save_to_file: saveToFileToggle.checked,
+          type_emulation: typeEmulationToggle.checked,
+        };
+
+        try {
+          await invoke("set_ptt_routing_command", { routing });
+          setStatus("PTT routing settings saved.", "ok");
+        } catch (error) {
+          showError("Failed to save PTT routing", error);
+        }
+      }
+
+      async function copyTranscriptToClipboard(text) {
+        try {
+          await invoke("copy_to_clipboard_command", { text });
+          setStatus("Copied to clipboard.", "ok");
+        } catch (error) {
+          showError("Failed to copy to clipboard", error);
         }
       }
 
@@ -1298,6 +1367,15 @@
       document.getElementById("exportVttBtn").addEventListener("click", () => exportTranscript("vtt"));
       document.getElementById("exportJsonBtn").addEventListener("click", () => exportTranscript("json"));
 
+      copyToClipboardBtn.addEventListener("click", () => {
+        const transcript = latestTranscript.trim();
+        if (!transcript) {
+          setStatus("No transcript to copy.", "error");
+          return;
+        }
+        copyTranscriptToClipboard(transcript);
+      });
+
       // Queue event handlers
       addToQueueBtn.addEventListener("click", async () => {
         try {
@@ -1559,9 +1637,19 @@
         })();
       });
 
+      // PTT routing toggles
+      [copyToClipboardToggle, saveToFileToggle, typeEmulationToggle].forEach((toggle) => {
+        toggle.addEventListener("change", () => {
+          (async () => {
+            await savePttRouting();
+          })();
+        });
+      });
+
       restoreState();
       restoreAdvancedOptions();
       loadAppSettings();
+      loadPttRouting();
       loadPresets();
       loadQueue();
       loadHistory();

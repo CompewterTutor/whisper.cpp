@@ -42,7 +42,12 @@ fn build_tauri_builder() -> tauri::Builder<tauri::Wry> {
             frontend_tauri::tauri_commands::add_to_history_command,
             frontend_tauri::tauri_commands::get_history_command,
             frontend_tauri::tauri_commands::clear_history_command,
+            frontend_tauri::tauri_commands::copy_to_clipboard_command,
+            frontend_tauri::tauri_commands::get_clipboard_text_command,
+            frontend_tauri::tauri_commands::get_ptt_routing_command,
+            frontend_tauri::tauri_commands::set_ptt_routing_command,
         ])
+        .plugin(tauri_plugin_clipboard_manager::init())
         .plugin(
             GlobalShortcutBuilder::new()
                 .with_handler(|_app, shortcut, event| {
