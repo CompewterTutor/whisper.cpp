@@ -1,7 +1,7 @@
 # frontend-tauri TODO
 
 Date initialized: 2026-02-12
-Last updated: 2026-02-12
+Last updated: 2026-02-24
 
 Legend: `[ ]` pending, `[~]` in progress, `[x]` done
 
@@ -24,20 +24,20 @@ Legend: `[ ]` pending, `[~]` in progress, `[x]` done
 - [x] Add "open output folder" action after successful run.
 - [x] Add tests for export request validation and run-state transitions.
 - [x] Run `fmt`, `clippy`, `test`, and `build --release`.
-- [ ] Add transcript metadata summary (line/segment count, estimated duration).
-- [ ] Add explicit recoverable error hints panel for common failures.
+- [x] Add transcript metadata summary (line/segment count, estimated duration).
+- [x] Add explicit recoverable error hints panel for common failures.
 
 ## P1 — Complete single-file transcribe UX
 
 - [ ] Refine layout into sections: inputs, controls, transcript, export.
-- [ ] Persist last-used model/audio/output directory and options.
-- [ ] Add transcript metadata summary (duration, segments, language if available).
-- [ ] Ensure all user-facing errors include actionable recovery hints.
+- [x] Persist last-used model/audio/output directory and options.
+- [x] Add transcript metadata summary (duration, segments, language if available).
+- [x] Ensure all user-facing errors include actionable recovery hints.
 
 Acceptance criteria:
 - [ ] User can complete full workflow without terminal interaction.
-- [ ] User can export transcript in at least two formats.
-- [ ] Invalid model/audio clearly blocks run and shows reason.
+- [x] User can export transcript in at least two formats.
+- [x] Invalid model/audio clearly blocks run and shows reason.
 
 ## P2 — Advanced controls + presets
 

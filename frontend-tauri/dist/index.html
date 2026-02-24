@@ -89,6 +89,24 @@
       .status.ok {
         color: #86efac;
       }
+      .error-hint {
+        background: rgba(239, 68, 68, 0.15);
+        border: 1px solid rgba(239, 68, 68, 0.4);
+        border-radius: 0.5rem;
+        padding: 0.6rem 0.75rem;
+        margin-top: 0.5rem;
+        font-size: 0.88rem;
+        color: #fecaca;
+        display: none;
+      }
+      .error-hint.visible {
+        display: block;
+      }
+      .error-hint-title {
+        font-weight: 600;
+        margin-bottom: 0.25rem;
+        color: #fca5a5;
+      }
       pre {
         white-space: pre-wrap;
         margin: 0;
@@ -197,6 +215,10 @@
           <button id="runBtn" type="button">Run transcription</button>
         </div>
         <p id="status" class="status"></p>
+        <div id="errorHint" class="error-hint">
+          <p class="error-hint-title">How to fix this:</p>
+          <p id="errorHintText"></p>
+        </div>
       </section>
 
       <section class="card">
@@ -281,6 +303,8 @@
       const openOutputFolderBtn = document.getElementById("openOutputFolderBtn");
       const segmentCountEl = document.getElementById("segmentCount");
       const estimatedDurationEl = document.getElementById("estimatedDuration");
+      const errorHintEl = document.getElementById("errorHint");
+      const errorHintTextEl = document.getElementById("errorHintText");
       const startInBackgroundToggle = document.getElementById("startInBackgroundToggle");
       const launchOnLoginToggle = document.getElementById("launchOnLoginToggle");
       const backgroundHintEl = document.getElementById("backgroundHint");
@@ -313,12 +337,22 @@
       function setStatus(message, kind = "") {
         statusEl.textContent = message;
         statusEl.className = `status ${kind}`.trim();
+        if (kind !== "error") {
+          errorHintEl.classList.remove("visible");
+        }
       }
 
       function showError(prefix, error) {
         const code = error?.code ? `[${error.code}] ` : "";
         const message = error?.message || String(error);
         setStatus(`${prefix}: ${code}${message}`, "error");
+
+        if (error?.hint) {
+          errorHintTextEl.textContent = error.hint;
+          errorHintEl.classList.add("visible");
+        } else {
+          errorHintEl.classList.remove("visible");
+        }
       }
 
       function setHint(element, message, kind) {

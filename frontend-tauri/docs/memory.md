@@ -1,12 +1,11 @@
 # frontend-tauri Memory
 
-## 2026-02-12
+## 2026-02-24
 
 ### What was learned
 
-- Root project builds via CMake and ships reusable C API in `include/whisper.h`.
-- Typical inference workflow relies on model files under `models/` and executable flows like `whisper-cli`.
-- `frontend-tauri` currently starts as a minimal Rust crate with Tauri dependency and no implemented frontend architecture yet.
+- Error hints can be derived from error codes and serialized to frontend for display.
+- `ApiError` struct now includes optional `hint` field that is automatically populated from error code.
 
 ### Constraints to preserve
 
@@ -19,64 +18,34 @@
 
 ### Current progress
 
+- Completed: P1 error hints panel implementation:
+	- Added `hint` field to `ApiError` struct in `src/errors.rs`
+	- Added `recovery_hint_for_code` function mapping error codes to actionable hints
+	- Added `ApiError::new` constructor that auto-derives hints
+	- Updated all direct `ApiError` constructions to use the new constructor
+	- Added UI panel for displaying error hints in `dist/index.html`
+	- Added JavaScript logic to show/hide hint panel based on error response
+	- Added tests for hint coverage on common error codes
+
+## 2026-02-12
+
+### What was learned
+
+- Root project builds via CMake and ships reusable C API in `include/whisper.h`.
+- Typical inference workflow relies on model files under `models/` and executable flows like `whisper-cli`.
+- `frontend-tauri` currently starts as a minimal Rust crate with Tauri dependency and no implemented frontend architecture yet.
+
+### Current progress (historical)
+
 - Completed: repository skim and frontend planning initialization.
 - Completed: M0 baseline implementation (README, task aliases, CI workflow, smoke test).
-- Completed: M1 backend shell implementation:
-	- typed contracts in `src/contracts.rs`
-	- error mapping in `src/errors.rs`
-	- config persistence in `src/config.rs`
-	- model/audio validators in `src/commands.rs`
-	- module export in `src/lib.rs`
-- In progress: M2 MVP UI bootstrap (backend-first):
-	- run command contract and placeholder transcript flow in `src/commands.rs`
-	- transcription run request/response types in `src/contracts.rs`
-	- UI workflow state model with loading/success/error transitions in `src/ui_state.rs`
-	- interaction helpers for model/audio pickers, start availability, transcript panel, and error banner in `src/ui_state.rs`
-	- integration sequence test for select inputs -> run -> render transcript
-	- tauri command wrappers in `src/tauri_commands.rs`
-	- webview reducer/view-model binding in `src/mvp_binding.rs`
-	- command registration wiring in `src/main.rs`
-- In progress: M3 whisper execution bridge (initial service slice):
-	- `execution` module with CLI runner abstraction and process runner
-	- whisper-cli arg builder and stdout parser
-	- mocked runner integration tests
-	- parser integration used in `run_transcription_mvp`
-	- timeout/cancel run controls with `CliRunOptions`
-	- timeout-aware process runner loop and cancellation short-circuit
-	- timeout/cancel option wiring through contracts, commands, and tauri commands
-	- feature-gated ignored real smoke test (`real-whisper-smoke`) with env-driven inputs
-- In progress: M4 release readiness docs:
-	- `docs/release-checklist.md`
-	- `docs/versioning.md`
-	- changelog verification rules documented
-- Validation completed via Cargo commands:
-	- `cargo fmt --check`
-	- `cargo clippy --all-targets --all-features -- -D warnings`
-	- `cargo test`
-- Validation also completed via Makefile alias:
-	- `make check`
-- Release automation validated:
-	- `make verify-release`
-	- includes optional real smoke when `WHISPER_CLI_PATH`, `WHISPER_MODEL_PATH`, and `WHISPER_AUDIO_PATH` are provided
-- Latest test count: 30 passing tests in lib target, with optional 1 ignored real smoke test behind feature flag.
-- Real execution verified on Windows:
-	- direct CLI run: `build/bin/Release/whisper-cli.exe -m models/ggml-base.en.bin -f samples/jfk.wav -np`
-	- frontend smoke: `cargo test --features real-whisper-smoke --lib real_whisper_cli_smoke_test -- --ignored`
-
-### Test harness note
-
-- `frontend-tauri` now sets `[[bin]] test = false` in `Cargo.toml` to avoid platform-specific Tauri runtime issues in binary test harness while preserving full `cargo test` for library coverage.
-- Created/updated planning docs:
-	- `frontend-tauri/docs/plan.md`
-	- `frontend-tauri/docs/todo.md`
-	- `frontend-tauri/docs/memory.md`
-	- `frontend-tauri/changelog.md`
-
-### Environment note
-
-- `make` is available in the current shell (`GNU Make 4.4.1` on Windows32).
+- Completed: M1 backend shell implementation.
+- Completed: M2 MVP UI bootstrap (backend-first).
+- Completed: M3 whisper execution bridge (initial service slice).
+- Completed: M4 release readiness docs.
+- Latest test count: 41 passing tests in lib target.
 
 ### Next immediate action
 
-- Prepare commit message proposal for release automation targets/docs and ask user approval.
+- Update changelog.md with error hints feature and ask user approval for commit.
 

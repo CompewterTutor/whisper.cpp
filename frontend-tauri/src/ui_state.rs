@@ -137,12 +137,7 @@ mod tests {
             ..MvpUiState::default()
         };
 
-        state.run_with(|_| {
-            Err(ApiError {
-                code: "missing_path".to_owned(),
-                message: "input path cannot be empty".to_owned(),
-            })
-        });
+        state.run_with(|_| Err(ApiError::new("missing_path", "input path cannot be empty")));
 
         assert_eq!(state.state, UiWorkflowState::Error);
         assert_eq!(

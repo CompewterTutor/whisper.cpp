@@ -8,6 +8,12 @@ The format is based on Keep a Changelog, and the project follows Semantic Versio
 
 ### Added
 
+- Added recoverable error hints panel in UI that displays actionable recovery suggestions when errors occur.
+- Added `hint` field to `ApiError` struct with automatic derivation from error code.
+- Added `ApiError::new` constructor that auto-populates hints for known error codes.
+- Added error hint mapping for common failures: missing paths, file not found, invalid extensions, I/O errors, execution timeouts, cancellations, and shortcut registration failures.
+- Added UI styles and JavaScript logic to display error hints alongside error messages.
+- Added tests for error hint coverage on all common error types.
 - Initialized planning and progress-tracking docs for frontend implementation.
 - Added `frontend-tauri/README.md` with setup, quality gates, and workflow constraints.
 - Added `frontend-tauri/Makefile` task aliases for `fmt`, `lint`, `test`, `check`, and `dev`.

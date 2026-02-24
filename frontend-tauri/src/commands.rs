@@ -37,10 +37,10 @@ impl TranscriptExportFormat {
             "srt" => Ok(Self::Srt),
             "vtt" => Ok(Self::Vtt),
             "json" => Ok(Self::Json),
-            _ => Err(ApiError {
-                code: "invalid_input".to_owned(),
-                message: format!("unsupported export format: {raw} (expected txt|srt|vtt|json)"),
-            }),
+            _ => Err(ApiError::new(
+                "invalid_input",
+                format!("unsupported export format: {raw} (expected txt|srt|vtt|json)"),
+            )),
         }
     }
 
@@ -161,10 +161,7 @@ pub fn prepare_transcript_export(
 ) -> CommandResult<TranscriptExportArtifact> {
     let trimmed = transcript.trim();
     if trimmed.is_empty() {
-        return Err(ApiError {
-            code: "invalid_input".to_owned(),
-            message: "transcript cannot be empty".to_owned(),
-        });
+        return Err(ApiError::new("invalid_input", "transcript cannot be empty"));
     }
 
     let export_format = TranscriptExportFormat::parse(&format)?;
@@ -265,9 +262,11 @@ fn render_as_json(full_text: &str, lines: &[&str]) -> CommandResult<String> {
         text: full_text.to_owned(),
         segments,
     })
-    .map_err(|error| ApiError {
-        code: "serialization_error".to_owned(),
-        message: format!("failed to serialize transcript export: {error}"),
+    .map_err(|error| {
+        ApiError::new(
+            "serialization_error",
+            format!("failed to serialize transcript export: {error}"),
+        )
     })
 }
 

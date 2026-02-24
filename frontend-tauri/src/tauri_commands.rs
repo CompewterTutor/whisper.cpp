@@ -75,15 +75,14 @@ pub fn export_transcript_command(transcript: String, format: String) -> TauriCom
         .set_file_name(&artifact.file_name)
         .save_file()
     else {
-        return Err(ApiError {
-            code: "selection_cancelled".to_owned(),
-            message: "export destination selection cancelled".to_owned(),
-        });
+        return Err(ApiError::new(
+            "selection_cancelled",
+            "export destination selection cancelled",
+        ));
     };
 
-    std::fs::write(&path, artifact.content).map_err(|error| ApiError {
-        code: "io_error".to_owned(),
-        message: format!("failed to write export file: {error}"),
+    std::fs::write(&path, artifact.content).map_err(|error| {
+        ApiError::new("io_error", format!("failed to write export file: {error}"))
     })?;
 
     Ok(path.to_string_lossy().into_owned())
@@ -93,23 +92,19 @@ pub fn export_transcript_command(transcript: String, format: String) -> TauriCom
 pub fn open_output_folder_command(file_path: String) -> TauriCommandResult<()> {
     let trimmed = file_path.trim();
     if trimmed.is_empty() {
-        return Err(ApiError {
-            code: "invalid_input".to_owned(),
-            message: "file path cannot be empty".to_owned(),
-        });
+        return Err(ApiError::new("invalid_input", "file path cannot be empty"));
     }
 
     let path = PathBuf::from(trimmed);
-    let parent = path.parent().ok_or_else(|| ApiError {
-        code: "invalid_input".to_owned(),
-        message: "file path must have a parent directory".to_owned(),
-    })?;
+    let parent = path
+        .parent()
+        .ok_or_else(|| ApiError::new("invalid_input", "file path must have a parent directory"))?;
 
     if !parent.exists() {
-        return Err(ApiError {
-            code: "path_not_found".to_owned(),
-            message: format!("output directory does not exist: {}", parent.display()),
-        });
+        return Err(ApiError::new(
+            "path_not_found",
+            format!("output directory does not exist: {}", parent.display()),
+        ));
     }
 
     #[cfg(target_os = "windows")]
@@ -133,9 +128,8 @@ pub fn open_output_folder_command(file_path: String) -> TauriCommandResult<()> {
         cmd
     };
 
-    command.spawn().map_err(|error| ApiError {
-        code: "io_error".to_owned(),
-        message: format!("failed to open output folder: {error}"),
+    command.spawn().map_err(|error| {
+        ApiError::new("io_error", format!("failed to open output folder: {error}"))
     })?;
 
     Ok(())
@@ -150,12 +144,12 @@ pub fn register_global_shortcut_command(
 
     #[cfg(desktop)]
     {
-        app.global_shortcut()
-            .register(trimmed)
-            .map_err(|error| ApiError {
-                code: "shortcut_register_failed".to_owned(),
-                message: format!("failed to register shortcut '{trimmed}': {error}"),
-            })?;
+        app.global_shortcut().register(trimmed).map_err(|error| {
+            ApiError::new(
+                "shortcut_register_failed",
+                format!("failed to register shortcut '{trimmed}': {error}"),
+            )
+        })?;
     }
 
     Ok(())
@@ -170,12 +164,12 @@ pub fn unregister_global_shortcut_command(
 
     #[cfg(desktop)]
     {
-        app.global_shortcut()
-            .unregister(trimmed)
-            .map_err(|error| ApiError {
-                code: "shortcut_unregister_failed".to_owned(),
-                message: format!("failed to unregister shortcut '{trimmed}': {error}"),
-            })?;
+        app.global_shortcut().unregister(trimmed).map_err(|error| {
+            ApiError::new(
+                "shortcut_unregister_failed",
+                format!("failed to unregister shortcut '{trimmed}': {error}"),
+            )
+        })?;
     }
 
     Ok(())
@@ -184,10 +178,7 @@ pub fn unregister_global_shortcut_command(
 fn validate_shortcut_input(shortcut: &str) -> TauriCommandResult<&str> {
     let trimmed = shortcut.trim();
     if trimmed.is_empty() {
-        return Err(ApiError {
-            code: "invalid_input".to_owned(),
-            message: "shortcut cannot be empty".to_owned(),
-        });
+        return Err(ApiError::new("invalid_input", "shortcut cannot be empty"));
     }
 
     Ok(trimmed)
@@ -210,10 +201,10 @@ fn pick_file_with_filter(filters: &[(&str, &[&str])]) -> TauriCommandResult<Stri
     }
 
     let Some(path) = dialog.pick_file() else {
-        return Err(ApiError {
-            code: "selection_cancelled".to_owned(),
-            message: "file selection cancelled".to_owned(),
-        });
+        return Err(ApiError::new(
+            "selection_cancelled",
+            "file selection cancelled",
+        ));
     };
 
     Ok(path.to_string_lossy().into_owned())
