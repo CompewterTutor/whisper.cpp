@@ -10,6 +10,10 @@
 - `AudioCaptureSession` manages device selection, capture lifecycle, and sample buffering.
 - Capture state machine: Idle -> Listening -> (Transcribing|Error) -> Idle.
 - Tauri state with `Mutex<AudioCaptureSession>` allows thread-safe access from commands.
+- `tauri-plugin-dialog` is preferred over `rfd` for file dialogs in Tauri apps - better integration.
+- `rfd` (rust-file-dialog) can cause issues with Tauri's webview on Windows.
+- JavaScript in Tauri must wait for `window.__TAURI__` to be available before calling invoke.
+- Duplicate variable declarations in inline scripts cause silent JS failures.
 - Error hints can be derived from error codes and serialized to frontend for display.
 - `ApiError` struct now includes optional `hint` field that is automatically populated from error code.
 - UI layout benefits from clear section headers for progressive disclosure (Input Files, Controls, Transcript, Settings).
@@ -37,6 +41,12 @@
 
 ### Current progress
 
+- **BLOCKING ISSUE**: File dialogs still not working - "Tauri invoke API not available" error persists
+	- Attempted fixes:
+		1. Added `initApp()` to wait for `window.__TAURI__` before initialization
+		2. Fixed duplicate `audioHintEl` variable declaration causing JS syntax error
+		3. Switched from `rfd` to `tauri-plugin-dialog` for better Tauri integration
+	- Issue persists - needs further investigation in new chat session
 - In progress: P6 push-to-talk audio capture pipeline:
 	- Added `cpal` dependency for cross-platform audio capture
 	- Added `hound` dependency for WAV encoding
@@ -103,6 +113,11 @@
 
 ### Next immediate action
 
+- **CRITICAL**: Debug "Tauri invoke API not available" error on file dialogs
+	- Check if `tauri-plugin-dialog` is properly initialized
+	- Verify dialog permissions in capabilities
+	- Check if async commands are being called correctly from frontend
+	- Consider enabling dev tools in release build for debugging
 - P1, P2, P2.5, P3, P4 are fully complete.
 - P6 audio capture backend is complete. Remaining: wire global shortcut to PTT flow, add UI for device selection.
 - P5 output routing UI is partially complete.

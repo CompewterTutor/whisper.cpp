@@ -64,6 +64,7 @@ fn build_tauri_builder() -> tauri::Builder<tauri::Wry> {
             frontend_tauri::tauri_commands::stop_capture_command,
             frontend_tauri::tauri_commands::get_current_audio_device_command,
         ])
+        .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_clipboard_manager::init())
         .plugin(
             GlobalShortcutBuilder::new()

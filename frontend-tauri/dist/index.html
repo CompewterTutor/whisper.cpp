@@ -826,7 +826,6 @@
       const pttDot = document.getElementById("pttDot");
       const pttStatusText = document.getElementById("pttStatusText");
       const pttTimer = document.getElementById("pttTimer");
-      const audioHintEl = document.getElementById("audioHint");
 
       // PTT state
       let pttState = "idle"; // idle, listening, transcribing, error
@@ -2168,36 +2167,49 @@
         // In toggle mode, we don't stop on release - user needs to press again
       });
 
-      restoreState();
-      restoreAdvancedOptions();
-      loadAppSettings();
-      loadPttRouting();
-      loadPresets();
-      loadQueue();
-      loadHistory();
-      loadAudioDevices(); // P6: Load audio devices
-      updateShortcutConflictUI();
-      if (modelPathEl.value.trim()) {
-        validateModelPath();
+      // Wait for Tauri API to be available, then initialize
+      function initApp() {
+        if (!window.__TAURI__) {
+          console.warn("Tauri API not yet available, retrying in 100ms...");
+          setTimeout(initApp, 100);
+          return;
+        }
+        console.log("Tauri API available, initializing app...");
+
+        restoreState();
+        restoreAdvancedOptions();
+        loadAppSettings();
+        loadPttRouting();
+        loadPresets();
+        loadQueue();
+        loadHistory();
+        loadAudioDevices(); // P6: Load audio devices
+        updateShortcutConflictUI();
+        if (modelPathEl.value.trim()) {
+          validateModelPath();
+        }
+        if (audioPathEl.value.trim()) {
+          validateAudioPath();
+        }
+        if (shortcutsEnabledToggle.checked) {
+          applyShortcutRegistration(true)
+            .then(() => {
+              updateShortcutConflictUI();
+            })
+            .catch((error) => {
+              shortcutsEnabledToggle.checked = false;
+              persistState();
+              shortcutsHintEl.textContent =
+                "Global shortcut registration failed on startup. Please review bindings.";
+              showError("Global shortcut startup registration failed", error);
+            });
+        }
+        updateTranscriptMetadata(latestTranscript);
+        updateRunAvailability();
       }
-      if (audioPathEl.value.trim()) {
-        validateAudioPath();
-      }
-      if (shortcutsEnabledToggle.checked) {
-        applyShortcutRegistration(true)
-          .then(() => {
-            updateShortcutConflictUI();
-          })
-          .catch((error) => {
-            shortcutsEnabledToggle.checked = false;
-            persistState();
-            shortcutsHintEl.textContent =
-              "Global shortcut registration failed on startup. Please review bindings.";
-            showError("Global shortcut startup registration failed", error);
-          });
-      }
-      updateTranscriptMetadata(latestTranscript);
-      updateRunAvailability();
+
+      // Start initialization
+      initApp();
     </script>
   </body>
 </html>

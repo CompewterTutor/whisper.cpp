@@ -70,28 +70,38 @@ pub fn run_transcription_with_options_command(
 }
 
 #[tauri::command]
-pub fn export_transcript_command(transcript: String, format: String) -> TauriCommandResult<String> {
+pub async fn export_transcript_command(
+    transcript: String,
+    format: String,
+    app: tauri::AppHandle,
+) -> TauriCommandResult<String> {
+    use tauri_plugin_dialog::DialogExt;
+
     let artifact = commands::prepare_transcript_export(transcript, format)?;
 
-    let Some(path) = rfd::FileDialog::new()
+    let file_path = app
+        .dialog()
+        .file()
         .add_filter(
             format!("Transcript ({})", artifact.extension).as_str(),
             &[artifact.extension.as_str()],
         )
         .set_file_name(&artifact.file_name)
-        .save_file()
-    else {
+        .blocking_save_file();
+
+    let Some(path) = file_path else {
         return Err(ApiError::new(
             "selection_cancelled",
             "export destination selection cancelled",
         ));
     };
 
-    std::fs::write(&path, artifact.content).map_err(|error| {
+    let path_str = path.to_string();
+    std::fs::write(&path_str, artifact.content).map_err(|error| {
         ApiError::new("io_error", format!("failed to write export file: {error}"))
     })?;
 
-    Ok(path.to_string_lossy().into_owned())
+    Ok(path_str)
 }
 
 #[tauri::command]
@@ -211,29 +221,47 @@ fn validate_shortcut_input(shortcut: &str) -> TauriCommandResult<&str> {
 }
 
 #[tauri::command]
-pub fn pick_model_path_command() -> TauriCommandResult<String> {
-    pick_file_with_filter(&[("Whisper Model", &["bin"])])
-}
+pub async fn pick_model_path_command(
+    app: tauri::AppHandle,
+) -> TauriCommandResult<String> {
+    use tauri_plugin_dialog::DialogExt;
 
-#[tauri::command]
-pub fn pick_audio_path_command() -> TauriCommandResult<String> {
-    pick_file_with_filter(&[("Audio", &["wav", "mp3", "flac", "ogg", "m4a"])])
-}
+    let file_path = app
+        .dialog()
+        .file()
+        .add_filter("Whisper Model", &["bin"])
+        .blocking_pick_file();
 
-fn pick_file_with_filter(filters: &[(&str, &[&str])]) -> TauriCommandResult<String> {
-    let mut dialog = rfd::FileDialog::new();
-    for &(name, extensions) in filters {
-        dialog = dialog.add_filter(name, extensions);
-    }
-
-    let Some(path) = dialog.pick_file() else {
+    let Some(path) = file_path else {
         return Err(ApiError::new(
             "selection_cancelled",
             "file selection cancelled",
         ));
     };
 
-    Ok(path.to_string_lossy().into_owned())
+    Ok(path.to_string())
+}
+
+#[tauri::command]
+pub async fn pick_audio_path_command(
+    app: tauri::AppHandle,
+) -> TauriCommandResult<String> {
+    use tauri_plugin_dialog::DialogExt;
+
+    let file_path = app
+        .dialog()
+        .file()
+        .add_filter("Audio", &["wav", "mp3", "flac", "ogg", "m4a"])
+        .blocking_pick_file();
+
+    let Some(path) = file_path else {
+        return Err(ApiError::new(
+            "selection_cancelled",
+            "file selection cancelled",
+        ));
+    };
+
+    Ok(path.to_string())
 }
 
 #[tauri::command]
@@ -675,15 +703,21 @@ pub fn set_default_timeout_command(
 }
 
 #[tauri::command]
-pub fn pick_directory_command() -> TauriCommandResult<String> {
-    let Some(path) = rfd::FileDialog::new().pick_folder() else {
+pub async fn pick_directory_command(
+    app: tauri::AppHandle,
+) -> TauriCommandResult<String> {
+    use tauri_plugin_dialog::DialogExt;
+
+    let folder_path = app.dialog().file().blocking_pick_folder();
+
+    let Some(path) = folder_path else {
         return Err(ApiError::new(
             "selection_cancelled",
             "directory selection cancelled",
         ));
     };
 
-    Ok(path.to_string_lossy().into_owned())
+    Ok(path.to_string())
 }
 
 // P6: Audio capture commands
