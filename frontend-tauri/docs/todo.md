@@ -87,10 +87,14 @@ Acceptance criteria:
 
 - [ ] Add microphone capture session model (`idle/listening/transcribing/error`).
 - [ ] Add push-to-talk shortcut modes (`hold` and `toggle`).
+- [x] Add output routing settings UI (clipboard, file, type emulation toggles).
+- [x] Add clipboard commands (copy_to_clipboard, get_clipboard_text).
+- [x] Add PTT routing commands (get_ptt_routing, set_ptt_routing).
 - [ ] Add output routing actions:
-	- [ ] capture result to clipboard
+	- [x] capture result to clipboard (UI + commands wired)
 	- [ ] capture result to text file
 	- [ ] emulate typing into focused app (opt-in)
+- [ ] Wire global shortcut handler to PTT capture flow.
 - [ ] Add tests for capture lifecycle and routing adapters.
 
 Acceptance criteria:

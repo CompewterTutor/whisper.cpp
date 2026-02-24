@@ -8,6 +8,13 @@ The format is based on Keep a Changelog, and the project follows Semantic Versio
 
 ### Added
 
+- Added clipboard commands: `copy_to_clipboard_command`, `get_clipboard_text_command` for PTT output routing.
+- Added PTT output routing contracts: `PttSessionState`, `PttMode`, `PttOutputRouting`, `PttSession`.
+- Added PTT routing Tauri commands: `get_ptt_routing_command`, `set_ptt_routing_command`.
+- Added PTT Output Routing settings card with toggles for clipboard, file, and type emulation.
+- Added Copy button to transcript section for quick clipboard export.
+- Added `tauri-plugin-clipboard-manager` dependency for clipboard integration.
+- Added `ptt_routing` field to `AppConfig` for persistent output routing preferences.
 - Added batch queue view with multi-file add/remove/reorder functionality.
 - Added per-item status display (Pending, Running, Success, Error) for queue items.
 - Added run history list with timestamp, success status, and rerun action.
