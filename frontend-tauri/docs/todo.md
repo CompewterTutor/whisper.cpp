@@ -85,7 +85,7 @@ Acceptance criteria:
 
 ## P5 — Push-to-talk + output routing
 
-- [ ] Add microphone capture session model (`idle/listening/transcribing/error`).
+- [x] Add microphone capture session model (`idle/listening/transcribing/error`).
 - [ ] Add push-to-talk shortcut modes (`hold` and `toggle`).
 - [x] Add output routing settings UI (clipboard, file, type emulation toggles).
 - [x] Add clipboard commands (copy_to_clipboard, get_clipboard_text).
@@ -95,12 +95,30 @@ Acceptance criteria:
 	- [ ] capture result to text file
 	- [ ] emulate typing into focused app (opt-in)
 - [ ] Wire global shortcut handler to PTT capture flow.
-- [ ] Add tests for capture lifecycle and routing adapters.
+- [x] Add tests for capture lifecycle and routing adapters.
 
 Acceptance criteria:
 - [ ] User can trigger a PTT session entirely via global shortcut.
 - [ ] Result can be routed to clipboard or file without opening main window.
 - [ ] Type emulation is explicit opt-in and can be disabled globally.
+
+## P6 — Push-to-talk audio capture pipeline
+
+- [x] Add microphone device selection and capture lifecycle.
+- [x] Buffer and segment captured audio for transcription.
+- [x] Integrate capture session with existing execution + result routing.
+- [x] Add audio capture module with cpal dependency.
+- [x] Add WAV encoding with hound dependency.
+- [x] Add Tauri commands for audio device enumeration and capture control.
+- [x] Add audio device selector UI with microphone dropdown.
+- [x] Add PTT mode selector (hold/toggle).
+- [x] Add PTT status indicator (recording/transcribing/error states).
+- [x] Wire global shortcut to PTT capture flow via window events.
+
+Tests:
+- [x] Capture state machine tests (`idle/listening/transcribing/error`).
+- [x] Adapter tests for audio buffering/encoding boundaries.
+- [ ] End-to-end PTT smoke test behind feature flag.
 
 ## Process checklist (per slice)
 

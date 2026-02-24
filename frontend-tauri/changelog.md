@@ -8,6 +8,16 @@ The format is based on Keep a Changelog, and the project follows Semantic Versio
 
 ### Added
 
+- P6: Added PTT audio settings UI with microphone selector and mode toggle.
+- P6: Added PTT status indicator (idle/listening/transcribing/error) with timer.
+- P6: Added global shortcut event handling for PTT (ptt-start/ptt-stop events).
+- P6: Added frontend event listeners for PTT capture control.
+- P6: Added audio capture module with `cpal` for cross-platform microphone input.
+- P6: Added `AudioCaptureSession` for device selection and capture lifecycle management.
+- P6: Added WAV encoding with `hound` for whisper-cli compatibility.
+- P6: Added audio resampling to convert any sample rate to 16kHz.
+- P6: Added Tauri commands: `list_audio_devices_command`, `select_audio_device_command`, `get_capture_state_command`, `start_capture_command`, `stop_capture_command`, `get_current_audio_device_command`.
+- P6: Added `AudioDeviceInfo` and `CaptureState` contracts for frontend integration.
 - P4: Added comprehensive settings page with theme selection (system/light/dark).
 - P4: Added default output directory and default model directory settings with browse buttons.
 - P4: Added execution defaults settings: default threads and default timeout.

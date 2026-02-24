@@ -18,6 +18,10 @@ serde_json = "1.0"
 tauri = { version = "2.10.2", features = ["tray-icon"] }
 rfd = "0.15"
 dirs = "6"
+# P6: Audio capture
+cpal = "0.16"
+tempfile = "3"
+hound = "3.5"
 
 [target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
 tauri-plugin-global-shortcut = "2"

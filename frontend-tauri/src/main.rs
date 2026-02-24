@@ -1,15 +1,19 @@
+use frontend_tauri::audio::AudioCaptureSession;
 use frontend_tauri::config::ConfigStore;
-use tauri::Manager;
+use std::sync::Mutex;
 use tauri::menu::{Menu, MenuItem};
 use tauri::tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent};
+use tauri::{Emitter, Manager};
 use tauri_plugin_autostart::MacosLauncher;
 use tauri_plugin_global_shortcut::Builder as GlobalShortcutBuilder;
 
 fn build_tauri_builder() -> tauri::Builder<tauri::Wry> {
     let config_store = ConfigStore::new(config_path());
+    let capture_session = Mutex::new(AudioCaptureSession::default());
 
     tauri::Builder::default()
         .manage(config_store)
+        .manage(capture_session)
         .invoke_handler(tauri::generate_handler![
             frontend_tauri::tauri_commands::app_health_command,
             frontend_tauri::tauri_commands::system_capability_command,
@@ -53,16 +57,34 @@ fn build_tauri_builder() -> tauri::Builder<tauri::Wry> {
             frontend_tauri::tauri_commands::set_default_threads_command,
             frontend_tauri::tauri_commands::set_default_timeout_command,
             frontend_tauri::tauri_commands::pick_directory_command,
+            frontend_tauri::tauri_commands::list_audio_devices_command,
+            frontend_tauri::tauri_commands::select_audio_device_command,
+            frontend_tauri::tauri_commands::get_capture_state_command,
+            frontend_tauri::tauri_commands::start_capture_command,
+            frontend_tauri::tauri_commands::stop_capture_command,
+            frontend_tauri::tauri_commands::get_current_audio_device_command,
         ])
         .plugin(tauri_plugin_clipboard_manager::init())
         .plugin(
             GlobalShortcutBuilder::new()
-                .with_handler(|_app, shortcut, event| {
+                .with_handler(|app, shortcut, event| {
+                    use tauri_plugin_global_shortcut::ShortcutState;
+
                     println!(
                         "frontend-tauri: global shortcut event - {:?} ({:?})",
                         shortcut,
                         event.state()
                     );
+
+                    // Handle PTT shortcut (configured as "ptt" in UI)
+                    // For now, we emit an event that the frontend can handle
+                    if let Some(window) = app.get_webview_window("main") {
+                        let event_name = match event.state() {
+                            ShortcutState::Pressed => "ptt-start",
+                            ShortcutState::Released => "ptt-stop",
+                        };
+                        let _ = window.emit(event_name, ());
+                    }
                 })
                 .build(),
         )

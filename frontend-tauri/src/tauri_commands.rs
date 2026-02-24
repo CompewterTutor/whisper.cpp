@@ -686,6 +686,80 @@ pub fn pick_directory_command() -> TauriCommandResult<String> {
     Ok(path.to_string_lossy().into_owned())
 }
 
+// P6: Audio capture commands
+use crate::audio::{AudioCaptureSession, AudioDeviceInfo, CaptureState};
+use std::sync::Mutex;
+
+#[tauri::command]
+pub fn list_audio_devices_command(
+    capture_session: State<'_, Mutex<AudioCaptureSession>>,
+) -> TauriCommandResult<Vec<AudioDeviceInfo>> {
+    let session = capture_session
+        .lock()
+        .map_err(|_| ApiError::new("lock_error", "failed to acquire audio session lock"))?;
+    session
+        .list_input_devices()
+        .map_err(|e| ApiError::new("audio_error", format!("failed to list audio devices: {e}")))
+}
+
+#[tauri::command]
+pub fn select_audio_device_command(
+    device_name: Option<String>,
+    capture_session: State<'_, Mutex<AudioCaptureSession>>,
+) -> TauriCommandResult<()> {
+    let mut session = capture_session
+        .lock()
+        .map_err(|_| ApiError::new("lock_error", "failed to acquire audio session lock"))?;
+    session
+        .select_device(device_name.as_deref())
+        .map_err(|e| ApiError::new("audio_error", format!("failed to select audio device: {e}")))
+}
+
+#[tauri::command]
+pub fn get_capture_state_command(
+    capture_session: State<'_, Mutex<AudioCaptureSession>>,
+) -> TauriCommandResult<CaptureState> {
+    let session = capture_session
+        .lock()
+        .map_err(|_| ApiError::new("lock_error", "failed to acquire audio session lock"))?;
+    Ok(session.state())
+}
+
+#[tauri::command]
+pub fn start_capture_command(
+    capture_session: State<'_, Mutex<AudioCaptureSession>>,
+) -> TauriCommandResult<()> {
+    let mut session = capture_session
+        .lock()
+        .map_err(|_| ApiError::new("lock_error", "failed to acquire audio session lock"))?;
+    session
+        .start_capture()
+        .map_err(|e| ApiError::new("audio_error", format!("failed to start capture: {e}")))
+}
+
+#[tauri::command]
+pub fn stop_capture_command(
+    capture_session: State<'_, Mutex<AudioCaptureSession>>,
+) -> TauriCommandResult<()> {
+    let mut session = capture_session
+        .lock()
+        .map_err(|_| ApiError::new("lock_error", "failed to acquire audio session lock"))?;
+    session
+        .stop_capture()
+        .map_err(|e| ApiError::new("audio_error", format!("failed to stop capture: {e}")))?;
+    Ok(())
+}
+
+#[tauri::command]
+pub fn get_current_audio_device_command(
+    capture_session: State<'_, Mutex<AudioCaptureSession>>,
+) -> TauriCommandResult<Option<AudioDeviceInfo>> {
+    let session = capture_session
+        .lock()
+        .map_err(|_| ApiError::new("lock_error", "failed to acquire audio session lock"))?;
+    Ok(session.current_device_info())
+}
+
 #[cfg(test)]
 mod tests {
     use super::{
