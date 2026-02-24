@@ -46,6 +46,13 @@ fn build_tauri_builder() -> tauri::Builder<tauri::Wry> {
             frontend_tauri::tauri_commands::get_clipboard_text_command,
             frontend_tauri::tauri_commands::get_ptt_routing_command,
             frontend_tauri::tauri_commands::set_ptt_routing_command,
+            frontend_tauri::tauri_commands::set_theme_command,
+            frontend_tauri::tauri_commands::set_default_output_dir_command,
+            frontend_tauri::tauri_commands::set_default_model_dir_command,
+            frontend_tauri::tauri_commands::set_diagnostics_enabled_command,
+            frontend_tauri::tauri_commands::set_default_threads_command,
+            frontend_tauri::tauri_commands::set_default_timeout_command,
+            frontend_tauri::tauri_commands::pick_directory_command,
         ])
         .plugin(tauri_plugin_clipboard_manager::init())
         .plugin(

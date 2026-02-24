@@ -8,6 +8,15 @@ The format is based on Keep a Changelog, and the project follows Semantic Versio
 
 ### Added
 
+- P4: Added comprehensive settings page with theme selection (system/light/dark).
+- P4: Added default output directory and default model directory settings with browse buttons.
+- P4: Added execution defaults settings: default threads and default timeout.
+- P4: Added diagnostics logging toggle setting.
+- P4: Added keyboard accessibility: focus indicators on all controls, Ctrl+R shortcut for transcription, accesskey attributes.
+- P4: Added `capabilities/default.json` with explicit Tauri v2 permissions for security hardening.
+- P4: Added new Tauri commands: `set_theme_command`, `set_default_output_dir_command`, `set_default_model_dir_command`, `set_diagnostics_enabled_command`, `set_default_threads_command`, `set_default_timeout_command`, `pick_directory_command`.
+- P4: Added new request contracts: `ThemeSettingRequest`, `PathSettingRequest`, `BoolSettingRequest`, `U16SettingRequest`, `U64SettingRequest`.
+- P4: Extended `AppSettingsResponse` to include all new settings fields.
 - Added clipboard commands: `copy_to_clipboard_command`, `get_clipboard_text_command` for PTT output routing.
 - Added PTT output routing contracts: `PttSessionState`, `PttMode`, `PttOutputRouting`, `PttSession`.
 - Added PTT routing Tauri commands: `get_ptt_routing_command`, `set_ptt_routing_command`.

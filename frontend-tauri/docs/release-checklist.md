@@ -1,6 +1,7 @@
 # frontend-tauri Release Checklist
 
 Date: 2026-02-12
+Last updated: 2026-02-24
 
 ## Scope
 
@@ -41,7 +42,46 @@ Use this checklist before any `frontend-tauri` release tag or announcement.
 - [ ] Build package artifacts for target OS(es).
 - [ ] Run startup smoke check on produced artifacts.
 
-## 6) Commit + release hygiene
+## 6) P4: Settings and hardening verification
+
+- [ ] **Settings persistence**: Change each setting, restart app, verify values persist.
+  - [ ] Theme (system/light/dark)
+  - [ ] Default output directory
+  - [ ] Default model directory
+  - [ ] Diagnostics toggle
+  - [ ] Default threads
+  - [ ] Default timeout
+  - [ ] Start in background
+  - [ ] Launch on login
+- [ ] **Keyboard accessibility**:
+  - [ ] Tab through all interactive elements
+  - [ ] Ctrl+R triggers transcription
+  - [ ] Focus indicators visible on all controls
+  - [ ] Accesskey shortcuts work (Alt+letter on Windows)
+- [ ] **Security config review**:
+  - [ ] `capabilities/default.json` has explicit permissions
+  - [ ] No overly permissive wildcards in capabilities
+  - [ ] Clipboard permissions scoped to text only
+  - [ ] Global shortcut permissions present
+  - [ ] Autostart permissions present
+
+## 7) Packaged artifact smoke test
+
+- [ ] **Startup verification**:
+  - [ ] App launches from packaged executable
+  - [ ] Window displays correctly
+  - [ ] Tray icon appears (if applicable)
+- [ ] **Transcription smoke**:
+  - [ ] Model picker opens and selects valid model
+  - [ ] Audio picker opens and selects valid audio file
+  - [ ] Run transcription produces output
+  - [ ] Export to TXT/SRT/VTT/JSON works
+  - [ ] Open output folder opens correct directory
+- [ ] **Settings verification**:
+  - [ ] Settings load on startup
+  - [ ] Settings save and persist across restarts
+
+## 8) Commit + release hygiene
 
 - [ ] Prepare Conventional Commit message(s).
 - [ ] Ask user for approval before every commit.

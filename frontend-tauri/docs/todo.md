@@ -74,14 +74,14 @@ Acceptance criteria:
 
 ## P4 — Final hardening + release UX
 
-- [ ] Add settings page (theme, defaults, diagnostics toggle, paths).
-- [ ] Add keyboard accessibility pass on core controls.
-- [ ] Add capability/security config review for Tauri command surface.
-- [ ] Extend release smoke checklist for packaged artifact UX.
+- [x] Add settings page (theme, defaults, diagnostics toggle, paths).
+- [x] Add keyboard accessibility pass on core controls.
+- [x] Add capability/security config review for Tauri command surface.
+- [x] Extend release smoke checklist for packaged artifact UX.
 
 Acceptance criteria:
-- [ ] Release build verified on Windows with packaged startup + transcription smoke.
-- [ ] Settings and defaults persist and are reversible.
+- [x] Release build verified on Windows with packaged startup + transcription smoke.
+- [x] Settings and defaults persist and are reversible.
 
 ## P5 — Push-to-talk + output routing
 

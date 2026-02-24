@@ -31,6 +31,15 @@
 
 ### Current progress
 
+- Completed: P4 final hardening + release UX:
+	- Extended `AppConfig` with theme, default_output_dir, default_model_dir, diagnostics_enabled, default_threads, default_timeout_ms
+	- Added 8 new Tauri commands for settings management
+	- Added `pick_directory_command` for directory picker
+	- Added settings UI sections: Appearance, Default Paths, Execution Defaults, Diagnostics
+	- Added keyboard accessibility: focus styles, Ctrl+R shortcut, accesskey attributes
+	- Created `capabilities/default.json` with explicit Tauri v2 permissions
+	- Updated `tauri.conf.json` with security configuration
+	- Extended `release-checklist.md` with P4 verification steps
 - Completed: P3 batch processing + history:
 	- Added `QueueItem` and `HistoryItem` contracts with status tracking
 	- Added queue management to `ConfigStore`: add, remove, reorder, update status
@@ -78,8 +87,8 @@
 
 ### Next immediate action
 
-- P1, P2, P2.5, P3 are now fully complete.
-- Next phases: P4 (Final hardening + release UX) or P5 (Push-to-talk + output routing).
+- P1, P2, P2.5, P3, P4 are now fully complete.
+- Next phases: P5 (Push-to-talk + output routing) or P6 (Audio capture pipeline).
 
 ## 2026-02-12
 

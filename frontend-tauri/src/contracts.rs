@@ -83,6 +83,37 @@ pub struct RunTranscriptionResponse {
 pub struct AppSettingsResponse {
     pub start_in_background: bool,
     pub launch_on_login: bool,
+    pub theme: String,
+    pub default_output_dir: Option<String>,
+    pub default_model_dir: Option<String>,
+    pub diagnostics_enabled: bool,
+    pub default_threads: Option<u16>,
+    pub default_timeout_ms: Option<u64>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct ThemeSettingRequest {
+    pub theme: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct PathSettingRequest {
+    pub path: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct BoolSettingRequest {
+    pub enabled: bool,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct U16SettingRequest {
+    pub value: Option<u16>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct U64SettingRequest {
+    pub value: Option<u64>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]

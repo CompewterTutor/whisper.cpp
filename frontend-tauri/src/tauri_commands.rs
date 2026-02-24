@@ -1,9 +1,10 @@
 use crate::commands;
 use crate::config::{ConfigStore, TranscriptionPreset};
 use crate::contracts::{
-    AppHealthResponse, AppSettingsResponse, AudioPathValidationResponse,
-    ModelPathValidationResponse, RunTranscriptionOptions, RunTranscriptionResponse,
-    SystemCapabilityResponse, TranscriptionAdvancedOptions,
+    AppHealthResponse, AppSettingsResponse, AudioPathValidationResponse, BoolSettingRequest,
+    ModelPathValidationResponse, PathSettingRequest, RunTranscriptionOptions,
+    RunTranscriptionResponse, SystemCapabilityResponse, ThemeSettingRequest,
+    TranscriptionAdvancedOptions, U16SettingRequest, U64SettingRequest,
 };
 use crate::errors::ApiError;
 use std::path::PathBuf;
@@ -246,6 +247,16 @@ pub fn get_app_settings_command(
     Ok(AppSettingsResponse {
         start_in_background: config.start_in_background,
         launch_on_login: config.launch_on_login,
+        theme: config.theme,
+        default_output_dir: config
+            .default_output_dir
+            .map(|p| p.to_string_lossy().into_owned()),
+        default_model_dir: config
+            .default_model_dir
+            .map(|p| p.to_string_lossy().into_owned()),
+        diagnostics_enabled: config.diagnostics_enabled,
+        default_threads: config.default_threads,
+        default_timeout_ms: config.default_timeout_ms,
     })
 }
 
@@ -471,19 +482,17 @@ pub fn clear_history_command(config_store: State<'_, ConfigStore>) -> TauriComma
 
 // Clipboard commands for PTT output routing
 #[tauri::command]
-pub fn copy_to_clipboard_command(
-    app: tauri::AppHandle,
-    text: String,
-) -> TauriCommandResult<()> {
+pub fn copy_to_clipboard_command(app: tauri::AppHandle, text: String) -> TauriCommandResult<()> {
     #[cfg(desktop)]
     {
         use tauri_plugin_clipboard_manager::ClipboardExt;
 
-        app.clipboard()
-            .write_text(&text)
-            .map_err(|error| {
-                ApiError::new("clipboard_error", format!("failed to copy to clipboard: {error}"))
-            })?;
+        app.clipboard().write_text(&text).map_err(|error| {
+            ApiError::new(
+                "clipboard_error",
+                format!("failed to copy to clipboard: {error}"),
+            )
+        })?;
     }
 
     #[cfg(not(desktop))]
@@ -501,7 +510,10 @@ pub fn get_clipboard_text_command(app: tauri::AppHandle) -> TauriCommandResult<S
         use tauri_plugin_clipboard_manager::ClipboardExt;
 
         let text = app.clipboard().read_text().map_err(|error| {
-            ApiError::new("clipboard_error", format!("failed to read clipboard: {error}"))
+            ApiError::new(
+                "clipboard_error",
+                format!("failed to read clipboard: {error}"),
+            )
         })?;
 
         Ok(text)
@@ -534,8 +546,144 @@ pub fn set_ptt_routing_command(
     config_store: State<'_, ConfigStore>,
 ) -> TauriCommandResult<()> {
     config_store.set_ptt_routing(routing).map_err(|error| {
-        ApiError::new("config_error", format!("failed to save PTT routing: {error}"))
+        ApiError::new(
+            "config_error",
+            format!("failed to save PTT routing: {error}"),
+        )
     })
+}
+
+// P4: Additional settings commands
+#[tauri::command]
+pub fn set_theme_command(
+    request: ThemeSettingRequest,
+    config_store: State<'_, ConfigStore>,
+) -> TauriCommandResult<()> {
+    let theme = request.theme.trim();
+    if !["system", "light", "dark"].contains(&theme) {
+        return Err(ApiError::new(
+            "invalid_input",
+            "theme must be 'system', 'light', or 'dark'",
+        ));
+    }
+    config_store
+        .set_theme(theme.to_owned())
+        .map_err(|error| ApiError::new("config_error", format!("failed to save theme: {error}")))?;
+    Ok(())
+}
+
+#[tauri::command]
+pub fn set_default_output_dir_command(
+    request: PathSettingRequest,
+    config_store: State<'_, ConfigStore>,
+) -> TauriCommandResult<()> {
+    let path = if request.path.trim().is_empty() {
+        None
+    } else {
+        Some(PathBuf::from(request.path.trim()))
+    };
+    config_store.set_default_output_dir(path).map_err(|error| {
+        ApiError::new(
+            "config_error",
+            format!("failed to save default output directory: {error}"),
+        )
+    })?;
+    Ok(())
+}
+
+#[tauri::command]
+pub fn set_default_model_dir_command(
+    request: PathSettingRequest,
+    config_store: State<'_, ConfigStore>,
+) -> TauriCommandResult<()> {
+    let path = if request.path.trim().is_empty() {
+        None
+    } else {
+        Some(PathBuf::from(request.path.trim()))
+    };
+    config_store.set_default_model_dir(path).map_err(|error| {
+        ApiError::new(
+            "config_error",
+            format!("failed to save default model directory: {error}"),
+        )
+    })?;
+    Ok(())
+}
+
+#[tauri::command]
+pub fn set_diagnostics_enabled_command(
+    request: BoolSettingRequest,
+    config_store: State<'_, ConfigStore>,
+) -> TauriCommandResult<()> {
+    config_store
+        .set_diagnostics_enabled(request.enabled)
+        .map_err(|error| {
+            ApiError::new(
+                "config_error",
+                format!("failed to save diagnostics setting: {error}"),
+            )
+        })?;
+    Ok(())
+}
+
+#[tauri::command]
+pub fn set_default_threads_command(
+    request: U16SettingRequest,
+    config_store: State<'_, ConfigStore>,
+) -> TauriCommandResult<()> {
+    if let Some(threads) = request.value
+        && (threads == 0 || threads > 128)
+    {
+        return Err(ApiError::new(
+            "invalid_input",
+            "threads must be between 1 and 128",
+        ));
+    }
+    config_store
+        .set_default_threads(request.value)
+        .map_err(|error| {
+            ApiError::new(
+                "config_error",
+                format!("failed to save default threads: {error}"),
+            )
+        })?;
+    Ok(())
+}
+
+#[tauri::command]
+pub fn set_default_timeout_command(
+    request: U64SettingRequest,
+    config_store: State<'_, ConfigStore>,
+) -> TauriCommandResult<()> {
+    if let Some(timeout) = request.value
+        && timeout < 1000
+    {
+        return Err(ApiError::new(
+            "invalid_input",
+            "timeout must be at least 1000ms",
+        ));
+    }
+    config_store
+        .set_default_timeout_ms(request.value)
+        .map_err(|error| {
+            ApiError::new(
+                "config_error",
+                format!("failed to save default timeout: {error}"),
+            )
+        })?;
+    Ok(())
+}
+
+#[tauri::command]
+pub fn pick_directory_command() -> TauriCommandResult<String> {
+    let Some(path) = rfd::FileDialog::new().pick_folder() else {
+        return Err(ApiError::new(
+            "selection_cancelled",
+            "directory selection cancelled",
+        ));
+    };
+
+    Ok(path.to_string_lossy().into_owned())
 }
 
 #[cfg(test)]

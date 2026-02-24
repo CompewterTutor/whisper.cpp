@@ -11,11 +11,29 @@
       {
         "title": "frontend-tauri",
         "width": 1000,
-        "height": 700
+        "height": 700,
+        "resizable": true,
+        "visible": true,
+        "focus": true
       }
-    ]
+    ],
+    "trayIcon": {
+      "iconPath": "icons/icon.ico"
+    },
+    "security": {
+      "csp": null
+    }
   },
   "bundle": {
-    "active": false
+    "active": false,
+    "targets": "all",
+    "icon": [
+      "icons/icon.ico"
+    ]
+  },
+  "plugins": {
+    "shell": {
+      "open": true
+    }
   }
 }

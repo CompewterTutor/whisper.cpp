@@ -20,6 +20,13 @@ pub struct AppConfig {
     pub queue: Vec<QueueItem>,
     pub history: Vec<HistoryItem>,
     pub ptt_routing: Option<PttOutputRouting>,
+    // P4: Additional settings
+    pub theme: String,
+    pub default_output_dir: Option<PathBuf>,
+    pub default_model_dir: Option<PathBuf>,
+    pub diagnostics_enabled: bool,
+    pub default_threads: Option<u16>,
+    pub default_timeout_ms: Option<u64>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -257,10 +264,7 @@ impl ConfigStore {
     }
 
     // PTT routing settings
-    pub fn set_ptt_routing(
-        &self,
-        routing: PttOutputRouting,
-    ) -> Result<(), FrontendError> {
+    pub fn set_ptt_routing(&self, routing: PttOutputRouting) -> Result<(), FrontendError> {
         let mut config = self.load()?;
         config.ptt_routing = Some(routing);
         self.save(&config)?;
@@ -269,6 +273,49 @@ impl ConfigStore {
 
     pub fn get_ptt_routing(&self) -> Option<PttOutputRouting> {
         self.load().ok()?.ptt_routing
+    }
+
+    // P4: Additional settings methods
+    pub fn set_theme(&self, theme: String) -> Result<(), FrontendError> {
+        let mut config = self.load()?;
+        config.theme = theme;
+        self.save(&config)?;
+        Ok(())
+    }
+
+    pub fn set_default_output_dir(&self, path: Option<PathBuf>) -> Result<(), FrontendError> {
+        let mut config = self.load()?;
+        config.default_output_dir = path;
+        self.save(&config)?;
+        Ok(())
+    }
+
+    pub fn set_default_model_dir(&self, path: Option<PathBuf>) -> Result<(), FrontendError> {
+        let mut config = self.load()?;
+        config.default_model_dir = path;
+        self.save(&config)?;
+        Ok(())
+    }
+
+    pub fn set_diagnostics_enabled(&self, enabled: bool) -> Result<(), FrontendError> {
+        let mut config = self.load()?;
+        config.diagnostics_enabled = enabled;
+        self.save(&config)?;
+        Ok(())
+    }
+
+    pub fn set_default_threads(&self, threads: Option<u16>) -> Result<(), FrontendError> {
+        let mut config = self.load()?;
+        config.default_threads = threads;
+        self.save(&config)?;
+        Ok(())
+    }
+
+    pub fn set_default_timeout_ms(&self, timeout_ms: Option<u64>) -> Result<(), FrontendError> {
+        let mut config = self.load()?;
+        config.default_timeout_ms = timeout_ms;
+        self.save(&config)?;
+        Ok(())
     }
 }
 
