@@ -1,0 +1,28 @@
+[package]
+name = "frontend-tauri"
+version = "0.1.0"
+edition = "2024"
+
+[[bin]]
+name = "frontend-tauri"
+path = "src/main.rs"
+test = false
+
+[features]
+default = []
+real-whisper-smoke = []
+
+[dependencies]
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+tauri = { version = "2.10.2", features = ["tray-icon"] }
+rfd = "0.15"
+dirs = "6"
+
+[target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
+tauri-plugin-global-shortcut = "2"
+tauri-plugin-autostart = "2"
+tauri-plugin-clipboard-manager = "2"
+
+[build-dependencies]
+tauri-build = "2.5.5"

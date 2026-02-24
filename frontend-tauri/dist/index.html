@@ -1,0 +1,1958 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>frontend-tauri</title>
+    <style>
+      :root {
+        color-scheme: dark;
+      }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background: #111827;
+        color: #e5e7eb;
+        font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      }
+      .app {
+        max-width: 960px;
+        margin: 0 auto;
+        padding: 2rem 1rem;
+      }
+      h1 {
+        margin: 0 0 0.5rem;
+        font-size: 1.375rem;
+      }
+      p {
+        margin: 0;
+      }
+      .subtitle {
+        opacity: 0.85;
+        margin-bottom: 1.5rem;
+      }
+      .section {
+        margin-bottom: 1.5rem;
+      }
+      .section-header {
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: #9ca3af;
+        margin-bottom: 0.5rem;
+        padding-left: 0.25rem;
+      }
+      .card {
+        background: #1f2937;
+        border: 1px solid #374151;
+        border-radius: 0.75rem;
+        padding: 1rem;
+      }
+      .card + .card {
+        margin-top: 0.75rem;
+      }
+      .field-group {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+      }
+      .row {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 0.5rem;
+        align-items: end;
+      }
+      .field {
+        display: flex;
+        flex-direction: column;
+        gap: 0.35rem;
+      }
+      label {
+        font-size: 0.9rem;
+        opacity: 0.9;
+      }
+      input {
+        width: 100%;
+        box-sizing: border-box;
+        border: 1px solid #4b5563;
+        background: #111827;
+        color: #e5e7eb;
+        border-radius: 0.5rem;
+        padding: 0.6rem 0.75rem;
+      }
+      button {
+        border: 1px solid #4b5563;
+        background: #2563eb;
+        color: white;
+        border-radius: 0.5rem;
+        padding: 0.6rem 0.9rem;
+        cursor: pointer;
+        font-weight: 600;
+      }
+      button.secondary {
+        background: #374151;
+      }
+      button:disabled {
+        opacity: 0.7;
+        cursor: default;
+      }
+      .status {
+        font-size: 0.92rem;
+        margin-top: 0.75rem;
+        min-height: 1.25rem;
+      }
+      .status.error {
+        color: #fca5a5;
+      }
+      .status.ok {
+        color: #86efac;
+      }
+      .error-hint {
+        background: rgba(239, 68, 68, 0.15);
+        border: 1px solid rgba(239, 68, 68, 0.4);
+        border-radius: 0.5rem;
+        padding: 0.6rem 0.75rem;
+        margin-top: 0.5rem;
+        font-size: 0.88rem;
+        color: #fecaca;
+        display: none;
+      }
+      .error-hint.visible {
+        display: block;
+      }
+      .error-hint-title {
+        font-weight: 600;
+        margin-bottom: 0.25rem;
+        color: #fca5a5;
+      }
+      pre {
+        white-space: pre-wrap;
+        margin: 0;
+        min-height: 7rem;
+        border-radius: 0.5rem;
+        background: #111827;
+        border: 1px solid #374151;
+        padding: 0.75rem;
+        color: #d1d5db;
+      }
+      .actions {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+        margin-bottom: 0.75rem;
+      }
+      .hint {
+        min-height: 1.1rem;
+        font-size: 0.85rem;
+        opacity: 0.9;
+      }
+      .hint.ok {
+        color: #86efac;
+      }
+      .hint.error {
+        color: #fca5a5;
+      }
+      .hint.neutral {
+        color: #9ca3af;
+      }
+      .meta {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.5rem;
+        margin-bottom: 0.75rem;
+      }
+      .meta-item {
+        border: 1px solid #374151;
+        background: #111827;
+        border-radius: 0.5rem;
+        padding: 0.5rem 0.6rem;
+      }
+      .meta-label {
+        display: block;
+        font-size: 0.75rem;
+        color: #9ca3af;
+      }
+      .meta-value {
+        font-weight: 600;
+      }
+      .settings {
+        display: grid;
+        gap: 0.6rem;
+      }
+      .toggle {
+        display: flex;
+        gap: 0.6rem;
+        align-items: center;
+      }
+      .toggle input[type="checkbox"] {
+        width: auto;
+        margin: 0;
+      }
+      .shortcuts-grid {
+        display: grid;
+        gap: 0.6rem;
+      }
+      .settings-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.75rem;
+      }
+      @media (max-width: 600px) {
+        .settings-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+      .settings-grid .field {
+        gap: 0.25rem;
+      }
+      .settings-grid label {
+        font-size: 0.8rem;
+      }
+      .settings-grid input,
+      .settings-grid select {
+        font-size: 0.9rem;
+        padding: 0.4rem 0.6rem;
+      }
+      .divider {
+        border: none;
+        border-top: 1px solid #374151;
+        margin: 1.5rem 0;
+      }
+      /* Focus styles for accessibility */
+      button:focus,
+      input:focus,
+      select:focus,
+      pre:focus {
+        outline: 2px solid #3b82f6;
+        outline-offset: 2px;
+      }
+      .focus-visible {
+        outline: 2px solid #3b82f6;
+        outline-offset: 2px;
+      }
+      /* Skip link for accessibility */
+      .skip-link {
+        position: absolute;
+        top: -40px;
+        left: 0;
+        background: #2563eb;
+        color: white;
+        padding: 0.5rem 1rem;
+        z-index: 100;
+        transition: top 0.2s;
+      }
+      .skip-link:focus {
+        top: 0;
+      }
+      /* Keyboard shortcut hint */
+      .kbd {
+        display: inline-block;
+        padding: 0.15rem 0.35rem;
+        font-size: 0.75rem;
+        font-family: monospace;
+        background: #374151;
+        border: 1px solid #4b5563;
+        border-radius: 0.25rem;
+        margin-left: 0.25rem;
+      }
+      .drawer-toggle {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: transparent;
+        border: none;
+        color: #9ca3af;
+        cursor: pointer;
+        font-size: 0.85rem;
+        padding: 0.5rem 0;
+        margin-bottom: 0.5rem;
+      }
+      .drawer-toggle:hover {
+        color: #e5e7eb;
+      }
+      .drawer-toggle::before {
+        content: "▶";
+        font-size: 0.7rem;
+        transition: transform 0.2s;
+      }
+      .drawer-toggle.open::before {
+        transform: rotate(90deg);
+      }
+      .drawer-content {
+        display: none;
+      }
+      .drawer-content.open {
+        display: block;
+      }
+      .options-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.75rem;
+      }
+      @media (max-width: 600px) {
+        .options-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+      .options-grid .field {
+        gap: 0.25rem;
+      }
+      .options-grid label {
+        font-size: 0.8rem;
+      }
+      .options-grid input,
+      .options-grid select {
+        font-size: 0.9rem;
+        padding: 0.4rem 0.6rem;
+      }
+      .preset-row {
+        display: flex;
+        gap: 0.5rem;
+        align-items: flex-end;
+        margin-bottom: 0.75rem;
+      }
+      .preset-row .field {
+        flex: 1;
+      }
+      select {
+        width: 100%;
+        box-sizing: border-box;
+        border: 1px solid #4b5563;
+        background: #111827;
+        color: #e5e7eb;
+        border-radius: 0.5rem;
+        padding: 0.6rem 0.75rem;
+      }
+      .queue-list, .history-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        max-height: 200px;
+        overflow-y: auto;
+      }
+      .queue-item, .history-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 0.6rem;
+        background: #111827;
+        border: 1px solid #374151;
+        border-radius: 0.4rem;
+        font-size: 0.85rem;
+      }
+      .queue-item-path, .history-item-path {
+        flex: 1;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .queue-item-status {
+        font-size: 0.75rem;
+        padding: 0.2rem 0.4rem;
+        border-radius: 0.25rem;
+        background: #374151;
+      }
+      .queue-item-status.pending {
+        background: #4b5563;
+        color: #9ca3af;
+      }
+      .queue-item-status.running {
+        background: #1d4ed8;
+        color: white;
+      }
+      .queue-item-status.success {
+        background: #166534;
+        color: white;
+      }
+      .queue-item-status.error {
+        background: #991b1b;
+        color: white;
+      }
+      .queue-item-actions, .history-item-actions {
+        display: flex;
+        gap: 0.25rem;
+      }
+      .queue-item-actions button, .history-item-actions button {
+        padding: 0.3rem 0.5rem;
+        font-size: 0.75rem;
+      }
+      .history-item-time {
+        font-size: 0.75rem;
+        color: #9ca3af;
+        min-width: 80px;
+      }
+      .empty-list {
+        text-align: center;
+        color: #6b7280;
+        padding: 1rem;
+        font-size: 0.9rem;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="app">
+      <h1>frontend-tauri</h1>
+      <p class="subtitle">Minimal interactive shell wired to Tauri commands.</p>
+
+      <!-- INPUT FILES SECTION -->
+      <div class="section">
+        <div class="section-header">Input Files</div>
+        <div class="card">
+          <div class="field-group">
+            <div class="row">
+              <div class="field">
+                <label for="modelPath">Model path (.bin)</label>
+                <input id="modelPath" placeholder="C:\\models\\ggml-base.en.bin" />
+                <p id="modelHint" class="hint neutral">Model not validated yet.</p>
+              </div>
+              <div>
+                <button id="pickModelBtn" class="secondary" type="button">Browse...</button>
+                <button id="validateModelBtn" class="secondary" type="button">Validate</button>
+              </div>
+            </div>
+            <div class="row">
+              <div class="field">
+                <label for="audioPath">Audio path (.wav, .mp3, .flac, .ogg, .m4a)</label>
+                <input id="audioPath" placeholder="C:\\samples\\jfk.wav" />
+                <p id="audioHint" class="hint neutral">Audio not validated yet.</p>
+              </div>
+              <div>
+                <button id="pickAudioBtn" class="secondary" type="button">Browse...</button>
+                <button id="validateAudioBtn" class="secondary" type="button">Validate</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CONTROLS SECTION -->
+      <div class="section">
+        <div class="section-header">Controls</div>
+        <div class="card">
+          <div class="row">
+            <button id="healthBtn" class="secondary" type="button" accesskey="C">Check health</button>
+            <button id="runBtn" type="button" accesskey="R">Run transcription <span class="kbd">Ctrl+R</span></button>
+          </div>
+          <p id="status" class="status"></p>
+          <div id="errorHint" class="error-hint">
+            <p class="error-hint-title">How to fix this:</p>
+            <p id="errorHintText"></p>
+          </div>
+        </div>
+
+        <!-- Advanced Options Drawer -->
+        <div class="card">
+          <button id="advancedToggle" class="drawer-toggle" type="button">
+            Advanced Options
+          </button>
+          <div id="advancedDrawer" class="drawer-content">
+            <!-- Preset Management -->
+            <div class="preset-row">
+              <div class="field">
+                <label for="presetSelect">Preset</label>
+                <select id="presetSelect">
+                  <option value="">-- Select preset --</option>
+                </select>
+              </div>
+              <button id="savePresetBtn" class="secondary" type="button">Save As...</button>
+              <button id="deletePresetBtn" class="secondary" type="button" disabled>Delete</button>
+              <label class="toggle" style="margin-bottom: 0.3rem;">
+                <input id="defaultPresetToggle" type="checkbox" />
+                <span style="font-size: 0.8rem;">Default</span>
+              </label>
+            </div>
+
+            <!-- Options Grid -->
+            <div class="options-grid">
+              <div class="field">
+                <label for="taskSelect">Task</label>
+                <select id="taskSelect">
+                  <option value="transcribe">Transcribe</option>
+                  <option value="translate">Translate to English</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="languageSelect">Language</label>
+                <select id="languageSelect">
+                  <option value="auto">Auto-detect</option>
+                  <option value="en">English</option>
+                  <option value="fr">French</option>
+                  <option value="de">German</option>
+                  <option value="es">Spanish</option>
+                  <option value="it">Italian</option>
+                  <option value="pt">Portuguese</option>
+                  <option value="ja">Japanese</option>
+                  <option value="ko">Korean</option>
+                  <option value="zh">Chinese</option>
+                  <option value="ru">Russian</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="threadsInput">Threads</label>
+                <input id="threadsInput" type="number" min="1" max="64" placeholder="Auto" />
+              </div>
+              <div class="field">
+                <label for="beamSizeInput">Beam size</label>
+                <input id="beamSizeInput" type="number" min="1" max="10" placeholder="5" />
+              </div>
+              <div class="field">
+                <label for="bestOfInput">Best of</label>
+                <input id="bestOfInput" type="number" min="1" max="10" placeholder="5" />
+              </div>
+              <div class="field">
+                <label for="temperatureInput">Temperature</label>
+                <input id="temperatureInput" type="number" min="0" max="1" step="0.1" placeholder="0.0" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TRANSCRIPT SECTION -->
+      <div class="section">
+        <div class="section-header">Transcript</div>
+        <div class="card">
+          <div class="meta">
+            <div class="meta-item">
+              <span class="meta-label">Segments</span>
+              <span class="meta-value" id="segmentCount">0</span>
+            </div>
+            <div class="meta-item">
+              <span class="meta-label">Estimated duration</span>
+              <span class="meta-value" id="estimatedDuration">0.0s</span>
+            </div>
+          </div>
+          <div class="actions">
+            <button id="copyToClipboardBtn" class="secondary" type="button">Copy</button>
+            <button id="exportTxtBtn" class="secondary" type="button">Export TXT</button>
+            <button id="exportSrtBtn" class="secondary" type="button">Export SRT</button>
+            <button id="exportVttBtn" class="secondary" type="button">Export VTT</button>
+            <button id="exportJsonBtn" class="secondary" type="button">Export JSON</button>
+            <button id="openOutputFolderBtn" class="secondary" type="button" disabled>
+              Open output folder
+            </button>
+          </div>
+          <pre id="transcript">(no transcript yet)</pre>
+        </div>
+      </div>
+
+      <!-- QUEUE SECTION -->
+      <div class="section">
+        <div class="section-header">Batch Queue</div>
+        <div class="card">
+          <div class="actions" style="margin-bottom: 0.75rem;">
+            <button id="addToQueueBtn" class="secondary" type="button">Add files...</button>
+            <button id="runQueueBtn" type="button" disabled>Run all</button>
+            <button id="clearQueueBtn" class="secondary" type="button" disabled>Clear completed</button>
+          </div>
+          <div id="queueList" class="queue-list">
+            <p class="empty-list">No files in queue. Add audio files to batch process.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- HISTORY SECTION -->
+      <div class="section">
+        <div class="section-header">History</div>
+        <div class="card">
+          <div class="actions" style="margin-bottom: 0.75rem;">
+            <button id="clearHistoryBtn" class="secondary" type="button" disabled>Clear history</button>
+          </div>
+          <div id="historyList" class="history-list">
+            <p class="empty-list">No transcription history yet.</p>
+          </div>
+        </div>
+      </div>
+
+      <hr class="divider" />
+
+      <!-- SETTINGS SECTION -->
+      <div class="section">
+        <div class="section-header">Settings</div>
+
+        <!-- Appearance Settings -->
+        <div class="card">
+          <div class="section-header" style="margin-bottom: 0.75rem;">Appearance</div>
+          <div class="settings-grid">
+            <div class="field">
+              <label for="themeSelect">Theme</label>
+              <select id="themeSelect" accesskey="T">
+                <option value="system">System</option>
+                <option value="light">Light</option>
+                <option value="dark">Dark</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Default Paths -->
+        <div class="card">
+          <div class="section-header" style="margin-bottom: 0.75rem;">Default Paths</div>
+          <div class="settings-grid">
+            <div class="field">
+              <label for="defaultOutputDir">Default output directory</label>
+              <div class="row">
+                <input id="defaultOutputDir" placeholder="(use file picker each time)" accesskey="O" />
+                <button id="pickOutputDirBtn" class="secondary" type="button">Browse...</button>
+              </div>
+            </div>
+            <div class="field">
+              <label for="defaultModelDir">Default model directory</label>
+              <div class="row">
+                <input id="defaultModelDir" placeholder="(use file picker each time)" accesskey="M" />
+                <button id="pickModelDirBtn" class="secondary" type="button">Browse...</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Execution Defaults -->
+        <div class="card">
+          <div class="section-header" style="margin-bottom: 0.75rem;">Execution Defaults</div>
+          <div class="settings-grid">
+            <div class="field">
+              <label for="defaultThreadsInput">Default threads <span class="kbd">0 = auto</span></label>
+              <input id="defaultThreadsInput" type="number" min="0" max="128" placeholder="Auto" accesskey="H" />
+            </div>
+            <div class="field">
+              <label for="defaultTimeoutInput">Default timeout (ms)</label>
+              <input id="defaultTimeoutInput" type="number" min="1000" placeholder="60000" accesskey="I" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Startup Behavior -->
+        <div class="card">
+          <div class="section-header" style="margin-bottom: 0.75rem;">Startup Behavior</div>
+          <div class="settings">
+            <label class="toggle">
+              <input id="startInBackgroundToggle" type="checkbox" accesskey="B" />
+              <span>Start in background</span>
+            </label>
+            <label class="toggle">
+              <input id="launchOnLoginToggle" type="checkbox" accesskey="L" />
+              <span>Launch on login</span>
+            </label>
+          </div>
+          <p class="hint neutral" id="backgroundHint">
+            App hides to tray on close. Enable start-in-background to hide on launch.
+          </p>
+        </div>
+
+        <!-- Global Shortcuts -->
+        <div class="card">
+          <div class="section-header" style="margin-bottom: 0.75rem;">Global Shortcuts</div>
+          <div class="shortcuts-grid">
+            <label class="toggle">
+              <input id="shortcutsEnabledToggle" type="checkbox" accesskey="G" />
+              <span>Enable global shortcuts</span>
+            </label>
+            <div class="field">
+              <label for="pttShortcut">Push-to-talk shortcut</label>
+              <input id="pttShortcut" placeholder="Ctrl+Shift+Space" />
+            </div>
+            <div class="field">
+              <label for="typeShortcut">Type emulation shortcut</label>
+              <input id="typeShortcut" placeholder="Ctrl+Shift+T" />
+            </div>
+            <div class="field">
+              <label for="clipboardShortcut">Capture-to-clipboard shortcut</label>
+              <input id="clipboardShortcut" placeholder="Ctrl+Shift+C" />
+            </div>
+            <div class="field">
+              <label for="fileShortcut">Capture-to-file shortcut</label>
+              <input id="fileShortcut" placeholder="Ctrl+Shift+F" />
+            </div>
+          </div>
+          <p class="hint neutral" id="shortcutsHint">
+            Shortcut registration wiring is next. These bindings are saved now.
+          </p>
+        </div>
+
+        <!-- PTT Output Routing -->
+        <div class="card">
+          <div class="section-header" style="margin-bottom: 0.75rem;">PTT Output Routing</div>
+          <div class="settings">
+            <label class="toggle">
+              <input id="copyToClipboardToggle" type="checkbox" />
+              <span>Copy transcript to clipboard</span>
+            </label>
+            <label class="toggle">
+              <input id="saveToFileToggle" type="checkbox" />
+              <span>Save transcript to file</span>
+            </label>
+            <label class="toggle">
+              <input id="typeEmulationToggle" type="checkbox" />
+              <span>Type emulation (paste transcript)</span>
+            </label>
+          </div>
+          <p class="hint neutral" id="routingHint">
+            Configure where PTT transcripts are sent after transcription.
+          </p>
+        </div>
+
+        <!-- Diagnostics -->
+        <div class="card">
+          <div class="section-header" style="margin-bottom: 0.75rem;">Diagnostics</div>
+          <div class="settings">
+            <label class="toggle">
+              <input id="diagnosticsToggle" type="checkbox" accesskey="D" />
+              <span>Enable diagnostic logging</span>
+            </label>
+          </div>
+          <p class="hint neutral" id="diagnosticsHint">
+            When enabled, additional diagnostic information is logged for troubleshooting.
+          </p>
+        </div>
+      </div>
+    </main>
+
+    <script>
+      const statusEl = document.getElementById("status");
+      const transcriptEl = document.getElementById("transcript");
+      const modelPathEl = document.getElementById("modelPath");
+      const audioPathEl = document.getElementById("audioPath");
+      const modelHintEl = document.getElementById("modelHint");
+      const audioHintEl = document.getElementById("audioHint");
+      const runBtn = document.getElementById("runBtn");
+      const openOutputFolderBtn = document.getElementById("openOutputFolderBtn");
+      const segmentCountEl = document.getElementById("segmentCount");
+      const estimatedDurationEl = document.getElementById("estimatedDuration");
+      const errorHintEl = document.getElementById("errorHint");
+      const errorHintTextEl = document.getElementById("errorHintText");
+      const startInBackgroundToggle = document.getElementById("startInBackgroundToggle");
+      const launchOnLoginToggle = document.getElementById("launchOnLoginToggle");
+      const backgroundHintEl = document.getElementById("backgroundHint");
+      const shortcutsEnabledToggle = document.getElementById("shortcutsEnabledToggle");
+      const pttShortcutEl = document.getElementById("pttShortcut");
+      const typeShortcutEl = document.getElementById("typeShortcut");
+      const clipboardShortcutEl = document.getElementById("clipboardShortcut");
+      const fileShortcutEl = document.getElementById("fileShortcut");
+      const shortcutsHintEl = document.getElementById("shortcutsHint");
+
+      // PTT routing elements
+      const copyToClipboardToggle = document.getElementById("copyToClipboardToggle");
+      const saveToFileToggle = document.getElementById("saveToFileToggle");
+      const typeEmulationToggle = document.getElementById("typeEmulationToggle");
+      const routingHintEl = document.getElementById("routingHint");
+      const copyToClipboardBtn = document.getElementById("copyToClipboardBtn");
+
+      // P4: New settings elements
+      const themeSelect = document.getElementById("themeSelect");
+      const defaultOutputDirEl = document.getElementById("defaultOutputDir");
+      const defaultModelDirEl = document.getElementById("defaultModelDir");
+      const pickOutputDirBtn = document.getElementById("pickOutputDirBtn");
+      const pickModelDirBtn = document.getElementById("pickModelDirBtn");
+      const defaultThreadsInput = document.getElementById("defaultThreadsInput");
+      const defaultTimeoutInput = document.getElementById("defaultTimeoutInput");
+      const diagnosticsToggle = document.getElementById("diagnosticsToggle");
+      const diagnosticsHintEl = document.getElementById("diagnosticsHint");
+
+      // Advanced options elements
+      const advancedToggle = document.getElementById("advancedToggle");
+      const advancedDrawer = document.getElementById("advancedDrawer");
+      const presetSelect = document.getElementById("presetSelect");
+      const savePresetBtn = document.getElementById("savePresetBtn");
+      const deletePresetBtn = document.getElementById("deletePresetBtn");
+      const defaultPresetToggle = document.getElementById("defaultPresetToggle");
+      const taskSelect = document.getElementById("taskSelect");
+      const languageSelect = document.getElementById("languageSelect");
+      const threadsInput = document.getElementById("threadsInput");
+      const beamSizeInput = document.getElementById("beamSizeInput");
+      const bestOfInput = document.getElementById("bestOfInput");
+      const temperatureInput = document.getElementById("temperatureInput");
+
+      // Queue and history elements
+      const addToQueueBtn = document.getElementById("addToQueueBtn");
+      const runQueueBtn = document.getElementById("runQueueBtn");
+      const clearQueueBtn = document.getElementById("clearQueueBtn");
+      const queueListEl = document.getElementById("queueList");
+      const clearHistoryBtn = document.getElementById("clearHistoryBtn");
+      const historyListEl = document.getElementById("historyList");
+
+      const STORAGE_KEYS = {
+        modelPath: "frontend-tauri.modelPath",
+        audioPath: "frontend-tauri.audioPath",
+        exportPath: "frontend-tauri.lastExportPath",
+        shortcutsEnabled: "frontend-tauri.shortcutsEnabled",
+        pttShortcut: "frontend-tauri.shortcuts.ptt",
+        typeShortcut: "frontend-tauri.shortcuts.type",
+        clipboardShortcut: "frontend-tauri.shortcuts.clipboard",
+        fileShortcut: "frontend-tauri.shortcuts.file",
+        advancedOptions: "frontend-tauri.advancedOptions",
+      };
+      let latestTranscript = "";
+      let latestExportPath = "";
+      let runStartedAt = null;
+      let isRunning = false;
+      let modelValid = false;
+      let audioValid = false;
+      let activeRegisteredShortcuts = new Set();
+      let presets = [];
+      let queue = [];
+      let history = [];
+      let isQueueRunning = false;
+
+      function setStatus(message, kind = "") {
+        statusEl.textContent = message;
+        statusEl.className = `status ${kind}`.trim();
+        if (kind !== "error") {
+          errorHintEl.classList.remove("visible");
+        }
+      }
+
+      function showError(prefix, error) {
+        const code = error?.code ? `[${error.code}] ` : "";
+        const message = error?.message || String(error);
+        setStatus(`${prefix}: ${code}${message}`, "error");
+
+        if (error?.hint) {
+          errorHintTextEl.textContent = error.hint;
+          errorHintEl.classList.add("visible");
+        } else {
+          errorHintEl.classList.remove("visible");
+        }
+      }
+
+      function setHint(element, message, kind) {
+        element.textContent = message;
+        element.className = `hint ${kind}`;
+      }
+
+      function updateRunAvailability() {
+        runBtn.disabled = isRunning || !modelValid || !audioValid;
+      }
+
+      function updateTranscriptMetadata(transcript) {
+        const lines = transcript
+          .split(/\r?\n/)
+          .map((line) => line.trim())
+          .filter(Boolean);
+        const segmentCount = lines.length;
+        const estimatedDurationSeconds = segmentCount * 2;
+
+        segmentCountEl.textContent = String(segmentCount);
+        estimatedDurationEl.textContent = `${estimatedDurationSeconds.toFixed(1)}s`;
+      }
+
+      function persistState() {
+        localStorage.setItem(STORAGE_KEYS.modelPath, modelPathEl.value.trim());
+        localStorage.setItem(STORAGE_KEYS.audioPath, audioPathEl.value.trim());
+        localStorage.setItem(STORAGE_KEYS.exportPath, latestExportPath);
+        localStorage.setItem(
+          STORAGE_KEYS.shortcutsEnabled,
+          shortcutsEnabledToggle.checked ? "true" : "false"
+        );
+        localStorage.setItem(STORAGE_KEYS.pttShortcut, pttShortcutEl.value.trim());
+        localStorage.setItem(STORAGE_KEYS.typeShortcut, typeShortcutEl.value.trim());
+        localStorage.setItem(STORAGE_KEYS.clipboardShortcut, clipboardShortcutEl.value.trim());
+        localStorage.setItem(STORAGE_KEYS.fileShortcut, fileShortcutEl.value.trim());
+      }
+
+      function restoreState() {
+        const restoredModelPath = localStorage.getItem(STORAGE_KEYS.modelPath) || "";
+        const restoredAudioPath = localStorage.getItem(STORAGE_KEYS.audioPath) || "";
+        const restoredExportPath = localStorage.getItem(STORAGE_KEYS.exportPath) || "";
+        const restoredShortcutsEnabled =
+          localStorage.getItem(STORAGE_KEYS.shortcutsEnabled) === "true";
+
+        if (restoredModelPath) {
+          modelPathEl.value = restoredModelPath;
+        }
+
+        if (restoredAudioPath) {
+          audioPathEl.value = restoredAudioPath;
+        }
+
+        latestExportPath = restoredExportPath;
+        openOutputFolderBtn.disabled = !latestExportPath;
+        shortcutsEnabledToggle.checked = restoredShortcutsEnabled;
+        pttShortcutEl.value =
+          localStorage.getItem(STORAGE_KEYS.pttShortcut) || "Ctrl+Shift+Space";
+        typeShortcutEl.value =
+          localStorage.getItem(STORAGE_KEYS.typeShortcut) || "Ctrl+Shift+T";
+        clipboardShortcutEl.value =
+          localStorage.getItem(STORAGE_KEYS.clipboardShortcut) || "Ctrl+Shift+C";
+        fileShortcutEl.value =
+          localStorage.getItem(STORAGE_KEYS.fileShortcut) || "Ctrl+Shift+F";
+      }
+
+      async function loadAppSettings() {
+        try {
+          const settings = await invoke("get_app_settings_command");
+          startInBackgroundToggle.checked = settings.start_in_background;
+          launchOnLoginToggle.checked = settings.launch_on_login;
+          // P4: Load new settings
+          themeSelect.value = settings.theme || "system";
+          defaultOutputDirEl.value = settings.default_output_dir || "";
+          defaultModelDirEl.value = settings.default_model_dir || "";
+          defaultThreadsInput.value = settings.default_threads || "";
+          defaultTimeoutInput.value = settings.default_timeout_ms || "";
+          diagnosticsToggle.checked = settings.diagnostics_enabled;
+        } catch (error) {
+          console.warn("Failed to load app settings:", error);
+        }
+      }
+
+      // PTT routing functions
+      async function loadPttRouting() {
+        try {
+          const routing = await invoke("get_ptt_routing_command");
+          copyToClipboardToggle.checked = routing.copy_to_clipboard;
+          saveToFileToggle.checked = routing.save_to_file;
+          typeEmulationToggle.checked = routing.type_emulation;
+        } catch (error) {
+          console.warn("Failed to load PTT routing:", error);
+          // Set defaults
+          copyToClipboardToggle.checked = true;
+          saveToFileToggle.checked = false;
+          typeEmulationToggle.checked = false;
+        }
+      }
+
+      async function savePttRouting() {
+        const routing = {
+          copy_to_clipboard: copyToClipboardToggle.checked,
+          save_to_file: saveToFileToggle.checked,
+          type_emulation: typeEmulationToggle.checked,
+        };
+
+        try {
+          await invoke("set_ptt_routing_command", { routing });
+          setStatus("PTT routing settings saved.", "ok");
+        } catch (error) {
+          showError("Failed to save PTT routing", error);
+        }
+      }
+
+      async function copyTranscriptToClipboard(text) {
+        try {
+          await invoke("copy_to_clipboard_command", { text });
+          setStatus("Copied to clipboard.", "ok");
+        } catch (error) {
+          showError("Failed to copy to clipboard", error);
+        }
+      }
+
+      // Advanced options functions
+      function getAdvancedOptions() {
+        const threads = threadsInput.value ? parseInt(threadsInput.value, 10) : null;
+        const beamSize = beamSizeInput.value ? parseInt(beamSizeInput.value, 10) : null;
+        const bestOf = bestOfInput.value ? parseInt(bestOfInput.value, 10) : null;
+        const tempFloat = temperatureInput.value ? parseFloat(temperatureInput.value) : null;
+
+        return {
+          task: taskSelect.value || null,
+          language: languageSelect.value || null,
+          threads: threads && threads > 0 ? threads : null,
+          beam_size: beamSize && beamSize > 0 ? beamSize : null,
+          best_of: bestOf && bestOf > 0 ? bestOf : null,
+          temperature: tempFloat !== null ? Math.round(tempFloat * 100) : null,
+        };
+      }
+
+      function setAdvancedOptions(options) {
+        taskSelect.value = options.task || "transcribe";
+        languageSelect.value = options.language || "auto";
+        threadsInput.value = options.threads || "";
+        beamSizeInput.value = options.beam_size || "";
+        bestOfInput.value = options.best_of || "";
+        temperatureInput.value =
+          options.temperature !== null ? (options.temperature / 100).toFixed(2) : "";
+      }
+
+      function persistAdvancedOptions() {
+        const options = getAdvancedOptions();
+        localStorage.setItem(STORAGE_KEYS.advancedOptions, JSON.stringify(options));
+      }
+
+      function restoreAdvancedOptions() {
+        const stored = localStorage.getItem(STORAGE_KEYS.advancedOptions);
+        if (stored) {
+          try {
+            const options = JSON.parse(stored);
+            setAdvancedOptions(options);
+          } catch (e) {
+            console.warn("Failed to restore advanced options:", e);
+          }
+        }
+      }
+
+      async function loadPresets() {
+        try {
+          presets = await invoke("list_presets_command");
+          updatePresetDropdown();
+
+          const defaultPreset = await invoke("get_default_preset_command");
+          if (defaultPreset) {
+            presetSelect.value = defaultPreset;
+            const preset = presets.find((p) => p.name === defaultPreset);
+            if (preset) {
+              setAdvancedOptions(preset.advanced);
+              defaultPresetToggle.checked = true;
+            }
+          }
+        } catch (error) {
+          console.warn("Failed to load presets:", error);
+        }
+      }
+
+      function updatePresetDropdown() {
+        presetSelect.innerHTML = '<option value="">-- Select preset --</option>';
+        presets.forEach((preset) => {
+          const option = document.createElement("option");
+          option.value = preset.name;
+          option.textContent = preset.name;
+          presetSelect.appendChild(option);
+        });
+      }
+
+      function resetModelValidationHint() {
+        modelValid = false;
+        setHint(modelHintEl, "Model not validated yet.", "neutral");
+        persistState();
+        updateRunAvailability();
+      }
+
+      function resetAudioValidationHint() {
+        audioValid = false;
+        setHint(audioHintEl, "Audio not validated yet.", "neutral");
+        persistState();
+        updateRunAvailability();
+      }
+
+      function requireTranscript() {
+        const transcript = latestTranscript.trim();
+        if (!transcript) {
+          throw new Error("No transcript available to export");
+        }
+        return transcript;
+      }
+
+      async function exportTranscript(format) {
+        try {
+          const transcript = requireTranscript();
+          setStatus(`Exporting ${format.toUpperCase()}...`);
+          const savedPath = await invoke("export_transcript_command", {
+            transcript,
+            format,
+          });
+          latestExportPath = savedPath;
+          openOutputFolderBtn.disabled = false;
+          persistState();
+          setStatus(`Exported ${format.toUpperCase()} to ${savedPath}`, "ok");
+        } catch (error) {
+          showError(`Export ${format.toUpperCase()} failed`, error);
+        }
+      }
+
+      // Queue functions
+      async function loadQueue() {
+        try {
+          queue = await invoke("get_queue_command");
+          renderQueue();
+        } catch (error) {
+          console.warn("Failed to load queue:", error);
+        }
+      }
+
+      function renderQueue() {
+        if (queue.length === 0) {
+          queueListEl.innerHTML = '<p class="empty-list">No files in queue. Add audio files to batch process.</p>';
+          runQueueBtn.disabled = true;
+          clearQueueBtn.disabled = true;
+          return;
+        }
+
+        const hasPending = queue.some((item) => item.status === "Pending");
+        runQueueBtn.disabled = !hasPending || isQueueRunning || !modelValid;
+
+        const hasCompleted = queue.some(
+          (item) => item.status === "Success" || item.status === "Error"
+        );
+        clearQueueBtn.disabled = !hasCompleted;
+
+        queueListEl.innerHTML = queue
+          .map(
+            (item, index) => `
+          <div class="queue-item" data-id="${item.id}">
+            <span class="queue-item-path" title="${item.audio_path}">${getFileName(
+              item.audio_path
+            )}</span>
+            <span class="queue-item-status ${item.status.toLowerCase()}">${item.status}</span>
+            <div class="queue-item-actions">
+              ${index > 0 ? `<button class="secondary" data-action="up" type="button">↑</button>` : ""}
+              ${index < queue.length - 1 ? `<button class="secondary" data-action="down" type="button">↓</button>` : ""}
+              <button class="secondary" data-action="remove" type="button">×</button>
+            </div>
+          </div>
+        `
+          )
+          .join("");
+      }
+
+      function getFileName(path) {
+        return path.split(/[/\\]/).pop() || path;
+      }
+
+      async function addToQueue(audioPath) {
+        try {
+          const item = await invoke("add_to_queue_command", { audioPath });
+          queue.push(item);
+          renderQueue();
+          setStatus(`Added ${getFileName(audioPath)} to queue`, "ok");
+        } catch (error) {
+          showError("Failed to add to queue", error);
+        }
+      }
+
+      async function removeFromQueue(id) {
+        try {
+          await invoke("remove_from_queue_command", { id });
+          queue = queue.filter((item) => item.id !== id);
+          renderQueue();
+        } catch (error) {
+          showError("Failed to remove from queue", error);
+        }
+      }
+
+      async function reorderQueue(fromIndex, toIndex) {
+        try {
+          await invoke("reorder_queue_command", { fromIndex, toIndex });
+          const item = queue.splice(fromIndex, 1)[0];
+          queue.splice(toIndex, 0, item);
+          renderQueue();
+        } catch (error) {
+          showError("Failed to reorder queue", error);
+        }
+      }
+
+      async function clearCompletedQueue() {
+        try {
+          await invoke("clear_completed_queue_command");
+          queue = queue.filter(
+            (item) => item.status !== "Success" && item.status !== "Error"
+          );
+          renderQueue();
+          setStatus("Cleared completed items from queue", "ok");
+        } catch (error) {
+          showError("Failed to clear queue", error);
+        }
+      }
+
+      async function runQueue() {
+        if (isQueueRunning || !modelValid) return;
+
+        isQueueRunning = true;
+        runQueueBtn.disabled = true;
+
+        const pendingItems = queue.filter((item) => item.status === "Pending");
+
+        for (const item of pendingItems) {
+          try {
+            // Update status to running
+            await invoke("update_queue_item_status_command", {
+              id: item.id,
+              status: { status: "Running" },
+            });
+            item.status = "Running";
+            renderQueue();
+
+            // Run transcription
+            const response = await invoke("run_transcription_command", {
+              modelPath: modelPathEl.value,
+              audioPath: item.audio_path,
+            });
+
+            const transcript = (response.transcript || "").trim();
+
+            // Update status to success
+            await invoke("update_queue_item_status_command", {
+              id: item.id,
+              status: { status: "Success" },
+            });
+            item.status = "Success";
+
+            // Auto-route output based on PTT routing settings
+            if (transcript && copyToClipboardToggle.checked) {
+              await invoke("copy_to_clipboard_command", { text: transcript });
+            }
+
+            // Add to history
+            await invoke("add_to_history_command", {
+              audioPath: item.audio_path,
+              outputPath: null,
+              success: true,
+            });
+          } catch (error) {
+            // Update status to error
+            await invoke("update_queue_item_status_command", {
+              id: item.id,
+              status: {
+                status: "Error",
+                errorMessage: error?.message || String(error),
+              },
+            });
+            item.status = "Error";
+            item.error_message = error?.message || String(error);
+
+            // Add to history
+            await invoke("add_to_history_command", {
+              audioPath: item.audio_path,
+              outputPath: null,
+              success: false,
+            });
+          }
+
+          renderQueue();
+        }
+
+        isQueueRunning = false;
+        runQueueBtn.disabled = !queue.some((item) => item.status === "Pending");
+        await loadHistory();
+        setStatus(`Batch processing complete. ${pendingItems.length} files processed.`, "ok");
+      }
+
+      // History functions
+      async function loadHistory() {
+        try {
+          history = await invoke("get_history_command");
+          renderHistory();
+        } catch (error) {
+          console.warn("Failed to load history:", error);
+        }
+      }
+
+      function renderHistory() {
+        clearHistoryBtn.disabled = history.length === 0;
+
+        if (history.length === 0) {
+          historyListEl.innerHTML = '<p class="empty-list">No transcription history yet.</p>';
+          return;
+        }
+
+        historyListEl.innerHTML = history
+          .map(
+            (item) => `
+          <div class="history-item" data-id="${item.id}">
+            <span class="history-item-time">${formatTime(item.timestamp_ms)}</span>
+            <span class="history-item-path" title="${item.audio_path}">${getFileName(
+              item.audio_path
+            )}</span>
+            <span class="queue-item-status ${item.success ? "success" : "error"}">
+              ${item.success ? "✓" : "✗"}
+            </span>
+            <div class="history-item-actions">
+              <button class="secondary" data-action="rerun" type="button">Rerun</button>
+            </div>
+          </div>
+        `
+          )
+          .join("");
+      }
+
+      function formatTime(timestampMs) {
+        const date = new Date(timestampMs);
+        return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+      }
+
+      async function clearHistoryItems() {
+        try {
+          await invoke("clear_history_command");
+          history = [];
+          renderHistory();
+          setStatus("History cleared", "ok");
+        } catch (error) {
+          showError("Failed to clear history", error);
+        }
+      }
+
+      async function invoke(command, args = {}) {
+        const tauriInvoke = window.__TAURI__?.core?.invoke;
+        if (!tauriInvoke) {
+          throw new Error("Tauri invoke API not available");
+        }
+        return tauriInvoke(command, args);
+      }
+
+      function collectShortcutBindings() {
+        return [
+          pttShortcutEl.value.trim(),
+          typeShortcutEl.value.trim(),
+          clipboardShortcutEl.value.trim(),
+          fileShortcutEl.value.trim(),
+        ].filter(Boolean);
+      }
+
+      function detectShortcutConflicts() {
+        const shortcuts = [
+          { el: pttShortcutEl, name: "Push-to-talk" },
+          { el: typeShortcutEl, name: "Type emulation" },
+          { el: clipboardShortcutEl, name: "Capture-to-clipboard" },
+          { el: fileShortcutEl, name: "Capture-to-file" },
+        ];
+
+        const valueMap = new Map();
+        const conflicts = new Map();
+
+        // Build map of values to elements
+        for (const { el, name } of shortcuts) {
+          const value = el.value.trim();
+          if (!value) continue;
+
+          if (valueMap.has(value)) {
+            valueMap.get(value).push({ el, name });
+          } else {
+            valueMap.set(value, [{ el, name }]);
+          }
+        }
+
+        // Find conflicts (same value used more than once)
+        for (const [value, items] of valueMap) {
+          if (items.length > 1) {
+            for (const item of items) {
+              conflicts.set(item.el, {
+                value,
+                others: items.filter((i) => i.el !== item.el).map((i) => i.name),
+              });
+            }
+          }
+        }
+
+        return conflicts;
+      }
+
+      function updateShortcutConflictUI() {
+        const conflicts = detectShortcutConflicts();
+        const shortcutEls = [pttShortcutEl, typeShortcutEl, clipboardShortcutEl, fileShortcutEl];
+
+        for (const el of shortcutEls) {
+          el.style.borderColor = "";
+          el.style.background = "";
+        }
+
+        if (conflicts.size === 0) {
+          shortcutsHintEl.textContent = shortcutsEnabledToggle.checked
+            ? "Global shortcuts enabled and registered."
+            : "Shortcut bindings are saved.";
+          shortcutsHintEl.className = "hint neutral";
+          return;
+        }
+
+        const messages = [];
+        for (const [el, conflict] of conflicts) {
+          el.style.borderColor = "#f59e0b";
+          el.style.background = "rgba(245, 158, 11, 0.1)";
+          messages.push(`"${conflict.value}" used by: ${conflict.others.join(", ")}`);
+        }
+
+        shortcutsHintEl.textContent = `Conflict detected: ${messages[0]}`;
+        shortcutsHintEl.className = "hint error";
+      }
+
+      async function unregisterActiveShortcuts() {
+        for (const shortcut of Array.from(activeRegisteredShortcuts)) {
+          try {
+            await invoke("unregister_global_shortcut_command", { shortcut });
+          } catch (_error) {
+          }
+        }
+        activeRegisteredShortcuts = new Set();
+      }
+
+      async function applyShortcutRegistration(enabled) {
+        if (!enabled) {
+          await unregisterActiveShortcuts();
+          return;
+        }
+
+        const bindings = collectShortcutBindings();
+        const desired = new Set(bindings);
+
+        for (const shortcut of Array.from(activeRegisteredShortcuts)) {
+          if (!desired.has(shortcut)) {
+            await invoke("unregister_global_shortcut_command", { shortcut });
+            activeRegisteredShortcuts.delete(shortcut);
+          }
+        }
+
+        for (const shortcut of bindings) {
+          if (activeRegisteredShortcuts.has(shortcut)) {
+            continue;
+          }
+
+          await invoke("register_global_shortcut_command", { shortcut });
+          activeRegisteredShortcuts.add(shortcut);
+        }
+      }
+
+      async function validateModelPath() {
+        setStatus("Validating model path...");
+        try {
+          const response = await invoke("validate_model_path_command", {
+            path: modelPathEl.value,
+          });
+          modelValid = true;
+          setHint(modelHintEl, `Valid model: ${response.normalized_path}`, "ok");
+          persistState();
+          setStatus("Model validation succeeded.", "ok");
+          updateRunAvailability();
+          return true;
+        } catch (error) {
+          modelValid = false;
+          const message = error?.message || "Model path is invalid.";
+          setHint(modelHintEl, message, "error");
+          showError("Model validation failed", error);
+          updateRunAvailability();
+          return false;
+        }
+      }
+
+      async function validateAudioPath() {
+        setStatus("Validating audio path...");
+        try {
+          const response = await invoke("validate_audio_path_command", {
+            path: audioPathEl.value,
+          });
+          audioValid = true;
+          setHint(audioHintEl, `Valid audio: ${response.normalized_path}`, "ok");
+          persistState();
+          setStatus("Audio validation succeeded.", "ok");
+          updateRunAvailability();
+          return true;
+        } catch (error) {
+          audioValid = false;
+          const message = error?.message || "Audio path is invalid.";
+          setHint(audioHintEl, message, "error");
+          showError("Audio validation failed", error);
+          updateRunAvailability();
+          return false;
+        }
+      }
+
+      document.getElementById("healthBtn").addEventListener("click", async () => {
+        setStatus("Checking app health...");
+        try {
+          const response = await invoke("app_health_command");
+          setStatus(`Health: ${response.status} (${response.version})`, "ok");
+        } catch (error) {
+          showError("Health check failed", error);
+        }
+      });
+
+      document
+        .getElementById("validateModelBtn")
+        .addEventListener("click", validateModelPath);
+
+      document
+        .getElementById("validateAudioBtn")
+        .addEventListener("click", validateAudioPath);
+
+      modelPathEl.addEventListener("input", resetModelValidationHint);
+      audioPathEl.addEventListener("input", resetAudioValidationHint);
+
+      runBtn.addEventListener("click", async () => {
+        const isModelOk = await validateModelPath();
+        const isAudioOk = await validateAudioPath();
+        if (!isModelOk || !isAudioOk) {
+          setStatus("Fix validation errors before running transcription.", "error");
+          return;
+        }
+
+        isRunning = true;
+        updateRunAvailability();
+        runStartedAt = Date.now();
+        setStatus("Running transcription...", "");
+        transcriptEl.textContent = "(running)";
+
+        try {
+          const response = await invoke("run_transcription_command", {
+            modelPath: modelPathEl.value,
+            audioPath: audioPathEl.value,
+          });
+          latestTranscript = (response.transcript || "").trim();
+          transcriptEl.textContent = latestTranscript || "(empty transcript)";
+          updateTranscriptMetadata(latestTranscript);
+          const elapsedMs = Date.now() - runStartedAt;
+          setStatus(`Transcription completed in ${(elapsedMs / 1000).toFixed(2)}s`, "ok");
+
+          // Auto-route output based on PTT routing settings
+          if (latestTranscript && copyToClipboardToggle.checked) {
+            await copyTranscriptToClipboard(latestTranscript);
+          }
+        } catch (error) {
+          latestTranscript = "";
+          transcriptEl.textContent = "(failed)";
+          updateTranscriptMetadata("");
+          const elapsedMs = runStartedAt ? Date.now() - runStartedAt : 0;
+          if (elapsedMs > 0) {
+            setStatus(`Failed after ${(elapsedMs / 1000).toFixed(2)}s`, "error");
+          }
+          showError("Transcription failed", error);
+        } finally {
+          runStartedAt = null;
+          isRunning = false;
+          updateRunAvailability();
+        }
+      });
+
+      document.getElementById("pickModelBtn").addEventListener("click", async () => {
+        setStatus("Selecting model file...");
+        try {
+          const selectedPath = await invoke("pick_model_path_command");
+          modelPathEl.value = selectedPath;
+          setStatus("Model file selected", "ok");
+          await validateModelPath();
+        } catch (error) {
+          showError("Model selection failed", error);
+        }
+      });
+
+      document.getElementById("pickAudioBtn").addEventListener("click", async () => {
+        setStatus("Selecting audio file...");
+        try {
+          const selectedPath = await invoke("pick_audio_path_command");
+          audioPathEl.value = selectedPath;
+          setStatus("Audio file selected", "ok");
+          await validateAudioPath();
+        } catch (error) {
+          showError("Audio selection failed", error);
+        }
+      });
+
+      document.getElementById("exportTxtBtn").addEventListener("click", () => exportTranscript("txt"));
+      document.getElementById("exportSrtBtn").addEventListener("click", () => exportTranscript("srt"));
+      document.getElementById("exportVttBtn").addEventListener("click", () => exportTranscript("vtt"));
+      document.getElementById("exportJsonBtn").addEventListener("click", () => exportTranscript("json"));
+
+      copyToClipboardBtn.addEventListener("click", () => {
+        const transcript = latestTranscript.trim();
+        if (!transcript) {
+          setStatus("No transcript to copy.", "error");
+          return;
+        }
+        copyTranscriptToClipboard(transcript);
+      });
+
+      // Queue event handlers
+      addToQueueBtn.addEventListener("click", async () => {
+        try {
+          const selectedPath = await invoke("pick_audio_path_command");
+          await addToQueue(selectedPath);
+        } catch (error) {
+          if (error?.code !== "selection_cancelled") {
+            showError("Failed to add file to queue", error);
+          }
+        }
+      });
+
+      runQueueBtn.addEventListener("click", runQueue);
+      clearQueueBtn.addEventListener("click", clearCompletedQueue);
+
+      queueListEl.addEventListener("click", async (e) => {
+        const btn = e.target.closest("button[data-action]");
+        if (!btn) return;
+
+        const itemEl = btn.closest(".queue-item");
+        const id = itemEl?.dataset?.id;
+        const action = btn.dataset.action;
+
+        if (!id) return;
+
+        if (action === "remove") {
+          await removeFromQueue(id);
+        } else if (action === "up") {
+          const index = queue.findIndex((item) => item.id === id);
+          if (index > 0) {
+            await reorderQueue(index, index - 1);
+          }
+        } else if (action === "down") {
+          const index = queue.findIndex((item) => item.id === id);
+          if (index < queue.length - 1) {
+            await reorderQueue(index, index + 1);
+          }
+        }
+      });
+
+      // History event handlers
+      clearHistoryBtn.addEventListener("click", async () => {
+        if (confirm("Clear all history?")) {
+          await clearHistoryItems();
+        }
+      });
+
+      historyListEl.addEventListener("click", async (e) => {
+        const btn = e.target.closest("button[data-action]");
+        if (!btn || btn.dataset.action !== "rerun") return;
+
+        const itemEl = btn.closest(".history-item");
+        const id = itemEl?.dataset?.id;
+        const item = history.find((h) => h.id === id);
+
+        if (item) {
+          audioPathEl.value = item.audio_path;
+          await validateAudioPath();
+          setStatus(`Loaded ${getFileName(item.audio_path)} from history`, "ok");
+        }
+      });
+
+      openOutputFolderBtn.addEventListener("click", async () => {
+        if (!latestExportPath) {
+          setStatus("No exported file yet.", "error");
+          return;
+        }
+
+        try {
+          await invoke("open_output_folder_command", {
+            filePath: latestExportPath,
+          });
+          setStatus("Opened output folder.", "ok");
+        } catch (error) {
+          showError("Open output folder failed", error);
+        }
+      });
+
+      startInBackgroundToggle.addEventListener("change", () => {
+        (async () => {
+          try {
+            await invoke("set_start_in_background_command", {
+              enabled: startInBackgroundToggle.checked,
+            });
+            setStatus(
+              startInBackgroundToggle.checked
+                ? "Start-in-background enabled for next launch."
+                : "Start-in-background disabled.",
+              "ok"
+            );
+          } catch (error) {
+            showError("Failed to save start-in-background setting", error);
+            startInBackgroundToggle.checked = !startInBackgroundToggle.checked;
+          }
+        })();
+      });
+
+      launchOnLoginToggle.addEventListener("change", () => {
+        (async () => {
+          try {
+            await invoke("set_launch_on_login_command", {
+              enabled: launchOnLoginToggle.checked,
+            });
+            backgroundHintEl.textContent = launchOnLoginToggle.checked
+              ? "App will launch automatically on login."
+              : "Launch on login disabled. Background tray mode remains available.";
+            setStatus(
+              launchOnLoginToggle.checked
+                ? "Launch on login enabled."
+                : "Launch on login disabled.",
+              "ok"
+            );
+          } catch (error) {
+            showError("Failed to save launch on login setting", error);
+            launchOnLoginToggle.checked = !launchOnLoginToggle.checked;
+          }
+        })();
+      });
+
+      shortcutsEnabledToggle.addEventListener("change", () => {
+        (async () => {
+          persistState();
+          updateShortcutConflictUI();
+          try {
+            await applyShortcutRegistration(shortcutsEnabledToggle.checked);
+            setStatus("Global shortcut preference updated.", "ok");
+          } catch (error) {
+            shortcutsEnabledToggle.checked = false;
+            persistState();
+            shortcutsHintEl.textContent =
+              "Global shortcut registration failed. Update bindings and try again.";
+            showError("Global shortcut setup failed", error);
+          }
+        })();
+      });
+
+      [pttShortcutEl, typeShortcutEl, clipboardShortcutEl, fileShortcutEl].forEach((element) => {
+        element.addEventListener("input", () => {
+          updateShortcutConflictUI();
+        });
+
+        element.addEventListener("change", () => {
+          (async () => {
+            persistState();
+            updateShortcutConflictUI();
+
+            const conflicts = detectShortcutConflicts();
+            if (conflicts.size > 0) {
+              setStatus("Resolve shortcut conflicts before enabling.", "error");
+              return;
+            }
+
+            if (!shortcutsEnabledToggle.checked) {
+              setStatus("Shortcut binding saved.", "ok");
+              return;
+            }
+
+            try {
+              await applyShortcutRegistration(true);
+              shortcutsHintEl.textContent = "Global shortcuts enabled and registered.";
+              setStatus("Shortcut bindings updated and re-registered.", "ok");
+            } catch (error) {
+              shortcutsHintEl.textContent =
+                "Shortcut update failed. Check for conflicts and try another binding.";
+              showError("Shortcut binding update failed", error);
+            }
+          })();
+        });
+      });
+
+      // Advanced options drawer toggle
+      advancedToggle.addEventListener("click", () => {
+        advancedToggle.classList.toggle("open");
+        advancedDrawer.classList.toggle("open");
+      });
+
+      // Persist advanced options on change
+      [taskSelect, languageSelect, threadsInput, beamSizeInput, bestOfInput, temperatureInput].forEach(
+        (element) => {
+          element.addEventListener("change", () => {
+            persistAdvancedOptions();
+            setStatus("Advanced options saved.", "ok");
+          });
+        }
+      );
+
+      // Preset selection
+      presetSelect.addEventListener("change", () => {
+        const selectedName = presetSelect.value;
+        deletePresetBtn.disabled = !selectedName;
+
+        if (selectedName) {
+          const preset = presets.find((p) => p.name === selectedName);
+          if (preset) {
+            setAdvancedOptions(preset.advanced);
+            persistAdvancedOptions();
+            setStatus(`Loaded preset: ${selectedName}`, "ok");
+          }
+        }
+      });
+
+      // Save preset
+      savePresetBtn.addEventListener("click", () => {
+        const name = prompt("Enter preset name:");
+        if (!name || !name.trim()) return;
+
+        const advanced = getAdvancedOptions();
+        (async () => {
+          try {
+            await invoke("save_preset_command", { name: name.trim(), advanced });
+            setStatus(`Preset "${name}" saved.`, "ok");
+            await loadPresets();
+            presetSelect.value = name.trim();
+            deletePresetBtn.disabled = false;
+          } catch (error) {
+            showError("Failed to save preset", error);
+          }
+        })();
+      });
+
+      // Delete preset
+      deletePresetBtn.addEventListener("click", () => {
+        const name = presetSelect.value;
+        if (!name) return;
+
+        if (!confirm(`Delete preset "${name}"?`)) return;
+
+        (async () => {
+          try {
+            await invoke("delete_preset_command", { name });
+            setStatus(`Preset "${name}" deleted.`, "ok");
+            await loadPresets();
+            deletePresetBtn.disabled = true;
+            defaultPresetToggle.checked = false;
+          } catch (error) {
+            showError("Failed to delete preset", error);
+          }
+        })();
+      });
+
+      // Default preset toggle
+      defaultPresetToggle.addEventListener("change", () => {
+        const name = presetSelect.value;
+        (async () => {
+          try {
+            await invoke("set_default_preset_command", {
+              name: defaultPresetToggle.checked ? name : null,
+            });
+            setStatus(
+              defaultPresetToggle.checked
+                ? `"${name}" set as default preset.`
+                : "Default preset cleared.",
+              "ok"
+            );
+          } catch (error) {
+            showError("Failed to set default preset", error);
+            defaultPresetToggle.checked = !defaultPresetToggle.checked;
+          }
+        })();
+      });
+
+      // PTT routing toggles
+      [copyToClipboardToggle, saveToFileToggle, typeEmulationToggle].forEach((toggle) => {
+        toggle.addEventListener("change", () => {
+          (async () => {
+            await savePttRouting();
+          })();
+        });
+      });
+
+      // P4: Theme setting
+      themeSelect.addEventListener("change", () => {
+        (async () => {
+          try {
+            await invoke("set_theme_command", { request: { theme: themeSelect.value } });
+            applyTheme(themeSelect.value);
+            setStatus(`Theme set to ${themeSelect.value}.`, "ok");
+          } catch (error) {
+            showError("Failed to save theme setting", error);
+          }
+        })();
+      });
+
+      // P4: Default output directory
+      pickOutputDirBtn.addEventListener("click", async () => {
+        try {
+          const path = await invoke("pick_directory_command");
+          defaultOutputDirEl.value = path;
+          await invoke("set_default_output_dir_command", { request: { path } });
+          setStatus("Default output directory saved.", "ok");
+        } catch (error) {
+          if (error?.code !== "selection_cancelled") {
+            showError("Failed to set default output directory", error);
+          }
+        }
+      });
+
+      // P4: Default model directory
+      pickModelDirBtn.addEventListener("click", async () => {
+        try {
+          const path = await invoke("pick_directory_command");
+          defaultModelDirEl.value = path;
+          await invoke("set_default_model_dir_command", { request: { path } });
+          setStatus("Default model directory saved.", "ok");
+        } catch (error) {
+          if (error?.code !== "selection_cancelled") {
+            showError("Failed to set default model directory", error);
+          }
+        }
+      });
+
+      // P4: Default threads
+      defaultThreadsInput.addEventListener("change", () => {
+        (async () => {
+          const value = defaultThreadsInput.value ? parseInt(defaultThreadsInput.value, 10) : null;
+          try {
+            await invoke("set_default_threads_command", { request: { value } });
+            setStatus("Default threads saved.", "ok");
+          } catch (error) {
+            showError("Failed to save default threads", error);
+          }
+        })();
+      });
+
+      // P4: Default timeout
+      defaultTimeoutInput.addEventListener("change", () => {
+        (async () => {
+          const value = defaultTimeoutInput.value ? parseInt(defaultTimeoutInput.value, 10) : null;
+          try {
+            await invoke("set_default_timeout_command", { request: { value } });
+            setStatus("Default timeout saved.", "ok");
+          } catch (error) {
+            showError("Failed to save default timeout", error);
+          }
+        })();
+      });
+
+      // P4: Diagnostics toggle
+      diagnosticsToggle.addEventListener("change", () => {
+        (async () => {
+          try {
+            await invoke("set_diagnostics_enabled_command", {
+              request: { enabled: diagnosticsToggle.checked },
+            });
+            setStatus(
+              diagnosticsToggle.checked
+                ? "Diagnostic logging enabled."
+                : "Diagnostic logging disabled.",
+              "ok"
+            );
+          } catch (error) {
+            showError("Failed to save diagnostics setting", error);
+            diagnosticsToggle.checked = !diagnosticsToggle.checked;
+          }
+        })();
+      });
+
+      // P4: Apply theme on load
+      function applyTheme(theme) {
+        if (theme === "system") {
+          document.documentElement.style.colorScheme = "";
+          document.body.style.background = "";
+        } else if (theme === "light") {
+          document.documentElement.style.colorScheme = "light";
+          document.body.style.background = "#f3f4f6";
+          document.body.style.color = "#1f2937";
+        } else if (theme === "dark") {
+          document.documentElement.style.colorScheme = "dark";
+          document.body.style.background = "#111827";
+          document.body.style.color = "#e5e7eb";
+        }
+      }
+
+      // P4: Keyboard shortcuts for main actions
+      document.addEventListener("keydown", (e) => {
+        // Ctrl+R or Cmd+R to run transcription
+        if ((e.ctrlKey || e.metaKey) && e.key === "r" && !e.shiftKey && !e.altKey) {
+          e.preventDefault();
+          if (!runBtn.disabled) {
+            runBtn.click();
+          }
+        }
+        // Escape to clear status/focus
+        if (e.key === "Escape") {
+          statusEl.textContent = "";
+          errorHintEl.classList.remove("visible");
+        }
+      });
+
+      restoreState();
+      restoreAdvancedOptions();
+      loadAppSettings();
+      loadPttRouting();
+      loadPresets();
+      loadQueue();
+      loadHistory();
+      updateShortcutConflictUI();
+      if (modelPathEl.value.trim()) {
+        validateModelPath();
+      }
+      if (audioPathEl.value.trim()) {
+        validateAudioPath();
+      }
+      if (shortcutsEnabledToggle.checked) {
+        applyShortcutRegistration(true)
+          .then(() => {
+            updateShortcutConflictUI();
+          })
+          .catch((error) => {
+            shortcutsEnabledToggle.checked = false;
+            persistState();
+            shortcutsHintEl.textContent =
+              "Global shortcut registration failed on startup. Please review bindings.";
+            showError("Global shortcut startup registration failed", error);
+          });
+      }
+      updateTranscriptMetadata(latestTranscript);
+      updateRunAvailability();
+    </script>
+  </body>
+</html>

@@ -1,0 +1,41 @@
+name: Frontend Tauri CI
+
+on:
+  push:
+    paths:
+      - frontend-tauri/**
+      - .github/workflows/frontend-tauri-ci.yml
+  pull_request:
+    paths:
+      - frontend-tauri/**
+      - .github/workflows/frontend-tauri-ci.yml
+
+jobs:
+  checks:
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Clone
+        uses: actions/checkout@v6
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - name: Cargo cache
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: frontend-tauri
+
+      - name: Format check
+        working-directory: ./frontend-tauri
+        run: cargo fmt --check
+
+      - name: Lint check
+        working-directory: ./frontend-tauri
+        run: cargo clippy --all-targets --all-features -- -D warnings
+
+      - name: Unit tests
+        working-directory: ./frontend-tauri
+        run: cargo test
