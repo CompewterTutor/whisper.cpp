@@ -180,6 +180,26 @@ pub fn unregister_global_shortcut_command(
     Ok(())
 }
 
+#[tauri::command]
+pub fn is_shortcut_registered_command(
+    app: tauri::AppHandle,
+    shortcut: String,
+) -> TauriCommandResult<bool> {
+    let trimmed = validate_shortcut_input(&shortcut)?;
+
+    #[cfg(desktop)]
+    {
+        let is_registered = app.global_shortcut().is_registered(trimmed);
+        Ok(is_registered)
+    }
+
+    #[cfg(not(desktop))]
+    {
+        let _ = (app, trimmed);
+        Ok(false)
+    }
+}
+
 fn validate_shortcut_input(shortcut: &str) -> TauriCommandResult<&str> {
     let trimmed = shortcut.trim();
     if trimmed.is_empty() {

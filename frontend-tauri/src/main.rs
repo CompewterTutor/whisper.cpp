@@ -23,6 +23,7 @@ fn build_tauri_builder() -> tauri::Builder<tauri::Wry> {
             frontend_tauri::tauri_commands::open_output_folder_command,
             frontend_tauri::tauri_commands::register_global_shortcut_command,
             frontend_tauri::tauri_commands::unregister_global_shortcut_command,
+            frontend_tauri::tauri_commands::is_shortcut_registered_command,
             frontend_tauri::tauri_commands::get_app_settings_command,
             frontend_tauri::tauri_commands::set_start_in_background_command,
             frontend_tauri::tauri_commands::set_launch_on_login_command,

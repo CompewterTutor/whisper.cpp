@@ -745,6 +745,72 @@
         ].filter(Boolean);
       }
 
+      function detectShortcutConflicts() {
+        const shortcuts = [
+          { el: pttShortcutEl, name: "Push-to-talk" },
+          { el: typeShortcutEl, name: "Type emulation" },
+          { el: clipboardShortcutEl, name: "Capture-to-clipboard" },
+          { el: fileShortcutEl, name: "Capture-to-file" },
+        ];
+
+        const valueMap = new Map();
+        const conflicts = new Map();
+
+        // Build map of values to elements
+        for (const { el, name } of shortcuts) {
+          const value = el.value.trim();
+          if (!value) continue;
+
+          if (valueMap.has(value)) {
+            valueMap.get(value).push({ el, name });
+          } else {
+            valueMap.set(value, [{ el, name }]);
+          }
+        }
+
+        // Find conflicts (same value used more than once)
+        for (const [value, items] of valueMap) {
+          if (items.length > 1) {
+            for (const item of items) {
+              conflicts.set(item.el, {
+                value,
+                others: items.filter((i) => i.el !== item.el).map((i) => i.name),
+              });
+            }
+          }
+        }
+
+        return conflicts;
+      }
+
+      function updateShortcutConflictUI() {
+        const conflicts = detectShortcutConflicts();
+        const shortcutEls = [pttShortcutEl, typeShortcutEl, clipboardShortcutEl, fileShortcutEl];
+
+        for (const el of shortcutEls) {
+          el.style.borderColor = "";
+          el.style.background = "";
+        }
+
+        if (conflicts.size === 0) {
+          shortcutsHintEl.textContent = shortcutsEnabledToggle.checked
+            ? "Global shortcuts enabled and registered."
+            : "Shortcut bindings are saved.";
+          shortcutsHintEl.className = "hint neutral";
+          return;
+        }
+
+        const messages = [];
+        for (const [el, conflict] of conflicts) {
+          el.style.borderColor = "#f59e0b";
+          el.style.background = "rgba(245, 158, 11, 0.1)";
+          messages.push(`"${conflict.value}" used by: ${conflict.others.join(", ")}`);
+        }
+
+        shortcutsHintEl.textContent = `Conflict detected: ${messages[0]}`;
+        shortcutsHintEl.className = "hint error";
+      }
+
       async function unregisterActiveShortcuts() {
         for (const shortcut of Array.from(activeRegisteredShortcuts)) {
           try {
@@ -975,11 +1041,9 @@
       shortcutsEnabledToggle.addEventListener("change", () => {
         (async () => {
           persistState();
+          updateShortcutConflictUI();
           try {
             await applyShortcutRegistration(shortcutsEnabledToggle.checked);
-            shortcutsHintEl.textContent = shortcutsEnabledToggle.checked
-              ? "Global shortcuts enabled and registered."
-              : "Global shortcuts disabled.";
             setStatus("Global shortcut preference updated.", "ok");
           } catch (error) {
             shortcutsEnabledToggle.checked = false;
@@ -992,9 +1056,21 @@
       });
 
       [pttShortcutEl, typeShortcutEl, clipboardShortcutEl, fileShortcutEl].forEach((element) => {
+        element.addEventListener("input", () => {
+          updateShortcutConflictUI();
+        });
+
         element.addEventListener("change", () => {
           (async () => {
             persistState();
+            updateShortcutConflictUI();
+
+            const conflicts = detectShortcutConflicts();
+            if (conflicts.size > 0) {
+              setStatus("Resolve shortcut conflicts before enabling.", "error");
+              return;
+            }
+
             if (!shortcutsEnabledToggle.checked) {
               setStatus("Shortcut binding saved.", "ok");
               return;
@@ -1108,6 +1184,7 @@
       restoreAdvancedOptions();
       loadAppSettings();
       loadPresets();
+      updateShortcutConflictUI();
       if (modelPathEl.value.trim()) {
         validateModelPath();
       }
@@ -1117,7 +1194,7 @@
       if (shortcutsEnabledToggle.checked) {
         applyShortcutRegistration(true)
           .then(() => {
-            shortcutsHintEl.textContent = "Global shortcuts enabled and registered.";
+            updateShortcutConflictUI();
           })
           .catch((error) => {
             shortcutsEnabledToggle.checked = false;

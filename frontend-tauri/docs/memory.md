@@ -14,6 +14,8 @@
 - Temperature is stored as integer * 100 in `TranscriptionAdvancedOptions` to avoid f32 comparison issues in Eq.
 - Collapsible drawer UI pattern uses CSS classes `.drawer-toggle`, `.drawer-content`, and `.open` for visibility.
 - Presets are stored in a `HashMap<String, TranscriptionPreset>` within `AppConfig`.
+- `tauri-plugin-global-shortcut::is_registered()` returns `bool` directly, not `Result<bool>`.
+- Shortcut conflict detection can be done purely client-side by comparing input values.
 
 ### Constraints to preserve
 
@@ -26,6 +28,12 @@
 
 ### Current progress
 
+- Completed: P2.5 shortcut conflict detection:
+	- Added `is_shortcut_registered_command` to check if shortcut is registered
+	- Added `detectShortcutConflicts()` function to find duplicate shortcuts
+	- Added `updateShortcutConflictUI()` for visual feedback (orange border, hint text)
+	- Added real-time conflict checking on input change
+	- Blocks registration when conflicts exist
 - Completed: P2 advanced controls + presets:
 	- Added `TranscriptionAdvancedOptions` with task, language, threads, beam_size, best_of, temperature
 	- Extended `WhisperCliRequest` and `build_whisper_cli_args` for advanced flags
@@ -58,6 +66,9 @@
 	- Added tests for hint coverage on common error codes
 
 ### Next immediate action
+
+- P1, P2, P2.5 are now fully complete.
+- Next phases: P3 (Batch processing + history) or P4 (Final hardening + release UX).
 
 - P1, P2, P2.5 are complete.
 - Remaining P2.5 item: conflict detection/rebind UX for shortcuts (optional).

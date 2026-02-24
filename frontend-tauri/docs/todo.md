@@ -55,7 +55,7 @@ Acceptance criteria:
 - [x] Add tray/menu bar app mode with quick actions (open, start/stop, quit).
 - [x] Add settings toggles: start in background and launch at login.
 - [x] Add global shortcut registration UI and persistence.
-- [ ] Add conflict detection/rebind UX for shortcuts.
+- [x] Add conflict detection/rebind UX for shortcuts.
 
 Acceptance criteria:
 - [x] App can stay running hidden with tray/menu bar control.

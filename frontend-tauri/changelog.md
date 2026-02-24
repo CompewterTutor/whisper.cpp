@@ -8,6 +8,9 @@ The format is based on Keep a Changelog, and the project follows Semantic Versio
 
 ### Added
 
+- Added shortcut conflict detection: visual warning when same shortcut is assigned to multiple actions.
+- Added `is_shortcut_registered_command` to check if a shortcut is already registered.
+- Added real-time conflict feedback with orange highlight on conflicting shortcut fields.
 - Added advanced transcription options: task (transcribe/translate), language, threads, beam size, best-of, temperature.
 - Added preset management: save, load, delete, and set default presets.
 - Added collapsible advanced options drawer in UI with preset dropdown.
