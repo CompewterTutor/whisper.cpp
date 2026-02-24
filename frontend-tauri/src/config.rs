@@ -1,9 +1,11 @@
-use crate::contracts::TranscriptionAdvancedOptions;
+use crate::contracts::{HistoryItem, QueueItem, QueueItemStatus, TranscriptionAdvancedOptions};
 use crate::errors::FrontendError;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fs;
 use std::path::{Path, PathBuf};
+
+const MAX_HISTORY_ITEMS: usize = 50;
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
 pub struct AppConfig {
@@ -13,6 +15,8 @@ pub struct AppConfig {
     pub launch_on_login: bool,
     pub default_preset: Option<String>,
     pub presets: HashMap<String, TranscriptionPreset>,
+    pub queue: Vec<QueueItem>,
+    pub history: Vec<HistoryItem>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -132,6 +136,121 @@ impl ConfigStore {
         let mut presets: Vec<_> = config.presets.values().cloned().collect();
         presets.sort_by(|a, b| a.name.cmp(&b.name));
         Ok(presets)
+    }
+
+    // Queue management
+    pub fn add_to_queue(&self, audio_path: String) -> Result<QueueItem, FrontendError> {
+        let mut config = self.load()?;
+        let id = format!(
+            "q-{}",
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .map(|d| d.as_nanos())
+                .unwrap_or(0)
+        );
+        let item = QueueItem {
+            id: id.clone(),
+            audio_path,
+            status: QueueItemStatus::Pending,
+            error_message: None,
+        };
+        config.queue.push(item.clone());
+        self.save(&config)?;
+        Ok(item)
+    }
+
+    pub fn remove_from_queue(&self, id: &str) -> Result<(), FrontendError> {
+        let mut config = self.load()?;
+        config.queue.retain(|item| item.id != id);
+        self.save(&config)?;
+        Ok(())
+    }
+
+    pub fn reorder_queue(&self, from_index: usize, to_index: usize) -> Result<(), FrontendError> {
+        let mut config = self.load()?;
+        if from_index < config.queue.len() && to_index < config.queue.len() {
+            let item = config.queue.remove(from_index);
+            config.queue.insert(to_index, item);
+            self.save(&config)?;
+        }
+        Ok(())
+    }
+
+    pub fn update_queue_item_status(
+        &self,
+        id: &str,
+        status: QueueItemStatus,
+        error_message: Option<String>,
+    ) -> Result<(), FrontendError> {
+        let mut config = self.load()?;
+        if let Some(item) = config.queue.iter_mut().find(|i| i.id == id) {
+            item.status = status;
+            item.error_message = error_message;
+            self.save(&config)?;
+        }
+        Ok(())
+    }
+
+    pub fn clear_completed_queue_items(&self) -> Result<(), FrontendError> {
+        let mut config = self.load()?;
+        config.queue.retain(|item| {
+            !matches!(
+                item.status,
+                QueueItemStatus::Success | QueueItemStatus::Error
+            )
+        });
+        self.save(&config)?;
+        Ok(())
+    }
+
+    pub fn get_queue(&self) -> Result<Vec<QueueItem>, FrontendError> {
+        Ok(self.load()?.queue)
+    }
+
+    // History management
+    pub fn add_to_history(
+        &self,
+        audio_path: String,
+        output_path: Option<String>,
+        success: bool,
+    ) -> Result<HistoryItem, FrontendError> {
+        let mut config = self.load()?;
+        let id = format!(
+            "h-{}",
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .map(|d| d.as_millis())
+                .unwrap_or(0)
+        );
+        let timestamp_ms = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .map(|d| d.as_millis() as u64)
+            .unwrap_or(0);
+        let item = HistoryItem {
+            id: id.clone(),
+            timestamp_ms,
+            audio_path,
+            output_path,
+            success,
+        };
+        config.history.insert(0, item.clone());
+        // Trim history to max size
+        if config.history.len() > MAX_HISTORY_ITEMS {
+            config.history.truncate(MAX_HISTORY_ITEMS);
+        }
+        self.save(&config)?;
+        Ok(item)
+    }
+
+    pub fn get_history(&self) -> Result<Vec<HistoryItem>, FrontendError> {
+        Ok(self.load()?.history)
+    }
+
+    pub fn clear_history(&self) -> Result<(), FrontendError> {
+        let mut config = self.load()?;
+        config.history.clear();
+        self.save(&config)?;
+        Ok(())
     }
 }
 
@@ -272,5 +391,94 @@ mod tests {
 
         let config = store.load().expect("load should succeed");
         assert_eq!(config.default_preset, None);
+    }
+
+    #[test]
+    fn add_to_queue_appends_item() {
+        let path = unique_config_path();
+        let store = ConfigStore::new(&path);
+
+        let item = store
+            .add_to_queue("/path/to/audio1.wav".to_owned())
+            .expect("add_to_queue should succeed");
+
+        assert_eq!(item.audio_path, "/path/to/audio1.wav");
+        assert!(matches!(
+            item.status,
+            crate::contracts::QueueItemStatus::Pending
+        ));
+
+        let queue = store.get_queue().expect("get_queue should succeed");
+        assert_eq!(queue.len(), 1);
+    }
+
+    #[test]
+    fn remove_from_queue_deletes_item() {
+        let path = unique_config_path();
+        let store = ConfigStore::new(&path);
+
+        let item = store
+            .add_to_queue("/path/to/audio.wav".to_owned())
+            .expect("add_to_queue should succeed");
+
+        store
+            .remove_from_queue(&item.id)
+            .expect("remove_from_queue should succeed");
+
+        let queue = store.get_queue().expect("get_queue should succeed");
+        assert!(queue.is_empty());
+    }
+
+    #[test]
+    fn reorder_queue_moves_item() {
+        let path = unique_config_path();
+        let store = ConfigStore::new(&path);
+
+        let _item1 = store
+            .add_to_queue("/audio1.wav".to_owned())
+            .expect("add_to_queue should succeed");
+        let _item2 = store
+            .add_to_queue("/audio2.wav".to_owned())
+            .expect("add_to_queue should succeed");
+
+        store
+            .reorder_queue(0, 1)
+            .expect("reorder_queue should succeed");
+
+        let queue = store.get_queue().expect("get_queue should succeed");
+        assert_eq!(queue[0].audio_path, "/audio2.wav");
+        assert_eq!(queue[1].audio_path, "/audio1.wav");
+    }
+
+    #[test]
+    fn add_to_history_inserts_at_front() {
+        let path = unique_config_path();
+        let store = ConfigStore::new(&path);
+
+        let item1 = store
+            .add_to_history("/audio1.wav".to_owned(), None, true)
+            .expect("add_to_history should succeed");
+        let item2 = store
+            .add_to_history("/audio2.wav".to_owned(), None, true)
+            .expect("add_to_history should succeed");
+
+        let history = store.get_history().expect("get_history should succeed");
+        assert_eq!(history.len(), 2);
+        assert_eq!(history[0].id, item2.id);
+        assert_eq!(history[1].id, item1.id);
+    }
+
+    #[test]
+    fn clear_history_removes_all_items() {
+        let path = unique_config_path();
+        let store = ConfigStore::new(&path);
+
+        store
+            .add_to_history("/audio.wav".to_owned(), None, true)
+            .expect("add_to_history should succeed");
+        store.clear_history().expect("clear_history should succeed");
+
+        let history = store.get_history().expect("get_history should succeed");
+        assert!(history.is_empty());
     }
 }

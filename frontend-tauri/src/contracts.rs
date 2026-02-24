@@ -89,3 +89,28 @@ pub struct AppSettingsResponse {
 pub struct SetSettingRequest {
     pub enabled: bool,
 }
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub enum QueueItemStatus {
+    Pending,
+    Running,
+    Success,
+    Error,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct QueueItem {
+    pub id: String,
+    pub audio_path: String,
+    pub status: QueueItemStatus,
+    pub error_message: Option<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct HistoryItem {
+    pub id: String,
+    pub timestamp_ms: u64,
+    pub audio_path: String,
+    pub output_path: Option<String>,
+    pub success: bool,
+}

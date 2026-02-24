@@ -266,6 +266,70 @@
         border-radius: 0.5rem;
         padding: 0.6rem 0.75rem;
       }
+      .queue-list, .history-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        max-height: 200px;
+        overflow-y: auto;
+      }
+      .queue-item, .history-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 0.6rem;
+        background: #111827;
+        border: 1px solid #374151;
+        border-radius: 0.4rem;
+        font-size: 0.85rem;
+      }
+      .queue-item-path, .history-item-path {
+        flex: 1;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .queue-item-status {
+        font-size: 0.75rem;
+        padding: 0.2rem 0.4rem;
+        border-radius: 0.25rem;
+        background: #374151;
+      }
+      .queue-item-status.pending {
+        background: #4b5563;
+        color: #9ca3af;
+      }
+      .queue-item-status.running {
+        background: #1d4ed8;
+        color: white;
+      }
+      .queue-item-status.success {
+        background: #166534;
+        color: white;
+      }
+      .queue-item-status.error {
+        background: #991b1b;
+        color: white;
+      }
+      .queue-item-actions, .history-item-actions {
+        display: flex;
+        gap: 0.25rem;
+      }
+      .queue-item-actions button, .history-item-actions button {
+        padding: 0.3rem 0.5rem;
+        font-size: 0.75rem;
+      }
+      .history-item-time {
+        font-size: 0.75rem;
+        color: #9ca3af;
+        min-width: 80px;
+      }
+      .empty-list {
+        text-align: center;
+        color: #6b7280;
+        padding: 1rem;
+        font-size: 0.9rem;
+      }
     </style>
   </head>
   <body>
@@ -414,6 +478,34 @@
         </div>
       </div>
 
+      <!-- QUEUE SECTION -->
+      <div class="section">
+        <div class="section-header">Batch Queue</div>
+        <div class="card">
+          <div class="actions" style="margin-bottom: 0.75rem;">
+            <button id="addToQueueBtn" class="secondary" type="button">Add files...</button>
+            <button id="runQueueBtn" type="button" disabled>Run all</button>
+            <button id="clearQueueBtn" class="secondary" type="button" disabled>Clear completed</button>
+          </div>
+          <div id="queueList" class="queue-list">
+            <p class="empty-list">No files in queue. Add audio files to batch process.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- HISTORY SECTION -->
+      <div class="section">
+        <div class="section-header">History</div>
+        <div class="card">
+          <div class="actions" style="margin-bottom: 0.75rem;">
+            <button id="clearHistoryBtn" class="secondary" type="button" disabled>Clear history</button>
+          </div>
+          <div id="historyList" class="history-list">
+            <p class="empty-list">No transcription history yet.</p>
+          </div>
+        </div>
+      </div>
+
       <hr class="divider" />
 
       <!-- SETTINGS SECTION -->
@@ -502,6 +594,14 @@
       const bestOfInput = document.getElementById("bestOfInput");
       const temperatureInput = document.getElementById("temperatureInput");
 
+      // Queue and history elements
+      const addToQueueBtn = document.getElementById("addToQueueBtn");
+      const runQueueBtn = document.getElementById("runQueueBtn");
+      const clearQueueBtn = document.getElementById("clearQueueBtn");
+      const queueListEl = document.getElementById("queueList");
+      const clearHistoryBtn = document.getElementById("clearHistoryBtn");
+      const historyListEl = document.getElementById("historyList");
+
       const STORAGE_KEYS = {
         modelPath: "frontend-tauri.modelPath",
         audioPath: "frontend-tauri.audioPath",
@@ -521,6 +621,9 @@
       let audioValid = false;
       let activeRegisteredShortcuts = new Set();
       let presets = [];
+      let queue = [];
+      let history = [];
+      let isQueueRunning = false;
 
       function setStatus(message, kind = "") {
         statusEl.textContent = message;
@@ -725,6 +828,220 @@
           setStatus(`Exported ${format.toUpperCase()} to ${savedPath}`, "ok");
         } catch (error) {
           showError(`Export ${format.toUpperCase()} failed`, error);
+        }
+      }
+
+      // Queue functions
+      async function loadQueue() {
+        try {
+          queue = await invoke("get_queue_command");
+          renderQueue();
+        } catch (error) {
+          console.warn("Failed to load queue:", error);
+        }
+      }
+
+      function renderQueue() {
+        if (queue.length === 0) {
+          queueListEl.innerHTML = '<p class="empty-list">No files in queue. Add audio files to batch process.</p>';
+          runQueueBtn.disabled = true;
+          clearQueueBtn.disabled = true;
+          return;
+        }
+
+        const hasPending = queue.some((item) => item.status === "Pending");
+        runQueueBtn.disabled = !hasPending || isQueueRunning || !modelValid;
+
+        const hasCompleted = queue.some(
+          (item) => item.status === "Success" || item.status === "Error"
+        );
+        clearQueueBtn.disabled = !hasCompleted;
+
+        queueListEl.innerHTML = queue
+          .map(
+            (item, index) => `
+          <div class="queue-item" data-id="${item.id}">
+            <span class="queue-item-path" title="${item.audio_path}">${getFileName(
+              item.audio_path
+            )}</span>
+            <span class="queue-item-status ${item.status.toLowerCase()}">${item.status}</span>
+            <div class="queue-item-actions">
+              ${index > 0 ? `<button class="secondary" data-action="up" type="button">↑</button>` : ""}
+              ${index < queue.length - 1 ? `<button class="secondary" data-action="down" type="button">↓</button>` : ""}
+              <button class="secondary" data-action="remove" type="button">×</button>
+            </div>
+          </div>
+        `
+          )
+          .join("");
+      }
+
+      function getFileName(path) {
+        return path.split(/[/\\]/).pop() || path;
+      }
+
+      async function addToQueue(audioPath) {
+        try {
+          const item = await invoke("add_to_queue_command", { audioPath });
+          queue.push(item);
+          renderQueue();
+          setStatus(`Added ${getFileName(audioPath)} to queue`, "ok");
+        } catch (error) {
+          showError("Failed to add to queue", error);
+        }
+      }
+
+      async function removeFromQueue(id) {
+        try {
+          await invoke("remove_from_queue_command", { id });
+          queue = queue.filter((item) => item.id !== id);
+          renderQueue();
+        } catch (error) {
+          showError("Failed to remove from queue", error);
+        }
+      }
+
+      async function reorderQueue(fromIndex, toIndex) {
+        try {
+          await invoke("reorder_queue_command", { fromIndex, toIndex });
+          const item = queue.splice(fromIndex, 1)[0];
+          queue.splice(toIndex, 0, item);
+          renderQueue();
+        } catch (error) {
+          showError("Failed to reorder queue", error);
+        }
+      }
+
+      async function clearCompletedQueue() {
+        try {
+          await invoke("clear_completed_queue_command");
+          queue = queue.filter(
+            (item) => item.status !== "Success" && item.status !== "Error"
+          );
+          renderQueue();
+          setStatus("Cleared completed items from queue", "ok");
+        } catch (error) {
+          showError("Failed to clear queue", error);
+        }
+      }
+
+      async function runQueue() {
+        if (isQueueRunning || !modelValid) return;
+
+        isQueueRunning = true;
+        runQueueBtn.disabled = true;
+
+        const pendingItems = queue.filter((item) => item.status === "Pending");
+
+        for (const item of pendingItems) {
+          try {
+            // Update status to running
+            await invoke("update_queue_item_status_command", {
+              id: item.id,
+              status: { status: "Running" },
+            });
+            item.status = "Running";
+            renderQueue();
+
+            // Run transcription
+            const response = await invoke("run_transcription_command", {
+              modelPath: modelPathEl.value,
+              audioPath: item.audio_path,
+            });
+
+            // Update status to success
+            await invoke("update_queue_item_status_command", {
+              id: item.id,
+              status: { status: "Success" },
+            });
+            item.status = "Success";
+
+            // Add to history
+            await invoke("add_to_history_command", {
+              audioPath: item.audio_path,
+              outputPath: null,
+              success: true,
+            });
+          } catch (error) {
+            // Update status to error
+            await invoke("update_queue_item_status_command", {
+              id: item.id,
+              status: {
+                status: "Error",
+                errorMessage: error?.message || String(error),
+              },
+            });
+            item.status = "Error";
+            item.error_message = error?.message || String(error);
+
+            // Add to history
+            await invoke("add_to_history_command", {
+              audioPath: item.audio_path,
+              outputPath: null,
+              success: false,
+            });
+          }
+
+          renderQueue();
+        }
+
+        isQueueRunning = false;
+        runQueueBtn.disabled = !queue.some((item) => item.status === "Pending");
+        await loadHistory();
+        setStatus(`Batch processing complete. ${pendingItems.length} files processed.`, "ok");
+      }
+
+      // History functions
+      async function loadHistory() {
+        try {
+          history = await invoke("get_history_command");
+          renderHistory();
+        } catch (error) {
+          console.warn("Failed to load history:", error);
+        }
+      }
+
+      function renderHistory() {
+        clearHistoryBtn.disabled = history.length === 0;
+
+        if (history.length === 0) {
+          historyListEl.innerHTML = '<p class="empty-list">No transcription history yet.</p>';
+          return;
+        }
+
+        historyListEl.innerHTML = history
+          .map(
+            (item) => `
+          <div class="history-item" data-id="${item.id}">
+            <span class="history-item-time">${formatTime(item.timestamp_ms)}</span>
+            <span class="history-item-path" title="${item.audio_path}">${getFileName(
+              item.audio_path
+            )}</span>
+            <span class="queue-item-status ${item.success ? "success" : "error"}">
+              ${item.success ? "✓" : "✗"}
+            </span>
+            <div class="history-item-actions">
+              <button class="secondary" data-action="rerun" type="button">Rerun</button>
+            </div>
+          </div>
+        `
+          )
+          .join("");
+      }
+
+      function formatTime(timestampMs) {
+        const date = new Date(timestampMs);
+        return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+      }
+
+      async function clearHistoryItems() {
+        try {
+          await invoke("clear_history_command");
+          history = [];
+          renderHistory();
+          setStatus("History cleared", "ok");
+        } catch (error) {
+          showError("Failed to clear history", error);
         }
       }
 
@@ -981,6 +1298,68 @@
       document.getElementById("exportVttBtn").addEventListener("click", () => exportTranscript("vtt"));
       document.getElementById("exportJsonBtn").addEventListener("click", () => exportTranscript("json"));
 
+      // Queue event handlers
+      addToQueueBtn.addEventListener("click", async () => {
+        try {
+          const selectedPath = await invoke("pick_audio_path_command");
+          await addToQueue(selectedPath);
+        } catch (error) {
+          if (error?.code !== "selection_cancelled") {
+            showError("Failed to add file to queue", error);
+          }
+        }
+      });
+
+      runQueueBtn.addEventListener("click", runQueue);
+      clearQueueBtn.addEventListener("click", clearCompletedQueue);
+
+      queueListEl.addEventListener("click", async (e) => {
+        const btn = e.target.closest("button[data-action]");
+        if (!btn) return;
+
+        const itemEl = btn.closest(".queue-item");
+        const id = itemEl?.dataset?.id;
+        const action = btn.dataset.action;
+
+        if (!id) return;
+
+        if (action === "remove") {
+          await removeFromQueue(id);
+        } else if (action === "up") {
+          const index = queue.findIndex((item) => item.id === id);
+          if (index > 0) {
+            await reorderQueue(index, index - 1);
+          }
+        } else if (action === "down") {
+          const index = queue.findIndex((item) => item.id === id);
+          if (index < queue.length - 1) {
+            await reorderQueue(index, index + 1);
+          }
+        }
+      });
+
+      // History event handlers
+      clearHistoryBtn.addEventListener("click", async () => {
+        if (confirm("Clear all history?")) {
+          await clearHistoryItems();
+        }
+      });
+
+      historyListEl.addEventListener("click", async (e) => {
+        const btn = e.target.closest("button[data-action]");
+        if (!btn || btn.dataset.action !== "rerun") return;
+
+        const itemEl = btn.closest(".history-item");
+        const id = itemEl?.dataset?.id;
+        const item = history.find((h) => h.id === id);
+
+        if (item) {
+          audioPathEl.value = item.audio_path;
+          await validateAudioPath();
+          setStatus(`Loaded ${getFileName(item.audio_path)} from history`, "ok");
+        }
+      });
+
       openOutputFolderBtn.addEventListener("click", async () => {
         if (!latestExportPath) {
           setStatus("No exported file yet.", "error");
@@ -1184,6 +1563,8 @@
       restoreAdvancedOptions();
       loadAppSettings();
       loadPresets();
+      loadQueue();
+      loadHistory();
       updateShortcutConflictUI();
       if (modelPathEl.value.trim()) {
         validateModelPath();

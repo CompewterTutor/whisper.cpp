@@ -8,6 +8,12 @@ The format is based on Keep a Changelog, and the project follows Semantic Versio
 
 ### Added
 
+- Added batch queue view with multi-file add/remove/reorder functionality.
+- Added per-item status display (Pending, Running, Success, Error) for queue items.
+- Added run history list with timestamp, success status, and rerun action.
+- Added `QueueItem` and `HistoryItem` contracts for batch processing.
+- Added queue and history management to `ConfigStore` with max 50 history items.
+- Added Tauri commands: `add_to_queue_command`, `remove_from_queue_command`, `reorder_queue_command`, `get_queue_command`, `clear_completed_queue_command`, `update_queue_item_status_command`, `add_to_history_command`, `get_history_command`, `clear_history_command`.
 - Added shortcut conflict detection: visual warning when same shortcut is assigned to multiple actions.
 - Added `is_shortcut_registered_command` to check if a shortcut is already registered.
 - Added real-time conflict feedback with orange highlight on conflicting shortcut fields.

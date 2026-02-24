@@ -63,14 +63,14 @@ Acceptance criteria:
 
 ## P3 — Batch processing + history
 
-- [ ] Add batch queue view with multi-file add/remove/reorder.
-- [ ] Add per-item status and retry action.
-- [ ] Add run history list with rerun and open-output actions.
-- [ ] Add tests for queue transitions and rerun behavior.
+- [x] Add batch queue view with multi-file add/remove/reorder.
+- [x] Add per-item status and retry action.
+- [x] Add run history list with rerun and open-output actions.
+- [x] Add tests for queue transitions and rerun behavior.
 
 Acceptance criteria:
-- [ ] Queue can process >1 file reliably with visible progress.
-- [ ] History enables rerun with same settings.
+- [x] Queue can process >1 file reliably with visible progress.
+- [x] History enables rerun with same settings.
 
 ## P4 — Final hardening + release UX
 

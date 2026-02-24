@@ -33,6 +33,15 @@ fn build_tauri_builder() -> tauri::Builder<tauri::Wry> {
             frontend_tauri::tauri_commands::delete_preset_command,
             frontend_tauri::tauri_commands::set_default_preset_command,
             frontend_tauri::tauri_commands::get_default_preset_command,
+            frontend_tauri::tauri_commands::add_to_queue_command,
+            frontend_tauri::tauri_commands::remove_from_queue_command,
+            frontend_tauri::tauri_commands::reorder_queue_command,
+            frontend_tauri::tauri_commands::get_queue_command,
+            frontend_tauri::tauri_commands::clear_completed_queue_command,
+            frontend_tauri::tauri_commands::update_queue_item_status_command,
+            frontend_tauri::tauri_commands::add_to_history_command,
+            frontend_tauri::tauri_commands::get_history_command,
+            frontend_tauri::tauri_commands::clear_history_command,
         ])
         .plugin(
             GlobalShortcutBuilder::new()

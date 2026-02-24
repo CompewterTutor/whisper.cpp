@@ -365,6 +365,110 @@ pub fn get_default_preset_command(
     Ok(config.default_preset)
 }
 
+// Queue commands
+#[tauri::command]
+pub fn add_to_queue_command(
+    audio_path: String,
+    config_store: State<'_, ConfigStore>,
+) -> TauriCommandResult<crate::contracts::QueueItem> {
+    config_store
+        .add_to_queue(audio_path)
+        .map_err(|error| ApiError::new("config_error", format!("failed to add to queue: {error}")))
+}
+
+#[tauri::command]
+pub fn remove_from_queue_command(
+    id: String,
+    config_store: State<'_, ConfigStore>,
+) -> TauriCommandResult<()> {
+    config_store.remove_from_queue(&id).map_err(|error| {
+        ApiError::new(
+            "config_error",
+            format!("failed to remove from queue: {error}"),
+        )
+    })
+}
+
+#[tauri::command]
+pub fn reorder_queue_command(
+    from_index: usize,
+    to_index: usize,
+    config_store: State<'_, ConfigStore>,
+) -> TauriCommandResult<()> {
+    config_store
+        .reorder_queue(from_index, to_index)
+        .map_err(|error| ApiError::new("config_error", format!("failed to reorder queue: {error}")))
+}
+
+#[tauri::command]
+pub fn get_queue_command(
+    config_store: State<'_, ConfigStore>,
+) -> TauriCommandResult<Vec<crate::contracts::QueueItem>> {
+    config_store
+        .get_queue()
+        .map_err(|error| ApiError::new("config_error", format!("failed to get queue: {error}")))
+}
+
+#[tauri::command]
+pub fn clear_completed_queue_command(
+    config_store: State<'_, ConfigStore>,
+) -> TauriCommandResult<()> {
+    config_store.clear_completed_queue_items().map_err(|error| {
+        ApiError::new(
+            "config_error",
+            format!("failed to clear completed items: {error}"),
+        )
+    })
+}
+
+#[tauri::command]
+pub fn update_queue_item_status_command(
+    id: String,
+    status: crate::contracts::QueueItemStatus,
+    error_message: Option<String>,
+    config_store: State<'_, ConfigStore>,
+) -> TauriCommandResult<()> {
+    config_store
+        .update_queue_item_status(&id, status, error_message)
+        .map_err(|error| {
+            ApiError::new(
+                "config_error",
+                format!("failed to update queue item status: {error}"),
+            )
+        })
+}
+
+// History commands
+#[tauri::command]
+pub fn add_to_history_command(
+    audio_path: String,
+    output_path: Option<String>,
+    success: bool,
+    config_store: State<'_, ConfigStore>,
+) -> TauriCommandResult<crate::contracts::HistoryItem> {
+    config_store
+        .add_to_history(audio_path, output_path, success)
+        .map_err(|error| {
+            ApiError::new("config_error", format!("failed to add to history: {error}"))
+        })
+}
+
+#[tauri::command]
+pub fn get_history_command(
+    config_store: State<'_, ConfigStore>,
+) -> TauriCommandResult<Vec<crate::contracts::HistoryItem>> {
+    config_store
+        .get_history()
+        .map_err(|error| ApiError::new("config_error", format!("failed to get history: {error}")))
+}
+
+#[tauri::command]
+pub fn clear_history_command(config_store: State<'_, ConfigStore>) -> TauriCommandResult<()> {
+    config_store
+        .clear_history()
+        .map_err(|error| ApiError::new("config_error", format!("failed to clear history: {error}")))
+}
+
 #[cfg(test)]
 mod tests {
     use super::{

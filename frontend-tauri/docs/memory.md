@@ -16,6 +16,9 @@
 - Presets are stored in a `HashMap<String, TranscriptionPreset>` within `AppConfig`.
 - `tauri-plugin-global-shortcut::is_registered()` returns `bool` directly, not `Result<bool>`.
 - Shortcut conflict detection can be done purely client-side by comparing input values.
+- Queue items use `QueueItemStatus` enum: Pending, Running, Success, Error.
+- History is limited to 50 items and stored in `AppConfig.history` with newest first.
+- Queue processing is sequential (not parallel) to avoid resource contention.
 
 ### Constraints to preserve
 
@@ -28,6 +31,14 @@
 
 ### Current progress
 
+- Completed: P3 batch processing + history:
+	- Added `QueueItem` and `HistoryItem` contracts with status tracking
+	- Added queue management to `ConfigStore`: add, remove, reorder, update status
+	- Added history management with 50-item limit
+	- Added 9 Tauri commands for queue and history operations
+	- Added batch queue UI with add/remove/reorder and status display
+	- Added history UI with timestamp, success status, and rerun action
+	- Queue processes files sequentially with visible progress
 - Completed: P2.5 shortcut conflict detection:
 	- Added `is_shortcut_registered_command` to check if shortcut is registered
 	- Added `detectShortcutConflicts()` function to find duplicate shortcuts
@@ -67,12 +78,8 @@
 
 ### Next immediate action
 
-- P1, P2, P2.5 are now fully complete.
-- Next phases: P3 (Batch processing + history) or P4 (Final hardening + release UX).
-
-- P1, P2, P2.5 are complete.
-- Remaining P2.5 item: conflict detection/rebind UX for shortcuts (optional).
-- Next phases: P3 (Batch processing + history) or P4 (Final hardening + release UX).
+- P1, P2, P2.5, P3 are now fully complete.
+- Next phases: P4 (Final hardening + release UX) or P5 (Push-to-talk + output routing).
 
 ## 2026-02-12
 
