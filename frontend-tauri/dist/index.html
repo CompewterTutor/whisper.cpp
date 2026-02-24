@@ -1018,12 +1018,19 @@
               audioPath: item.audio_path,
             });
 
+            const transcript = (response.transcript || "").trim();
+
             // Update status to success
             await invoke("update_queue_item_status_command", {
               id: item.id,
               status: { status: "Success" },
             });
             item.status = "Success";
+
+            // Auto-route output based on PTT routing settings
+            if (transcript && copyToClipboardToggle.checked) {
+              await invoke("copy_to_clipboard_command", { text: transcript });
+            }
 
             // Add to history
             await invoke("add_to_history_command", {
@@ -1322,6 +1329,11 @@
           updateTranscriptMetadata(latestTranscript);
           const elapsedMs = Date.now() - runStartedAt;
           setStatus(`Transcription completed in ${(elapsedMs / 1000).toFixed(2)}s`, "ok");
+
+          // Auto-route output based on PTT routing settings
+          if (latestTranscript && copyToClipboardToggle.checked) {
+            await copyTranscriptToClipboard(latestTranscript);
+          }
         } catch (error) {
           latestTranscript = "";
           transcriptEl.textContent = "(failed)";
