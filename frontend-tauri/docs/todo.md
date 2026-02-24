@@ -5,17 +5,6 @@ Last updated: 2026-02-24
 
 Legend: `[ ]` pending, `[~]` in progress, `[x]` done
 
-## BLOCKING ISSUE (2026-02-24)
-
-File dialogs not working in release build - "Tauri invoke API not available" error.
-Attempted fixes:
-1. Added `initApp()` to wait for `window.__TAURI__` before initialization
-2. Fixed duplicate `audioHintEl` variable declaration causing JS syntax error
-3. Switched from `rfd` to `tauri-plugin-dialog` for better Tauri integration
-4. Added `dialog:default`, `dialog:allow-open`, `dialog:allow-save` to capabilities
-
-Issue persists - needs further investigation.
-
 ## Current status snapshot
 
 - [x] Runtime shell launches on Windows and loads bundled assets.

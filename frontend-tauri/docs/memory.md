@@ -29,6 +29,8 @@
 - Queue items use `QueueItemStatus` enum: Pending, Running, Success, Error.
 - History is limited to 50 items and stored in `AppConfig.history` with newest first.
 - Queue processing is sequential (not parallel) to avoid resource contention.
+- **Tauri v2 requires `withGlobalTauri: true` in `app` section of `tauri.conf.json` to inject `window.__TAURI__` globally.** Without this, the JavaScript API is not available and invoke calls fail.
+- The `devtools` feature in Cargo.toml enables F12 devtools in release builds for debugging.
 
 ### Constraints to preserve
 
@@ -41,12 +43,10 @@
 
 ### Current progress
 
-- **BLOCKING ISSUE**: File dialogs still not working - "Tauri invoke API not available" error persists
-	- Attempted fixes:
-		1. Added `initApp()` to wait for `window.__TAURI__` before initialization
-		2. Fixed duplicate `audioHintEl` variable declaration causing JS syntax error
-		3. Switched from `rfd` to `tauri-plugin-dialog` for better Tauri integration
-	- Issue persists - needs further investigation in new chat session
+- **RESOLVED**: "Tauri invoke API not available" error - fixed by enabling `withGlobalTauri: true` in `tauri.conf.json`
+	- Root cause: Tauri v2 does not inject `window.__TAURI__` by default; must be explicitly enabled
+	- Also added `waitForTauriApi()` helper with timeout for robust initialization
+	- Added loading overlay with spinner during app initialization
 - In progress: P6 push-to-talk audio capture pipeline:
 	- Added `cpal` dependency for cross-platform audio capture
 	- Added `hound` dependency for WAV encoding
@@ -113,13 +113,8 @@
 
 ### Next immediate action
 
-- **CRITICAL**: Debug "Tauri invoke API not available" error on file dialogs
-	- Check if `tauri-plugin-dialog` is properly initialized
-	- Verify dialog permissions in capabilities
-	- Check if async commands are being called correctly from frontend
-	- Consider enabling dev tools in release build for debugging
 - P1, P2, P2.5, P3, P4 are fully complete.
-- P6 audio capture backend is complete. Remaining: wire global shortcut to PTT flow, add UI for device selection.
+- P6 audio capture backend is complete. Remaining: wire global shortcut to PTT flow, end-to-end smoke test.
 - P5 output routing UI is partially complete.
 
 ## 2026-02-12
