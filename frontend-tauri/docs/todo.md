@@ -29,13 +29,13 @@ Legend: `[ ]` pending, `[~]` in progress, `[x]` done
 
 ## P1 — Complete single-file transcribe UX
 
-- [ ] Refine layout into sections: inputs, controls, transcript, export.
+- [x] Refine layout into sections: inputs, controls, transcript, export.
 - [x] Persist last-used model/audio/output directory and options.
 - [x] Add transcript metadata summary (duration, segments, language if available).
 - [x] Ensure all user-facing errors include actionable recovery hints.
 
 Acceptance criteria:
-- [ ] User can complete full workflow without terminal interaction.
+- [x] User can complete full workflow without terminal interaction.
 - [x] User can export transcript in at least two formats.
 - [x] Invalid model/audio clearly blocks run and shows reason.
 

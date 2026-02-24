@@ -31,12 +31,31 @@
         opacity: 0.85;
         margin-bottom: 1.5rem;
       }
+      .section {
+        margin-bottom: 1.5rem;
+      }
+      .section-header {
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: #9ca3af;
+        margin-bottom: 0.5rem;
+        padding-left: 0.25rem;
+      }
       .card {
         background: #1f2937;
         border: 1px solid #374151;
         border-radius: 0.75rem;
         padding: 1rem;
-        margin-bottom: 1rem;
+      }
+      .card + .card {
+        margin-top: 0.75rem;
+      }
+      .field-group {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
       }
       .row {
         display: grid;
@@ -174,6 +193,11 @@
         display: grid;
         gap: 0.6rem;
       }
+      .divider {
+        border: none;
+        border-top: 1px solid #374151;
+        margin: 1.5rem 0;
+      }
     </style>
   </head>
   <body>
@@ -181,115 +205,129 @@
       <h1>frontend-tauri</h1>
       <p class="subtitle">Minimal interactive shell wired to Tauri commands.</p>
 
-      <section class="card">
-        <div class="row">
-          <div class="field">
-            <label for="modelPath">Model path (.bin)</label>
-            <input id="modelPath" placeholder="C:\\models\\ggml-base.en.bin" />
-            <p id="modelHint" class="hint neutral">Model not validated yet.</p>
-          </div>
-          <div>
-            <button id="pickModelBtn" class="secondary" type="button">Browse...</button>
-            <button id="validateModelBtn" class="secondary" type="button">Validate model</button>
+      <!-- INPUT FILES SECTION -->
+      <div class="section">
+        <div class="section-header">Input Files</div>
+        <div class="card">
+          <div class="field-group">
+            <div class="row">
+              <div class="field">
+                <label for="modelPath">Model path (.bin)</label>
+                <input id="modelPath" placeholder="C:\\models\\ggml-base.en.bin" />
+                <p id="modelHint" class="hint neutral">Model not validated yet.</p>
+              </div>
+              <div>
+                <button id="pickModelBtn" class="secondary" type="button">Browse...</button>
+                <button id="validateModelBtn" class="secondary" type="button">Validate</button>
+              </div>
+            </div>
+            <div class="row">
+              <div class="field">
+                <label for="audioPath">Audio path (.wav, .mp3, .flac, .ogg, .m4a)</label>
+                <input id="audioPath" placeholder="C:\\samples\\jfk.wav" />
+                <p id="audioHint" class="hint neutral">Audio not validated yet.</p>
+              </div>
+              <div>
+                <button id="pickAudioBtn" class="secondary" type="button">Browse...</button>
+                <button id="validateAudioBtn" class="secondary" type="button">Validate</button>
+              </div>
+            </div>
           </div>
         </div>
-      </section>
+      </div>
 
-      <section class="card">
-        <div class="row">
-          <div class="field">
-            <label for="audioPath">Audio path (.wav, .mp3, .flac, .ogg, .m4a)</label>
-            <input id="audioPath" placeholder="C:\\samples\\jfk.wav" />
-            <p id="audioHint" class="hint neutral">Audio not validated yet.</p>
+      <!-- CONTROLS SECTION -->
+      <div class="section">
+        <div class="section-header">Controls</div>
+        <div class="card">
+          <div class="row">
+            <button id="healthBtn" class="secondary" type="button">Check health</button>
+            <button id="runBtn" type="button">Run transcription</button>
           </div>
-          <div>
-            <button id="pickAudioBtn" class="secondary" type="button">Browse...</button>
-            <button id="validateAudioBtn" class="secondary" type="button">Validate audio</button>
+          <p id="status" class="status"></p>
+          <div id="errorHint" class="error-hint">
+            <p class="error-hint-title">How to fix this:</p>
+            <p id="errorHintText"></p>
           </div>
         </div>
-      </section>
+      </div>
 
-      <section class="card">
-        <div class="row">
-          <button id="healthBtn" class="secondary" type="button">Check health</button>
-          <button id="runBtn" type="button">Run transcription</button>
-        </div>
-        <p id="status" class="status"></p>
-        <div id="errorHint" class="error-hint">
-          <p class="error-hint-title">How to fix this:</p>
-          <p id="errorHintText"></p>
-        </div>
-      </section>
-
-      <section class="card">
-        <label for="transcript">Transcript</label>
-        <div class="meta">
-          <div class="meta-item">
-            <span class="meta-label">Segments</span>
-            <span class="meta-value" id="segmentCount">0</span>
+      <!-- TRANSCRIPT SECTION -->
+      <div class="section">
+        <div class="section-header">Transcript</div>
+        <div class="card">
+          <div class="meta">
+            <div class="meta-item">
+              <span class="meta-label">Segments</span>
+              <span class="meta-value" id="segmentCount">0</span>
+            </div>
+            <div class="meta-item">
+              <span class="meta-label">Estimated duration</span>
+              <span class="meta-value" id="estimatedDuration">0.0s</span>
+            </div>
           </div>
-          <div class="meta-item">
-            <span class="meta-label">Estimated duration</span>
-            <span class="meta-value" id="estimatedDuration">0.0s</span>
+          <div class="actions">
+            <button id="exportTxtBtn" class="secondary" type="button">Export TXT</button>
+            <button id="exportSrtBtn" class="secondary" type="button">Export SRT</button>
+            <button id="exportVttBtn" class="secondary" type="button">Export VTT</button>
+            <button id="exportJsonBtn" class="secondary" type="button">Export JSON</button>
+            <button id="openOutputFolderBtn" class="secondary" type="button" disabled>
+              Open output folder
+            </button>
           </div>
+          <pre id="transcript">(no transcript yet)</pre>
         </div>
-        <div class="actions">
-          <button id="exportTxtBtn" class="secondary" type="button">Export TXT</button>
-          <button id="exportSrtBtn" class="secondary" type="button">Export SRT</button>
-          <button id="exportVttBtn" class="secondary" type="button">Export VTT</button>
-          <button id="exportJsonBtn" class="secondary" type="button">Export JSON</button>
-          <button id="openOutputFolderBtn" class="secondary" type="button" disabled>
-            Open output folder
-          </button>
-        </div>
-        <pre id="transcript">(no transcript yet)</pre>
-      </section>
+      </div>
 
-      <section class="card">
-        <label>Background settings</label>
-        <div class="settings">
-          <label class="toggle">
-            <input id="startInBackgroundToggle" type="checkbox" />
-            <span>Start in background</span>
-          </label>
-          <label class="toggle">
-            <input id="launchOnLoginToggle" type="checkbox" />
-            <span>Launch on login (scaffold)</span>
-          </label>
+      <hr class="divider" />
+
+      <!-- SETTINGS SECTION -->
+      <div class="section">
+        <div class="section-header">Settings</div>
+        <div class="card">
+          <div class="settings">
+            <label class="toggle">
+              <input id="startInBackgroundToggle" type="checkbox" />
+              <span>Start in background</span>
+            </label>
+            <label class="toggle">
+              <input id="launchOnLoginToggle" type="checkbox" />
+              <span>Launch on login (scaffold)</span>
+            </label>
+          </div>
           <p class="hint neutral" id="backgroundHint">
             Background/tray behavior is active; login autostart wiring comes next.
           </p>
         </div>
-      </section>
 
-      <section class="card">
-        <label>Global shortcuts (scaffold)</label>
-        <div class="shortcuts-grid">
-          <label class="toggle">
-            <input id="shortcutsEnabledToggle" type="checkbox" />
-            <span>Enable global shortcuts</span>
-          </label>
-          <div class="field">
-            <label for="pttShortcut">Push-to-talk shortcut</label>
-            <input id="pttShortcut" placeholder="Ctrl+Shift+Space" />
-          </div>
-          <div class="field">
-            <label for="typeShortcut">Type emulation shortcut</label>
-            <input id="typeShortcut" placeholder="Ctrl+Shift+T" />
-          </div>
-          <div class="field">
-            <label for="clipboardShortcut">Capture-to-clipboard shortcut</label>
-            <input id="clipboardShortcut" placeholder="Ctrl+Shift+C" />
-          </div>
-          <div class="field">
-            <label for="fileShortcut">Capture-to-file shortcut</label>
-            <input id="fileShortcut" placeholder="Ctrl+Shift+F" />
+        <div class="card">
+          <div class="shortcuts-grid">
+            <label class="toggle">
+              <input id="shortcutsEnabledToggle" type="checkbox" />
+              <span>Enable global shortcuts</span>
+            </label>
+            <div class="field">
+              <label for="pttShortcut">Push-to-talk shortcut</label>
+              <input id="pttShortcut" placeholder="Ctrl+Shift+Space" />
+            </div>
+            <div class="field">
+              <label for="typeShortcut">Type emulation shortcut</label>
+              <input id="typeShortcut" placeholder="Ctrl+Shift+T" />
+            </div>
+            <div class="field">
+              <label for="clipboardShortcut">Capture-to-clipboard shortcut</label>
+              <input id="clipboardShortcut" placeholder="Ctrl+Shift+C" />
+            </div>
+            <div class="field">
+              <label for="fileShortcut">Capture-to-file shortcut</label>
+              <input id="fileShortcut" placeholder="Ctrl+Shift+F" />
+            </div>
           </div>
           <p class="hint neutral" id="shortcutsHint">
             Shortcut registration wiring is next. These bindings are saved now.
           </p>
         </div>
-      </section>
+      </div>
     </main>
 
     <script>

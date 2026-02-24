@@ -6,6 +6,8 @@
 
 - Error hints can be derived from error codes and serialized to frontend for display.
 - `ApiError` struct now includes optional `hint` field that is automatically populated from error code.
+- UI layout benefits from clear section headers for progressive disclosure (Input Files, Controls, Transcript, Settings).
+- Grouping related inputs (model + audio) into a single section improves visual hierarchy.
 
 ### Constraints to preserve
 
@@ -18,6 +20,11 @@
 
 ### Current progress
 
+- Completed: P1 layout refinements:
+	- Added section headers: "Input Files", "Controls", "Transcript", "Settings"
+	- Combined model and audio pickers into unified Input Files section
+	- Added visual divider between main workflow and settings
+	- Updated CSS with section, section-header, field-group, and divider styles
 - Completed: P1 error hints panel implementation:
 	- Added `hint` field to `ApiError` struct in `src/errors.rs`
 	- Added `recovery_hint_for_code` function mapping error codes to actionable hints
@@ -26,6 +33,10 @@
 	- Added UI panel for displaying error hints in `dist/index.html`
 	- Added JavaScript logic to show/hide hint panel based on error response
 	- Added tests for hint coverage on common error codes
+
+### Next immediate action
+
+- P1 is complete. Ready to proceed to P2 (Advanced controls + presets) or P2.5 (Background mode completion).
 
 ## 2026-02-12
 

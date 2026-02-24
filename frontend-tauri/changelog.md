@@ -8,6 +8,9 @@ The format is based on Keep a Changelog, and the project follows Semantic Versio
 
 ### Added
 
+- Added clear section headers for UI layout: Input Files, Controls, Transcript, Settings.
+- Added visual divider between main workflow and settings sections.
+- Combined model and audio pickers into a unified Input Files section for better grouping.
 - Added recoverable error hints panel in UI that displays actionable recovery suggestions when errors occur.
 - Added `hint` field to `ApiError` struct with automatic derivation from error code.
 - Added `ApiError::new` constructor that auto-populates hints for known error codes.
@@ -47,6 +50,7 @@ The format is based on Keep a Changelog, and the project follows Semantic Versio
 
 ### Changed
 
+- Refined UI layout into clear sections with headers: inputs, controls, transcript, and settings.
 - Updated `src/main.rs` from hello-world to a minimal health function with test coverage.
 - Verified Windows workflow supports `make check` for frontend quality gates.
 - Refactored crate layout from bin-only modules to `lib + main` to satisfy strict linting with reusable backend modules.
