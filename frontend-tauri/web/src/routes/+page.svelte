@@ -2,6 +2,8 @@
 	import { onMount } from 'svelte';
 	import { getName, getVersion, getTauriVersion } from '@tauri-apps/api/app';
 	import { theme, type Theme } from '$lib/stores/theme';
+	import { InputSection } from '$lib/components';
+	import '$lib/types/tauri.d.ts';
 
 	let appName = 'loading...';
 	let appVersion = 'loading...';
@@ -30,21 +32,10 @@
 	<title>Careless</title>
 </svelte:head>
 
-<div class="section">
-	<div class="section-header">Theme Test</div>
-	<div class="card">
-		<div class="field">
-			<label for="themeSelect">Theme</label>
-			<select id="themeSelect" value={$theme} onchange={handleThemeChange}>
-				<option value="system">System</option>
-				<option value="light">Light</option>
-				<option value="dark">Dark</option>
-			</select>
-		</div>
-		<p class="hint neutral">Current theme: {$theme}</p>
-	</div>
-</div>
+<!-- Input Files Section -->
+<InputSection />
 
+<!-- App Info Section (for testing) -->
 <div class="section">
 	<div class="section-header">App Info</div>
 	<div class="card">
@@ -69,6 +60,23 @@
 	</div>
 </div>
 
+<!-- Theme Test Section -->
+<div class="section">
+	<div class="section-header">Theme Test</div>
+	<div class="card">
+		<div class="field">
+			<label for="themeSelect">Theme</label>
+			<select id="themeSelect" value={$theme} onchange={handleThemeChange}>
+				<option value="system">System</option>
+				<option value="light">Light</option>
+				<option value="dark">Dark</option>
+			</select>
+		</div>
+		<p class="hint neutral">Current theme: {$theme}</p>
+	</div>
+</div>
+
+<!-- UI Components Preview -->
 <div class="section">
 	<div class="section-header">UI Components Preview</div>
 	<div class="card">
@@ -76,13 +84,6 @@
 			<button type="button">Primary Button</button>
 			<button type="button" class="secondary">Secondary Button</button>
 			<button type="button" disabled>Disabled Button</button>
-		</div>
-
-		<div class="field-group" style="margin-top: var(--space-4);">
-			<div class="field">
-				<label for="sampleInput">Sample Input</label>
-				<input id="sampleInput" type="text" placeholder="Enter text..." />
-			</div>
 		</div>
 
 		<p class="status ok">Success status message</p>

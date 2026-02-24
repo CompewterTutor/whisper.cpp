@@ -1,5 +1,35 @@
 # Careless Memory
 
+## 2026-02-24 (R1.3 Input Section Components)
+
+### What was learned
+
+- Svelte 5 components use `$props()` with `$bindable()` for two-way binding.
+- Snippets are the new way to pass content/children to components (`Snippet` type from 'svelte').
+- Type declarations for Tauri's `window.__TAURI__` need to be added to avoid TypeScript errors.
+- The `@tauri-apps/api/core` package provides the `invoke` function for calling Tauri commands.
+- Component exports use barrel files (`index.ts`) for clean imports.
+
+### Architecture decisions
+
+- Created `web/src/lib/services/tauri.ts` as a service layer for Tauri API calls with type-safe wrappers.
+- Created `web/src/lib/components/FilePicker.svelte` as a reusable file path input with validation.
+- Created `web/src/lib/components/InputSection.svelte` combining model and audio pickers.
+- Created `web/src/lib/types/tauri.d.ts` for Tauri API type declarations.
+- Components handle their own state internally with localStorage persistence.
+
+### Files created
+
+- `web/src/lib/services/tauri.ts` - Tauri API service layer
+- `web/src/lib/components/FilePicker.svelte` - Reusable file picker component
+- `web/src/lib/components/InputSection.svelte` - Input files section
+- `web/src/lib/components/index.ts` - Component barrel export
+- `web/src/lib/types/tauri.d.ts` - Tauri type declarations
+
+### Next immediate action
+
+- R1.4: Extract UI components - Options drawer (advanced options, presets)
+
 ## 2026-02-24 (R1.2 Base Layout + Theming)
 
 ### What was learned

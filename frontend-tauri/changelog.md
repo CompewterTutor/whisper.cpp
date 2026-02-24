@@ -23,6 +23,10 @@ The format is based on Keep a Changelog, and the project follows Semantic Versio
 - R1.2: Added CSS custom properties theming system with light/dark mode support
 - R1.2: Added Svelte store for theme state with localStorage persistence
 - R1.2: Added base layout component with global styles imported
+- R1.3: Added Tauri service layer with type-safe API wrappers
+- R1.3: Added FilePicker component for file path selection with validation
+- R1.3: Added InputSection component combining model and audio pickers
+- R1.3: Added Tauri API type declarations for TypeScript
 - P6: Added PTT audio settings UI with microphone selector and mode toggle.
 - P6: Added PTT status indicator (idle/listening/transcribing/error) with timer.
 - P6: Added global shortcut event handling for PTT (ptt-start/ptt-stop events).

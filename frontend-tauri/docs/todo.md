@@ -23,7 +23,7 @@ Breaking up the monolithic `dist/index.html` into modular SvelteKit components.
 
 - [x] R1.1: Set up Vite + SvelteKit project structure
 - [x] R1.2: Create base layout and theming system
-- [ ] R1.3: Extract UI components - Input section
+- [x] R1.3: Extract UI components - Input section
 - [ ] R1.4: Extract UI components - Options drawer
 - [ ] R1.5: Extract UI components - Transcript display
 - [ ] R1.6: Extract UI components - Batch queue
