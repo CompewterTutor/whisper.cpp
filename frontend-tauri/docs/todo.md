@@ -110,6 +110,10 @@ Acceptance criteria:
 - [x] Add audio capture module with cpal dependency.
 - [x] Add WAV encoding with hound dependency.
 - [x] Add Tauri commands for audio device enumeration and capture control.
+- [x] Add audio device selector UI with microphone dropdown.
+- [x] Add PTT mode selector (hold/toggle).
+- [x] Add PTT status indicator (recording/transcribing/error states).
+- [x] Wire global shortcut to PTT capture flow via window events.
 
 Tests:
 - [x] Capture state machine tests (`idle/listening/transcribing/error`).

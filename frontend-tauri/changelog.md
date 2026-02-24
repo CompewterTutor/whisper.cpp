@@ -8,6 +8,10 @@ The format is based on Keep a Changelog, and the project follows Semantic Versio
 
 ### Added
 
+- P6: Added PTT audio settings UI with microphone selector and mode toggle.
+- P6: Added PTT status indicator (idle/listening/transcribing/error) with timer.
+- P6: Added global shortcut event handling for PTT (ptt-start/ptt-stop events).
+- P6: Added frontend event listeners for PTT capture control.
 - P6: Added audio capture module with `cpal` for cross-platform microphone input.
 - P6: Added `AudioCaptureSession` for device selection and capture lifecycle management.
 - P6: Added WAV encoding with `hound` for whisper-cli compatibility.

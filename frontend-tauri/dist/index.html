@@ -285,6 +285,46 @@
       .drawer-content.open {
         display: block;
       }
+      /* PTT Status Indicator */
+      .ptt-status {
+        margin-top: 0.75rem;
+        padding: 0.75rem;
+        background: #1f2937;
+        border-radius: 0.5rem;
+        border: 1px solid #374151;
+      }
+      .ptt-status-indicator {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+      .ptt-dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: #6b7280;
+      }
+      .ptt-dot.listening {
+        background: #ef4444;
+        animation: pulse 1s infinite;
+      }
+      .ptt-dot.transcribing {
+        background: #f59e0b;
+        animation: pulse 0.5s infinite;
+      }
+      .ptt-dot.error {
+        background: #ef4444;
+      }
+      @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
+      }
+      .ptt-timer {
+        margin-left: auto;
+        font-family: monospace;
+        font-size: 0.9rem;
+        color: #9ca3af;
+      }
       .options-grid {
         display: grid;
         grid-template-columns: repeat(2, 1fr);
@@ -670,6 +710,36 @@
           </p>
         </div>
 
+        <!-- PTT Audio Settings -->
+        <div class="card">
+          <div class="section-header" style="margin-bottom: 0.75rem;">PTT Audio Settings</div>
+          <div class="settings-grid">
+            <div class="field">
+              <label for="audioDeviceSelect">Microphone</label>
+              <select id="audioDeviceSelect" accesskey="M">
+                <option value="">Loading devices...</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="pttModeSelect">PTT Mode</label>
+              <select id="pttModeSelect" accesskey="P">
+                <option value="hold">Hold to talk</option>
+                <option value="toggle">Toggle (press to start/stop)</option>
+              </select>
+            </div>
+          </div>
+          <div class="ptt-status" id="pttStatus" style="display: none;">
+            <div class="ptt-status-indicator">
+              <span class="ptt-dot" id="pttDot"></span>
+              <span id="pttStatusText">Idle</span>
+              <span id="pttTimer" class="ptt-timer"></span>
+            </div>
+          </div>
+          <p class="hint neutral" id="audioHint">
+            Select a microphone for push-to-talk transcription. Configure the shortcut in Global Shortcuts above.
+          </p>
+        </div>
+
         <!-- PTT Output Routing -->
         <div class="card">
           <div class="section-header" style="margin-bottom: 0.75rem;">PTT Output Routing</div>
@@ -748,6 +818,20 @@
       const defaultTimeoutInput = document.getElementById("defaultTimeoutInput");
       const diagnosticsToggle = document.getElementById("diagnosticsToggle");
       const diagnosticsHintEl = document.getElementById("diagnosticsHint");
+
+      // P6: PTT Audio elements
+      const audioDeviceSelect = document.getElementById("audioDeviceSelect");
+      const pttModeSelect = document.getElementById("pttModeSelect");
+      const pttStatus = document.getElementById("pttStatus");
+      const pttDot = document.getElementById("pttDot");
+      const pttStatusText = document.getElementById("pttStatusText");
+      const pttTimer = document.getElementById("pttTimer");
+      const audioHintEl = document.getElementById("audioHint");
+
+      // PTT state
+      let pttState = "idle"; // idle, listening, transcribing, error
+      let pttStartTime = null;
+      let pttTimerInterval = null;
 
       // Advanced options elements
       const advancedToggle = document.getElementById("advancedToggle");
@@ -1924,6 +2008,166 @@
         }
       });
 
+      // P6: Load audio devices
+      async function loadAudioDevices() {
+        try {
+          const devices = await invoke("list_audio_devices_command");
+          audioDeviceSelect.innerHTML = "";
+
+          if (devices.length === 0) {
+            audioDeviceSelect.innerHTML = '<option value="">No microphones found</option>';
+            return;
+          }
+
+          devices.forEach((device) => {
+            const option = document.createElement("option");
+            option.value = device.name;
+            option.textContent = device.is_default ? `${device.name} (Default)` : device.name;
+            if (device.is_default) {
+              option.selected = true;
+            }
+            audioDeviceSelect.appendChild(option);
+          });
+
+          // Select default device
+          const defaultDevice = devices.find((d) => d.is_default);
+          if (defaultDevice) {
+            await invoke("select_audio_device_command", { deviceName: defaultDevice.name });
+          }
+        } catch (error) {
+          console.error("Failed to load audio devices:", error);
+          audioDeviceSelect.innerHTML = '<option value="">Failed to load devices</option>';
+        }
+      }
+
+      // P6: Audio device selection
+      audioDeviceSelect.addEventListener("change", async () => {
+        const deviceName = audioDeviceSelect.value;
+        if (!deviceName) return;
+
+        try {
+          await invoke("select_audio_device_command", { deviceName });
+          setStatus(`Microphone set to: ${deviceName}`, "ok");
+        } catch (error) {
+          showError("Failed to select microphone", error);
+        }
+      });
+
+      // P6: Update PTT status display
+      function updatePttStatus(state, message) {
+        pttState = state;
+        pttStatus.style.display = "flex";
+        pttDot.className = "ptt-dot";
+
+        switch (state) {
+          case "listening":
+            pttDot.classList.add("listening");
+            pttStatusText.textContent = "Recording...";
+            pttStartTime = Date.now();
+            pttTimerInterval = setInterval(updatePttTimer, 100);
+            break;
+          case "transcribing":
+            pttDot.classList.add("transcribing");
+            pttStatusText.textContent = "Transcribing...";
+            clearInterval(pttTimerInterval);
+            pttTimer.textContent = "";
+            break;
+          case "error":
+            pttDot.classList.add("error");
+            pttStatusText.textContent = message || "Error";
+            clearInterval(pttTimerInterval);
+            pttTimer.textContent = "";
+            setTimeout(() => {
+              pttStatus.style.display = "none";
+            }, 3000);
+            break;
+          case "idle":
+          default:
+            pttStatusText.textContent = "Ready";
+            clearInterval(pttTimerInterval);
+            pttTimer.textContent = "";
+            setTimeout(() => {
+              pttStatus.style.display = "none";
+            }, 1000);
+            break;
+        }
+      }
+
+      function updatePttTimer() {
+        if (pttStartTime) {
+          const elapsed = Math.floor((Date.now() - pttStartTime) / 1000);
+          const minutes = Math.floor(elapsed / 60);
+          const seconds = elapsed % 60;
+          pttTimer.textContent = `${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
+        }
+      }
+
+      // P6: Start PTT capture
+      async function startPttCapture() {
+        if (pttState !== "idle") return;
+
+        try {
+          updatePttStatus("listening");
+          await invoke("start_capture_command");
+        } catch (error) {
+          updatePttStatus("error", error.message || "Failed to start capture");
+        }
+      }
+
+      // P6: Stop PTT capture and transcribe
+      async function stopPttCapture() {
+        if (pttState !== "listening") return;
+
+        try {
+          updatePttStatus("transcribing");
+          const modelPath = modelPathEl.value.trim();
+          if (!modelPath) {
+            throw new Error("No model selected");
+          }
+
+          // Stop capture and get audio
+          // Note: For now, this returns nothing - we need to wire it to temp file + transcription
+          await invoke("stop_capture_command");
+
+          // TODO: Wire to actual transcription with captured audio
+          // For now, just show status
+          setStatus("Capture stopped. Transcription wiring in progress.", "ok");
+          updatePttStatus("idle");
+        } catch (error) {
+          updatePttStatus("error", error.message || "Failed to stop capture");
+        }
+      }
+
+      // P6: Toggle PTT capture
+      async function togglePttCapture() {
+        if (pttState === "idle") {
+          await startPttCapture();
+        } else if (pttState === "listening") {
+          await stopPttCapture();
+        }
+      }
+
+      // P6: Listen for PTT events from backend (global shortcut triggers)
+      window.addEventListener("ptt-start", async () => {
+        const pttMode = pttModeSelect.value;
+        if (pttMode === "hold") {
+          await startPttCapture();
+        } else {
+          // Toggle mode - only start if idle
+          if (pttState === "idle") {
+            await startPttCapture();
+          }
+        }
+      });
+
+      window.addEventListener("ptt-stop", async () => {
+        const pttMode = pttModeSelect.value;
+        if (pttMode === "hold") {
+          await stopPttCapture();
+        }
+        // In toggle mode, we don't stop on release - user needs to press again
+      });
+
       restoreState();
       restoreAdvancedOptions();
       loadAppSettings();
@@ -1931,6 +2175,7 @@
       loadPresets();
       loadQueue();
       loadHistory();
+      loadAudioDevices(); // P6: Load audio devices
       updateShortcutConflictUI();
       if (modelPathEl.value.trim()) {
         validateModelPath();

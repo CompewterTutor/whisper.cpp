@@ -1,9 +1,9 @@
 use frontend_tauri::audio::AudioCaptureSession;
 use frontend_tauri::config::ConfigStore;
 use std::sync::Mutex;
-use tauri::Manager;
 use tauri::menu::{Menu, MenuItem};
 use tauri::tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent};
+use tauri::{Emitter, Manager};
 use tauri_plugin_autostart::MacosLauncher;
 use tauri_plugin_global_shortcut::Builder as GlobalShortcutBuilder;
 
@@ -67,12 +67,24 @@ fn build_tauri_builder() -> tauri::Builder<tauri::Wry> {
         .plugin(tauri_plugin_clipboard_manager::init())
         .plugin(
             GlobalShortcutBuilder::new()
-                .with_handler(|_app, shortcut, event| {
+                .with_handler(|app, shortcut, event| {
+                    use tauri_plugin_global_shortcut::ShortcutState;
+
                     println!(
                         "frontend-tauri: global shortcut event - {:?} ({:?})",
                         shortcut,
                         event.state()
                     );
+
+                    // Handle PTT shortcut (configured as "ptt" in UI)
+                    // For now, we emit an event that the frontend can handle
+                    if let Some(window) = app.get_webview_window("main") {
+                        let event_name = match event.state() {
+                            ShortcutState::Pressed => "ptt-start",
+                            ShortcutState::Released => "ptt-stop",
+                        };
+                        let _ = window.emit(event_name, ());
+                    }
                 })
                 .build(),
         )
