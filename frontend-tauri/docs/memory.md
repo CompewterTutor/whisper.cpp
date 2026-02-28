@@ -1,5 +1,43 @@
 # Careless Memory
 
+## 2026-02-27 (R1.9 PTT Interface Component)
+
+### What was learned
+
+- CSS animations with `@keyframes pulse` create smooth status indicator effects.
+- `onMount` and `onDestroy` lifecycle hooks are used to add/remove window event listeners.
+- Window events (`ptt-start`, `ptt-stop`) allow backend-to-frontend communication for global shortcuts.
+- `onmousedown`, `onmouseup`, `onmouseleave` events enable hold-to-record functionality.
+- Timer display uses `setInterval` with cleanup in `onDestroy` to prevent memory leaks.
+- Imported function names can be aliased to avoid conflicts with local functions.
+
+### Architecture decisions
+
+- Created `PttInterface.svelte` as a self-contained component with:
+  - PTT status indicator with animated dot (idle/gray, listening/red pulsing, transcribing/yellow pulsing, error/red)
+  - Status text and timer display
+  - Support for hold and toggle PTT modes
+  - Start/Stop buttons for manual control
+  - Event listeners for global shortcut triggers (`ptt-start`, `ptt-stop`)
+  - Reset button for error state recovery
+- Added capture API functions to `tauri.ts`:
+  - `PttState` type for component state
+  - `CaptureResult` interface for transcription result
+  - `startCapture`, `stopCapture` functions
+- Component uses callback props (`onstatus`, `ontranscript`) for parent communication.
+- Props include `modelPath` and `pttMode` for transcription and mode selection.
+
+### Files created/modified
+
+- `web/src/lib/components/PttInterface.svelte` - New component
+- `web/src/lib/components/index.ts` - Added export
+- `web/src/lib/services/tauri.ts` - Added capture API functions and types
+- `web/src/routes/+page.svelte` - Integrated PttInterface
+
+### Next immediate action
+
+- R1.10: Create Tauri service layer (consolidate API calls and state management)
+
 ## 2026-02-27 (R1.8 Settings Panel Component)
 
 ### What was learned

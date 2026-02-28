@@ -6,3 +6,4 @@ export { default as TranscriptSection } from './TranscriptSection.svelte';
 export { default as BatchQueue } from './BatchQueue.svelte';
 export { default as HistoryPanel } from './HistoryPanel.svelte';
 export { default as SettingsPanel } from './SettingsPanel.svelte';
+export { default as PttInterface } from './PttInterface.svelte';

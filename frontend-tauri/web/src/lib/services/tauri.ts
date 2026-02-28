@@ -444,3 +444,24 @@ export async function listAudioDevices(): Promise<AudioDevice[]> {
 export async function selectAudioDevice(deviceName: string): Promise<void> {
 	return tauriInvoke<void>('select_audio_device_command', { deviceName });
 }
+
+// PTT Capture types
+export type PttState = 'idle' | 'listening' | 'transcribing' | 'error';
+
+export interface CaptureResult {
+	transcript: string;
+}
+
+/**
+ * Start audio capture for PTT
+ */
+export async function startCapture(): Promise<void> {
+	return tauriInvoke<void>('start_capture_command');
+}
+
+/**
+ * Stop audio capture and get transcription result
+ */
+export async function stopCapture(): Promise<CaptureResult> {
+	return tauriInvoke<CaptureResult>('stop_capture_command');
+}

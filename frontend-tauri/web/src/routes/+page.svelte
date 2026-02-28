@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { getName, getVersion, getTauriVersion } from '@tauri-apps/api/app';
-	import { InputSection, OptionsDrawer, TranscriptSection, BatchQueue, HistoryPanel, SettingsPanel } from '$lib/components';
+	import { InputSection, OptionsDrawer, TranscriptSection, BatchQueue, HistoryPanel, SettingsPanel, PttInterface } from '$lib/components';
 	import type { AdvancedOptions } from '$lib/services/tauri';
 	import '$lib/types/tauri.d.ts';
 
@@ -14,6 +14,8 @@
 	let statusMessage = $state('');
 	let statusType = $state<'ok' | 'error' | 'neutral'>('neutral');
 	let modelValid = $state(false); // Would come from InputSection in real app
+	let modelPath = $state(''); // Would come from InputSection in real app
+	let pttMode = $state<'hold' | 'toggle'>('hold'); // Would come from SettingsPanel
 
 	onMount(async () => {
 		try {
@@ -56,6 +58,14 @@
 	function toggleModelValid() {
 		modelValid = !modelValid;
 	}
+
+	// Handle PTT transcript
+	function handlePttTranscript(pttTranscript: string) {
+		if (pttTranscript) {
+			transcript = pttTranscript;
+			handleStatus('PTT transcript received', 'ok');
+		}
+	}
 </script>
 
 <svelte:head>
@@ -70,6 +80,14 @@
 	<div class="section-header">Controls</div>
 	<OptionsDrawer onchange={handleOptionsChange} />
 </div>
+
+<!-- Push-to-Talk Interface -->
+<PttInterface
+	{modelPath}
+	{pttMode}
+	onstatus={handleStatus}
+	ontranscript={handlePttTranscript}
+/>
 
 <!-- Transcript Section -->
 <TranscriptSection
