@@ -1,5 +1,37 @@
 # Careless Memory
 
+## 2026-02-27 (R1.6 Batch Queue Component)
+
+### What was learned
+
+- `$derived` in Svelte 5 creates computed values that automatically update when dependencies change.
+- Keyed each blocks with `(item.id)` ensure proper DOM reconciliation when list items change.
+- Status updates during async iteration require explicit reactivity triggers (`queue = queue`).
+- Callback props like `onrunitem` allow parent components to control batch execution logic.
+
+### Architecture decisions
+
+- Created `BatchQueue.svelte` as a self-contained component with:
+  - Queue list with add/remove/reorder functionality
+  - Per-item status display (Pending, Running, Success, Error)
+  - Run all and clear completed actions
+  - Empty state message
+- Added queue types and API functions to `tauri.ts`:
+  - `QueueItem`, `QueueItemStatus`, `QueueItemStatusUpdate` types
+  - `getQueue`, `addToQueue`, `removeFromQueue`, `reorderQueue`, `clearCompletedQueue`, `updateQueueItemStatus`
+- Component uses `onrunitem` callback for batch execution, keeping transcription logic in parent.
+
+### Files created/modified
+
+- `web/src/lib/components/BatchQueue.svelte` - New component
+- `web/src/lib/components/index.ts` - Added export
+- `web/src/lib/services/tauri.ts` - Added queue API functions
+- `web/src/routes/+page.svelte` - Integrated BatchQueue for testing
+
+### Next immediate action
+
+- R1.7: Extract UI components - History panel (history list, rerun action, clear history)
+
 ## 2026-02-27 (R1.5 Transcript Section Component)
 
 ### What was learned

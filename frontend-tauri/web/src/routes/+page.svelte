@@ -2,7 +2,7 @@
 	import { onMount } from 'svelte';
 	import { getName, getVersion, getTauriVersion } from '@tauri-apps/api/app';
 	import { theme, type Theme } from '$lib/stores/theme';
-	import { InputSection, OptionsDrawer, TranscriptSection } from '$lib/components';
+	import { InputSection, OptionsDrawer, TranscriptSection, BatchQueue } from '$lib/components';
 	import type { AdvancedOptions } from '$lib/services/tauri';
 	import '$lib/types/tauri.d.ts';
 
@@ -14,6 +14,7 @@
 	let transcriptLoading = $state(false);
 	let statusMessage = $state('');
 	let statusType = $state<'ok' | 'error' | 'neutral'>('neutral');
+	let modelValid = $state(false); // Would come from InputSection in real app
 
 	onMount(async () => {
 		try {
@@ -48,6 +49,19 @@
 		transcript = `[00:00:00.000 --> 00:00:03.000]   And so my fellow Americans, ask not what your country can do for you,
 [00:00:03.000 --> 00:00:06.000]   ask what you can do for your country.`;
 	}
+
+	// Mock run item handler for testing batch queue
+	async function handleRunItem(audioPath: string): Promise<string> {
+		// Simulate processing delay
+		await new Promise((resolve) => setTimeout(resolve, 1000));
+		// Return mock transcript
+		return `[Mock transcript for ${audioPath}]`;
+	}
+
+	// Toggle model valid for testing
+	function toggleModelValid() {
+		modelValid = !modelValid;
+	}
 </script>
 
 <svelte:head>
@@ -78,6 +92,13 @@
 		</div>
 	</div>
 {/if}
+
+<!-- Batch Queue Section -->
+<BatchQueue
+	{modelValid}
+	onstatus={handleStatus}
+	onrunitem={handleRunItem}
+/>
 
 <!-- App Info Section (for testing) -->
 <div class="section">
@@ -129,6 +150,13 @@
 			<button type="button" class="secondary">Secondary Button</button>
 			<button type="button" disabled>Disabled Button</button>
 			<button type="button" class="secondary" onclick={loadTestTranscript}>Load Test Transcript</button>
+			<button
+				type="button"
+				class="secondary"
+				onclick={toggleModelValid}
+			>
+				{modelValid ? 'Invalidate Model' : 'Validate Model'}
+			</button>
 		</div>
 
 		<p class="status ok">Success status message</p>

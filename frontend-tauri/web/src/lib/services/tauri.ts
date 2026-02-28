@@ -176,3 +176,60 @@ export async function setDefaultPreset(name: string | null): Promise<void> {
 export async function getDefaultPreset(): Promise<string | null> {
 	return tauriInvoke<string | null>('get_default_preset_command');
 }
+
+// Queue types
+export type QueueItemStatus = 'Pending' | 'Running' | 'Success' | 'Error';
+
+export interface QueueItem {
+	id: string;
+	audio_path: string;
+	status: QueueItemStatus;
+	error_message?: string;
+}
+
+export interface QueueItemStatusUpdate {
+	status: QueueItemStatus;
+	errorMessage?: string;
+}
+
+/**
+ * Get all items in the queue
+ */
+export async function getQueue(): Promise<QueueItem[]> {
+	return tauriInvoke<QueueItem[]>('get_queue_command');
+}
+
+/**
+ * Add an audio file to the queue
+ */
+export async function addToQueue(audioPath: string): Promise<QueueItem> {
+	return tauriInvoke<QueueItem>('add_to_queue_command', { audioPath });
+}
+
+/**
+ * Remove an item from the queue
+ */
+export async function removeFromQueue(id: string): Promise<void> {
+	return tauriInvoke<void>('remove_from_queue_command', { id });
+}
+
+/**
+ * Reorder queue items
+ */
+export async function reorderQueue(fromIndex: number, toIndex: number): Promise<void> {
+	return tauriInvoke<void>('reorder_queue_command', { fromIndex, toIndex });
+}
+
+/**
+ * Clear completed items from the queue
+ */
+export async function clearCompletedQueue(): Promise<void> {
+	return tauriInvoke<void>('clear_completed_queue_command');
+}
+
+/**
+ * Update a queue item's status
+ */
+export async function updateQueueItemStatus(id: string, status: QueueItemStatusUpdate): Promise<void> {
+	return tauriInvoke<void>('update_queue_item_status_command', { id, status });
+}

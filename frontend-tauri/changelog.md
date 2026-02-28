@@ -34,6 +34,10 @@ The format is based on Keep a Changelog, and the project follows Semantic Versio
 - R1.5: Added TranscriptSection component with metadata display
 - R1.5: Added export action buttons (Copy, TXT, SRT, VTT, JSON, Open folder)
 - R1.5: Added transcript viewer with loading/empty states
+- R1.6: Added BatchQueue component with queue list display
+- R1.6: Added per-item status display (Pending, Running, Success, Error)
+- R1.6: Added queue actions (add files, remove, reorder, run all, clear completed)
+- R1.6: Added queue API functions to tauri service layer
 - P6: Added PTT audio settings UI with microphone selector and mode toggle.
 - P6: Added PTT status indicator (idle/listening/transcribing/error) with timer.
 - P6: Added global shortcut event handling for PTT (ptt-start/ptt-stop events).
