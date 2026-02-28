@@ -31,7 +31,7 @@ Breaking up the monolithic `dist/index.html` into modular SvelteKit components.
 - [x] R1.8: Extract UI components - Settings panel
 - [x] R1.9: Extract UI components - PTT interface
 - [x] R1.10: Create Tauri service layer
-- [ ] R1.11: Wire up state management and stores
+- [x] R1.11: Wire up state management and stores
 - [ ] R1.12: Update build configuration and test
 
 Acceptance criteria:

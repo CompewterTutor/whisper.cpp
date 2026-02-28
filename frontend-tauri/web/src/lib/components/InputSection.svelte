@@ -8,62 +8,37 @@
 		validateAudioPath,
 		type ApiError
 	} from '$lib/services/tauri';
+	import {
+		modelPath,
+		audioPath,
+		modelValid,
+		audioValid
+	} from '$lib/stores';
 
-	// State
-	let modelPath = $state('');
-	let audioPath = $state('');
+	// Local UI state for hints
 	let modelHint = $state('Model not validated yet.');
 	let audioHint = $state('Audio not validated yet.');
 	let modelHintType = $state<'neutral' | 'ok' | 'error'>('neutral');
 	let audioHintType = $state<'neutral' | 'ok' | 'error'>('neutral');
-	let modelValid = $state(false);
-	let audioValid = $state(false);
-
-	// Storage keys
-	const STORAGE_KEYS = {
-		modelPath: 'careless.modelPath',
-		audioPath: 'careless.audioPath'
-	};
-
-	// Expose validation state to parent
-	export function getModelState() {
-		return { modelPath, audioPath, modelValid, audioValid };
-	}
-
-	// Persist state to localStorage
-	function persistState() {
-		localStorage.setItem(STORAGE_KEYS.modelPath, modelPath);
-		localStorage.setItem(STORAGE_KEYS.audioPath, audioPath);
-	}
-
-	// Restore state from localStorage
-	function restoreState() {
-		const storedModelPath = localStorage.getItem(STORAGE_KEYS.modelPath) || '';
-		const storedAudioPath = localStorage.getItem(STORAGE_KEYS.audioPath) || '';
-		if (storedModelPath) modelPath = storedModelPath;
-		if (storedAudioPath) audioPath = storedAudioPath;
-	}
 
 	// Reset validation when path changes
 	function resetModelValidation() {
-		modelValid = false;
+		modelValid.set(false);
 		modelHint = 'Model not validated yet.';
 		modelHintType = 'neutral';
-		persistState();
 	}
 
 	function resetAudioValidation() {
-		audioValid = false;
+		audioValid.set(false);
 		audioHint = 'Audio not validated yet.';
 		audioHintType = 'neutral';
-		persistState();
 	}
 
 	// File picker handlers
 	async function handleBrowseModel() {
 		try {
 			const path = await pickModelPath();
-			modelPath = path;
+			modelPath.set(path);
 			resetModelValidation();
 			// Auto-validate after picking
 			await handleValidateModel();
@@ -76,7 +51,7 @@
 	async function handleBrowseAudio() {
 		try {
 			const path = await pickAudioPath();
-			audioPath = path;
+			audioPath.set(path);
 			resetAudioValidation();
 			// Auto-validate after picking
 			await handleValidateAudio();
@@ -88,21 +63,21 @@
 
 	// Validation handlers
 	async function handleValidateModel() {
-		if (!modelPath.trim()) {
+		const currentPath = $modelPath;
+		if (!currentPath.trim()) {
 			modelHint = 'Please enter a model path.';
 			modelHintType = 'error';
-			modelValid = false;
+			modelValid.set(false);
 			return;
 		}
 
 		try {
-			const result = await validateModelPath(modelPath);
-			modelValid = true;
+			const result = await validateModelPath(currentPath);
+			modelValid.set(true);
 			modelHint = `Valid model: ${result.normalized_path}`;
 			modelHintType = 'ok';
-			persistState();
 		} catch (error) {
-			modelValid = false;
+			modelValid.set(false);
 			const apiError = error as ApiError;
 			modelHint = apiError.message || 'Model path is invalid.';
 			modelHintType = 'error';
@@ -110,33 +85,42 @@
 	}
 
 	async function handleValidateAudio() {
-		if (!audioPath.trim()) {
+		const currentPath = $audioPath;
+		if (!currentPath.trim()) {
 			audioHint = 'Please enter an audio path.';
 			audioHintType = 'error';
-			audioValid = false;
+			audioValid.set(false);
 			return;
 		}
 
 		try {
-			const result = await validateAudioPath(audioPath);
-			audioValid = true;
+			const result = await validateAudioPath(currentPath);
+			audioValid.set(true);
 			audioHint = `Valid audio: ${result.normalized_path}`;
 			audioHintType = 'ok';
-			persistState();
 		} catch (error) {
-			audioValid = false;
+			audioValid.set(false);
 			const apiError = error as ApiError;
 			audioHint = apiError.message || 'Audio path is invalid.';
 			audioHintType = 'error';
 		}
 	}
 
-	// Restore state on mount
+	// Update path from input
+	function handleModelChange(value: string) {
+		modelPath.set(value);
+		resetModelValidation();
+	}
+
+	function handleAudioChange(value: string) {
+		audioPath.set(value);
+		resetAudioValidation();
+	}
+
+	// Auto-validate on mount if paths exist
 	onMount(() => {
-		restoreState();
-		// Auto-validate if paths were restored
-		if (modelPath) handleValidateModel();
-		if (audioPath) handleValidateAudio();
+		if ($modelPath) handleValidateModel();
+		if ($audioPath) handleValidateAudio();
 	});
 </script>
 
@@ -147,11 +131,11 @@
 			<FilePicker
 				id="modelPath"
 				placeholder="C:\models\ggml-base.en.bin"
-				bind:value={modelPath}
-				bind:hint={modelHint}
-				bind:hintType={modelHintType}
-				bind:valid={modelValid}
-				onchange={resetModelValidation}
+				value={$modelPath}
+				{modelHint}
+				{modelHintType}
+				valid={$modelValid}
+				onchange={handleModelChange}
 				onbrowse={handleBrowseModel}
 				onvalidate={handleValidateModel}
 			>
@@ -163,11 +147,11 @@
 			<FilePicker
 				id="audioPath"
 				placeholder="C:\samples\jfk.wav"
-				bind:value={audioPath}
-				bind:hint={audioHint}
-				bind:hintType={audioHintType}
-				bind:valid={audioValid}
-				onchange={resetAudioValidation}
+				value={$audioPath}
+				{audioHint}
+				{audioHintType}
+				valid={$audioValid}
+				onchange={handleAudioChange}
 				onbrowse={handleBrowseAudio}
 				onvalidate={handleValidateAudio}
 			>

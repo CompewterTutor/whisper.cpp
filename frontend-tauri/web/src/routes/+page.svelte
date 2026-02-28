@@ -1,23 +1,42 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { getName, getVersion, getTauriVersion } from '@tauri-apps/api/app';
-	import { InputSection, OptionsDrawer, TranscriptSection, BatchQueue, HistoryPanel, SettingsPanel, PttInterface } from '$lib/components';
-	import type { AdvancedOptions } from '$lib/services/tauri';
+	import {
+		InputSection,
+		OptionsDrawer,
+		TranscriptSection,
+		BatchQueue,
+		HistoryPanel,
+		SettingsPanel,
+		PttInterface
+	} from '$lib/components';
+	import {
+		modelPath,
+		audioPath,
+		modelValid,
+		audioValid,
+		canRunTranscription,
+		transcript,
+		transcriptLoading,
+		advancedOptions,
+		pttMode,
+		statusMessage,
+		statusType,
+		initPersistence
+	} from '$lib/stores';
+	import type { AdvancedOptions } from '$lib/services/types';
 	import '$lib/types/tauri.d.ts';
 
+	// App info (local state, not shared)
 	let appName = $state('loading...');
 	let appVersion = $state('loading...');
 	let tauriVersion = $state('loading...');
-	let currentOptions = $state<AdvancedOptions>({});
-	let transcript = $state('');
-	let transcriptLoading = $state(false);
-	let statusMessage = $state('');
-	let statusType = $state<'ok' | 'error' | 'neutral'>('neutral');
-	let modelValid = $state(false); // Would come from InputSection in real app
-	let modelPath = $state(''); // Would come from InputSection in real app
-	let pttMode = $state<'hold' | 'toggle'>('hold'); // Would come from SettingsPanel
 
 	onMount(async () => {
+		// Initialize store persistence
+		initPersistence();
+
+		// Load app info
 		try {
 			appName = await getName();
 			appVersion = await getVersion();
@@ -31,19 +50,19 @@
 	});
 
 	function handleOptionsChange(options: AdvancedOptions) {
-		currentOptions = options;
+		advancedOptions.set(options);
 		console.log('Advanced options changed:', options);
 	}
 
 	function handleStatus(message: string, type: 'ok' | 'error' | 'neutral') {
-		statusMessage = message;
-		statusType = type;
+		statusMessage.set(message);
+		statusType.set(type);
 	}
 
 	// Test function to simulate transcript
 	function loadTestTranscript() {
-		transcript = `[00:00:00.000 --> 00:00:03.000]   And so my fellow Americans, ask not what your country can do for you,
-[00:00:03.000 --> 00:00:06.000]   ask what you can do for your country.`;
+		transcript.set(`[00:00:00.000 --> 00:00:03.000]   And so my fellow Americans, ask not what your country can do for you,
+[00:00:03.000 --> 00:00:06.000]   ask what you can do for your country.`);
 	}
 
 	// Mock run item handler for testing batch queue
@@ -56,15 +75,20 @@
 
 	// Toggle model valid for testing
 	function toggleModelValid() {
-		modelValid = !modelValid;
+		modelValid.update(v => !v);
 	}
 
 	// Handle PTT transcript
 	function handlePttTranscript(pttTranscript: string) {
 		if (pttTranscript) {
-			transcript = pttTranscript;
+			transcript.set(pttTranscript);
 			handleStatus('PTT transcript received', 'ok');
 		}
+	}
+
+	// Clear status after delay
+	function clearStatus() {
+		statusMessage.set('');
 	}
 </script>
 
@@ -83,31 +107,32 @@
 
 <!-- Push-to-Talk Interface -->
 <PttInterface
-	{modelPath}
-	{pttMode}
+	modelPath={$modelPath}
+	pttMode={$pttMode}
 	onstatus={handleStatus}
 	ontranscript={handlePttTranscript}
 />
 
 <!-- Transcript Section -->
 <TranscriptSection
-	bind:transcript
-	bind:loading={transcriptLoading}
+	bind:transcript={$transcript}
+	bind:loading={$transcriptLoading}
 	onstatus={handleStatus}
 />
 
 <!-- Status Message -->
-{#if statusMessage}
+{#if $statusMessage}
 	<div class="section">
 		<div class="card">
-			<p class="status {statusType}">{statusMessage}</p>
+			<p class="status {$statusType}">{$statusMessage}</p>
+			<button type="button" class="secondary dismiss" onclick={clearStatus}>×</button>
 		</div>
 	</div>
 {/if}
 
 <!-- Batch Queue Section -->
 <BatchQueue
-	{modelValid}
+	modelValid={$modelValid}
 	onstatus={handleStatus}
 	onrunitem={handleRunItem}
 />
@@ -161,7 +186,7 @@
 				class="secondary"
 				onclick={toggleModelValid}
 			>
-				{modelValid ? 'Invalidate Model' : 'Validate Model'}
+				{$modelValid ? 'Invalidate Model' : 'Validate Model'}
 			</button>
 		</div>
 
@@ -193,5 +218,18 @@
 
 	.meta-value {
 		font-weight: 600;
+	}
+
+	.card {
+		position: relative;
+	}
+
+	.dismiss {
+		position: absolute;
+		top: var(--space-2);
+		right: var(--space-2);
+		padding: 0.2rem 0.5rem;
+		font-size: var(--text-lg);
+		line-height: 1;
 	}
 </style>

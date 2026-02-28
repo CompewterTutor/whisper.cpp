@@ -1,5 +1,43 @@
 # Careless Memory
 
+## 2026-02-27 (R1.11 State Management and Stores)
+
+### What was learned
+
+- Svelte stores (`writable`, `derived`) provide reactive shared state across components.
+- The `$` prefix in Svelte automatically subscribes to stores and unwraps values.
+- `initPersistence()` on mount ensures localStorage state is restored before components render.
+- Separating stores into categories (Input, Transcript, Options, PTT, Shortcuts, UI) improves organization.
+- `derived` stores compute values from other stores (e.g., `canRunTranscription` from `modelValid` and `audioValid`).
+
+### Architecture decisions
+
+- Created `stores/app.ts` with shared reactive state:
+  - **Input state**: `modelPath`, `audioPath`, `modelValid`, `audioValid`, `canRunTranscription` (derived)
+  - **Transcript state**: `transcript`, `transcriptLoading`, `lastExportPath`
+  - **Options state**: `advancedOptions`
+  - **PTT state**: `pttMode`, `pttRouting`
+  - **Shortcuts state**: `shortcuts`
+  - **UI state**: `statusMessage`, `statusType`
+- Created `stores/index.ts` as barrel file re-exporting all stores (including theme)
+- Added `initPersistence()` function to restore and persist state to localStorage
+- Updated `InputSection.svelte` to use shared stores instead of local state
+- Updated `+page.svelte` to:
+  - Initialize persistence on mount
+  - Use store values with `$` prefix
+  - Pass store values to components as props
+
+### Files created/modified
+
+- `web/src/lib/stores/app.ts` - New file with all shared stores
+- `web/src/lib/stores/index.ts` - New barrel file
+- `web/src/lib/components/InputSection.svelte` - Updated to use shared stores
+- `web/src/routes/+page.svelte` - Updated to initialize persistence and use stores
+
+### Next immediate action
+
+- R1.12: Update build configuration and test (final verification, remove legacy HTML)
+
 ## 2026-02-27 (R1.10 Tauri Service Layer)
 
 ### What was learned
