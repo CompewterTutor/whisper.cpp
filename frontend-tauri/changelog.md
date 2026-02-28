@@ -38,6 +38,10 @@ The format is based on Keep a Changelog, and the project follows Semantic Versio
 - R1.6: Added per-item status display (Pending, Running, Success, Error)
 - R1.6: Added queue actions (add files, remove, reorder, run all, clear completed)
 - R1.6: Added queue API functions to tauri service layer
+- R1.7: Added HistoryPanel component with history list display
+- R1.7: Added per-item timestamp, filename, and success/error indicator
+- R1.7: Added rerun action and clear history button with confirmation
+- R1.7: Added history API functions to tauri service layer
 - P6: Added PTT audio settings UI with microphone selector and mode toggle.
 - P6: Added PTT status indicator (idle/listening/transcribing/error) with timer.
 - P6: Added global shortcut event handling for PTT (ptt-start/ptt-stop events).

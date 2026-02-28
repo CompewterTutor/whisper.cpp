@@ -2,7 +2,7 @@
 	import { onMount } from 'svelte';
 	import { getName, getVersion, getTauriVersion } from '@tauri-apps/api/app';
 	import { theme, type Theme } from '$lib/stores/theme';
-	import { InputSection, OptionsDrawer, TranscriptSection, BatchQueue } from '$lib/components';
+	import { InputSection, OptionsDrawer, TranscriptSection, BatchQueue, HistoryPanel } from '$lib/components';
 	import type { AdvancedOptions } from '$lib/services/tauri';
 	import '$lib/types/tauri.d.ts';
 
@@ -98,6 +98,11 @@
 	{modelValid}
 	onstatus={handleStatus}
 	onrunitem={handleRunItem}
+/>
+
+<!-- History Panel Section -->
+<HistoryPanel
+	onstatus={handleStatus}
 />
 
 <!-- App Info Section (for testing) -->

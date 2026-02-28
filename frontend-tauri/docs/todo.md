@@ -27,7 +27,7 @@ Breaking up the monolithic `dist/index.html` into modular SvelteKit components.
 - [x] R1.4: Extract UI components - Options drawer
 - [x] R1.5: Extract UI components - Transcript display
 - [x] R1.6: Extract UI components - Batch queue
-- [ ] R1.7: Extract UI components - History panel
+- [x] R1.7: Extract UI components - History panel
 - [ ] R1.8: Extract UI components - Settings panel
 - [ ] R1.9: Extract UI components - PTT interface
 - [ ] R1.10: Create Tauri service layer

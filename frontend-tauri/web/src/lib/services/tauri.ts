@@ -233,3 +233,33 @@ export async function clearCompletedQueue(): Promise<void> {
 export async function updateQueueItemStatus(id: string, status: QueueItemStatusUpdate): Promise<void> {
 	return tauriInvoke<void>('update_queue_item_status_command', { id, status });
 }
+
+// History types
+export interface HistoryItem {
+	id: string;
+	audio_path: string;
+	output_path?: string;
+	timestamp_ms: number;
+	success: boolean;
+}
+
+/**
+ * Get all history items
+ */
+export async function getHistory(): Promise<HistoryItem[]> {
+	return tauriInvoke<HistoryItem[]>('get_history_command');
+}
+
+/**
+ * Add an item to history
+ */
+export async function addToHistory(audioPath: string, outputPath: string | null, success: boolean): Promise<void> {
+	return tauriInvoke<void>('add_to_history_command', { audioPath, outputPath, success });
+}
+
+/**
+ * Clear all history
+ */
+export async function clearHistory(): Promise<void> {
+	return tauriInvoke<void>('clear_history_command');
+}

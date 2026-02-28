@@ -1,5 +1,37 @@
 # Careless Memory
 
+## 2026-02-27 (R1.7 History Panel Component)
+
+### What was learned
+
+- Timestamp formatting uses `Date.toLocaleTimeString()` for locale-aware display.
+- Conditional CSS classes use `class:error={!item.success}` syntax in Svelte 5.
+- Confirmation dialogs (`confirm()`) should be used before destructive actions like clearing history.
+- The `onrerun` callback pattern allows parent to control what happens when user clicks rerun.
+
+### Architecture decisions
+
+- Created `HistoryPanel.svelte` as a self-contained component with:
+  - History list with timestamp, filename, success/error indicator
+  - Rerun action button per item
+  - Clear history button with confirmation
+  - Empty state message
+- Added history types and API functions to `tauri.ts`:
+  - `HistoryItem` type with id, audio_path, output_path, timestamp_ms, success
+  - `getHistory`, `addToHistory`, `clearHistory` functions
+- Component uses callbacks (`onstatus`, `onrerun`) for parent communication.
+
+### Files created/modified
+
+- `web/src/lib/components/HistoryPanel.svelte` - New component
+- `web/src/lib/components/index.ts` - Added export
+- `web/src/lib/services/tauri.ts` - Added history API functions
+- `web/src/routes/+page.svelte` - Integrated HistoryPanel
+
+### Next immediate action
+
+- R1.8: Extract UI components - Settings panel (theme, paths, execution defaults, shortcuts, PTT settings)
+
 ## 2026-02-27 (R1.6 Batch Queue Component)
 
 ### What was learned
