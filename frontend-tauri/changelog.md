@@ -27,6 +27,13 @@ The format is based on Keep a Changelog, and the project follows Semantic Versio
 - R1.3: Added FilePicker component for file path selection with validation
 - R1.3: Added InputSection component combining model and audio pickers
 - R1.3: Added Tauri API type declarations for TypeScript
+- R1.4: Added OptionsDrawer component with collapsible advanced options
+- R1.4: Added preset management UI (save/load/delete/set default)
+- R1.4: Added advanced options grid (task, language, threads, beam size, best of, temperature)
+- R1.4: Added preset API functions to tauri service layer
+- R1.5: Added TranscriptSection component with metadata display
+- R1.5: Added export action buttons (Copy, TXT, SRT, VTT, JSON, Open folder)
+- R1.5: Added transcript viewer with loading/empty states
 - P6: Added PTT audio settings UI with microphone selector and mode toggle.
 - P6: Added PTT status indicator (idle/listening/transcribing/error) with timer.
 - P6: Added global shortcut event handling for PTT (ptt-start/ptt-stop events).

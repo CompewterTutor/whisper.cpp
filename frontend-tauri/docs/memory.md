@@ -1,5 +1,66 @@
 # Careless Memory
 
+## 2026-02-27 (R1.5 Transcript Section Component)
+
+### What was learned
+
+- `$effect()` in Svelte 5 is used for side effects that react to state changes (similar to `$:` in Svelte 4).
+- The `$effect()` runs both on mount and when reactive dependencies change.
+- Two-way binding with `bind:transcript` allows parent components to read and write component state.
+- Callback props like `onstatus` provide a clean way for child-to-parent communication.
+
+### Architecture decisions
+
+- Created `TranscriptSection.svelte` as a self-contained component with:
+  - Metadata display (segment count, estimated duration)
+  - Export action buttons (Copy, TXT, SRT, VTT, JSON, Open folder)
+  - Transcript viewer with loading/empty states
+- Component manages its own export path state with localStorage persistence.
+- Uses callback prop `onstatus` for status messages instead of global state.
+- Export API functions already existed in `tauri.ts` service layer.
+
+### Files created/modified
+
+- `web/src/lib/components/TranscriptSection.svelte` - New component
+- `web/src/lib/components/index.ts` - Added export
+- `web/src/routes/+page.svelte` - Integrated TranscriptSection for testing
+
+### Next immediate action
+
+- R1.6: Extract UI components - Batch queue (queue list, add/remove/reorder, run all)
+
+## 2026-02-27 (R1.4 Options Drawer Component)
+
+### What was learned
+
+- Svelte 5 component state can be exposed via `$props()` with `$bindable()` for two-way binding.
+- The `onMount` lifecycle hook is used for initialization (loading presets, restoring state).
+- CSS class toggling uses `class:open` syntax for conditional classes.
+- Form elements can directly bind to state with `bind:value={variable}` for automatic updates.
+
+### Architecture decisions
+
+- Created `OptionsDrawer.svelte` as a self-contained component with:
+  - Collapsible drawer toggle with arrow indicator
+  - Preset management (load/save/delete/set default)
+  - Advanced options grid (task, language, threads, beam size, best of, temperature)
+- Extended `tauri.ts` service layer with preset API functions:
+  - `listPresets()`, `getPreset()`, `savePreset()`, `deletePreset()`
+  - `setDefaultPreset()`, `getDefaultPreset()`
+- Options are persisted to localStorage and synced with backend presets.
+- Added `AdvancedOptions` and `Preset` TypeScript interfaces.
+
+### Files created/modified
+
+- `web/src/lib/components/OptionsDrawer.svelte` - New component
+- `web/src/lib/components/index.ts` - Added export
+- `web/src/lib/services/tauri.ts` - Added preset API functions
+- `web/src/routes/+page.svelte` - Integrated OptionsDrawer for testing
+
+### Next immediate action
+
+- R1.5: Extract UI components - Transcript display (metadata, export actions, transcript viewer)
+
 ## 2026-02-24 (R1.3 Input Section Components)
 
 ### What was learned

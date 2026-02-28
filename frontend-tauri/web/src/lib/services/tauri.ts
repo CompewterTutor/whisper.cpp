@@ -119,3 +119,60 @@ export async function openOutputFolder(filePath: string): Promise<void> {
 export async function copyToClipboard(text: string): Promise<void> {
 	return tauriInvoke<void>('copy_to_clipboard_command', { text });
 }
+
+// Advanced options types
+export interface AdvancedOptions {
+	task?: string | null;
+	language?: string | null;
+	threads?: number | null;
+	beam_size?: number | null;
+	best_of?: number | null;
+	temperature?: number | null;
+}
+
+export interface Preset {
+	name: string;
+	advanced: AdvancedOptions;
+}
+
+/**
+ * List all saved presets
+ */
+export async function listPresets(): Promise<Preset[]> {
+	return tauriInvoke<Preset[]>('list_presets_command');
+}
+
+/**
+ * Get a specific preset by name
+ */
+export async function getPreset(name: string): Promise<Preset | null> {
+	return tauriInvoke<Preset | null>('get_preset_command', { name });
+}
+
+/**
+ * Save a new preset
+ */
+export async function savePreset(name: string, advanced: AdvancedOptions): Promise<void> {
+	return tauriInvoke<void>('save_preset_command', { name, advanced });
+}
+
+/**
+ * Delete a preset
+ */
+export async function deletePreset(name: string): Promise<void> {
+	return tauriInvoke<void>('delete_preset_command', { name });
+}
+
+/**
+ * Set the default preset
+ */
+export async function setDefaultPreset(name: string | null): Promise<void> {
+	return tauriInvoke<void>('set_default_preset_command', { name });
+}
+
+/**
+ * Get the default preset name
+ */
+export async function getDefaultPreset(): Promise<string | null> {
+	return tauriInvoke<string | null>('get_default_preset_command');
+}

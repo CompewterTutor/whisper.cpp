@@ -24,8 +24,8 @@ Breaking up the monolithic `dist/index.html` into modular SvelteKit components.
 - [x] R1.1: Set up Vite + SvelteKit project structure
 - [x] R1.2: Create base layout and theming system
 - [x] R1.3: Extract UI components - Input section
-- [ ] R1.4: Extract UI components - Options drawer
-- [ ] R1.5: Extract UI components - Transcript display
+- [x] R1.4: Extract UI components - Options drawer
+- [x] R1.5: Extract UI components - Transcript display
 - [ ] R1.6: Extract UI components - Batch queue
 - [ ] R1.7: Extract UI components - History panel
 - [ ] R1.8: Extract UI components - Settings panel
@@ -35,6 +35,7 @@ Breaking up the monolithic `dist/index.html` into modular SvelteKit components.
 - [ ] R1.12: Update build configuration and test
 
 Acceptance criteria:
+
 - [ ] All existing UI functionality replicated in SvelteKit
 - [ ] `make dev` works with hot reload
 - [ ] `make check` passes

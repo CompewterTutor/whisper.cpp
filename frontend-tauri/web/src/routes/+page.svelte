@@ -2,12 +2,18 @@
 	import { onMount } from 'svelte';
 	import { getName, getVersion, getTauriVersion } from '@tauri-apps/api/app';
 	import { theme, type Theme } from '$lib/stores/theme';
-	import { InputSection } from '$lib/components';
+	import { InputSection, OptionsDrawer, TranscriptSection } from '$lib/components';
+	import type { AdvancedOptions } from '$lib/services/tauri';
 	import '$lib/types/tauri.d.ts';
 
-	let appName = 'loading...';
-	let appVersion = 'loading...';
-	let tauriVersion = 'loading...';
+	let appName = $state('loading...');
+	let appVersion = $state('loading...');
+	let tauriVersion = $state('loading...');
+	let currentOptions = $state<AdvancedOptions>({});
+	let transcript = $state('');
+	let transcriptLoading = $state(false);
+	let statusMessage = $state('');
+	let statusType = $state<'ok' | 'error' | 'neutral'>('neutral');
 
 	onMount(async () => {
 		try {
@@ -26,6 +32,22 @@
 		const target = e.target as HTMLSelectElement;
 		theme.set(target.value as Theme);
 	}
+
+	function handleOptionsChange(options: AdvancedOptions) {
+		currentOptions = options;
+		console.log('Advanced options changed:', options);
+	}
+
+	function handleStatus(message: string, type: 'ok' | 'error' | 'neutral') {
+		statusMessage = message;
+		statusType = type;
+	}
+
+	// Test function to simulate transcript
+	function loadTestTranscript() {
+		transcript = `[00:00:00.000 --> 00:00:03.000]   And so my fellow Americans, ask not what your country can do for you,
+[00:00:03.000 --> 00:00:06.000]   ask what you can do for your country.`;
+	}
 </script>
 
 <svelte:head>
@@ -34,6 +56,28 @@
 
 <!-- Input Files Section -->
 <InputSection />
+
+<!-- Controls Section with Options Drawer -->
+<div class="section">
+	<div class="section-header">Controls</div>
+	<OptionsDrawer onchange={handleOptionsChange} />
+</div>
+
+<!-- Transcript Section -->
+<TranscriptSection
+	bind:transcript
+	bind:loading={transcriptLoading}
+	onstatus={handleStatus}
+/>
+
+<!-- Status Message -->
+{#if statusMessage}
+	<div class="section">
+		<div class="card">
+			<p class="status {statusType}">{statusMessage}</p>
+		</div>
+	</div>
+{/if}
 
 <!-- App Info Section (for testing) -->
 <div class="section">
@@ -84,6 +128,7 @@
 			<button type="button">Primary Button</button>
 			<button type="button" class="secondary">Secondary Button</button>
 			<button type="button" disabled>Disabled Button</button>
+			<button type="button" class="secondary" onclick={loadTestTranscript}>Load Test Transcript</button>
 		</div>
 
 		<p class="status ok">Success status message</p>
