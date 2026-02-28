@@ -132,8 +132,8 @@
 				id="modelPath"
 				placeholder="C:\models\ggml-base.en.bin"
 				value={$modelPath}
-				{modelHint}
-				{modelHintType}
+				hint={modelHint}
+				hintType={modelHintType}
 				valid={$modelValid}
 				onchange={handleModelChange}
 				onbrowse={handleBrowseModel}
@@ -148,8 +148,8 @@
 				id="audioPath"
 				placeholder="C:\samples\jfk.wav"
 				value={$audioPath}
-				{audioHint}
-				{audioHintType}
+				hint={audioHint}
+				hintType={audioHintType}
 				valid={$audioValid}
 				onchange={handleAudioChange}
 				onbrowse={handleBrowseAudio}

@@ -28,10 +28,10 @@
 		id,
 		label,
 		placeholder = '',
-		value = $bindable(''),
-		hint = $bindable('Not validated yet.'),
-		hintType = $bindable<'neutral' | 'ok' | 'error'>('neutral'),
-		valid = $bindable(false),
+		value = '',
+		hint = 'Not validated yet.',
+		hintType = 'neutral',
+		valid = false,
 		onchange,
 		onbrowse,
 		onvalidate
@@ -39,8 +39,7 @@
 
 	function handleInput(e: Event) {
 		const target = e.target as HTMLInputElement;
-		value = target.value;
-		onchange?.(value);
+		onchange?.(target.value);
 	}
 </script>
 
@@ -51,7 +50,7 @@
 			{id}
 			type="text"
 			{placeholder}
-			bind:value
+			{value}
 			oninput={handleInput}
 		/>
 		<p class="hint {hintType}">{hint}</p>
