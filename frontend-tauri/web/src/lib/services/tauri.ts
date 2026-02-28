@@ -263,3 +263,184 @@ export async function addToHistory(audioPath: string, outputPath: string | null,
 export async function clearHistory(): Promise<void> {
 	return tauriInvoke<void>('clear_history_command');
 }
+
+// App Settings types
+export interface AppSettings {
+	theme: string;
+	default_output_dir: string;
+	default_model_dir: string;
+	default_threads: number | null;
+	default_timeout_ms: number | null;
+	diagnostics_enabled: boolean;
+	start_in_background: boolean;
+	launch_on_login: boolean;
+}
+
+/**
+ * Get all app settings
+ */
+export async function getAppSettings(): Promise<AppSettings> {
+	return tauriInvoke<AppSettings>('get_app_settings_command');
+}
+
+/**
+ * Set theme
+ */
+export async function setTheme(theme: string): Promise<void> {
+	return tauriInvoke<void>('set_theme_command', { request: { theme } });
+}
+
+/**
+ * Set default output directory
+ */
+export async function setDefaultOutputDir(path: string): Promise<void> {
+	return tauriInvoke<void>('set_default_output_dir_command', { request: { path } });
+}
+
+/**
+ * Set default model directory
+ */
+export async function setDefaultModelDir(path: string): Promise<void> {
+	return tauriInvoke<void>('set_default_model_dir_command', { request: { path } });
+}
+
+/**
+ * Set default threads
+ */
+export async function setDefaultThreads(value: number | null): Promise<void> {
+	return tauriInvoke<void>('set_default_threads_command', { request: { value } });
+}
+
+/**
+ * Set default timeout
+ */
+export async function setDefaultTimeout(value: number | null): Promise<void> {
+	return tauriInvoke<void>('set_default_timeout_command', { request: { value } });
+}
+
+/**
+ * Set diagnostics enabled
+ */
+export async function setDiagnosticsEnabled(enabled: boolean): Promise<void> {
+	return tauriInvoke<void>('set_diagnostics_enabled_command', { request: { enabled } });
+}
+
+/**
+ * Set start in background
+ */
+export async function setStartInBackground(enabled: boolean): Promise<void> {
+	return tauriInvoke<void>('set_start_in_background_command', { enabled });
+}
+
+/**
+ * Set launch on login
+ */
+export async function setLaunchOnLogin(enabled: boolean): Promise<void> {
+	return tauriInvoke<void>('set_launch_on_login_command', { enabled });
+}
+
+/**
+ * Open directory picker
+ */
+export async function pickDirectory(): Promise<string> {
+	return tauriInvoke<string>('pick_directory_command');
+}
+
+// PTT Routing types
+export interface PttRouting {
+	copy_to_clipboard: boolean;
+	save_to_file: boolean;
+	type_emulation: boolean;
+}
+
+/**
+ * Get PTT routing settings
+ */
+export async function getPttRouting(): Promise<PttRouting> {
+	return tauriInvoke<PttRouting>('get_ptt_routing_command');
+}
+
+/**
+ * Set PTT routing settings
+ */
+export async function setPttRouting(routing: PttRouting): Promise<void> {
+	return tauriInvoke<void>('set_ptt_routing_command', { routing });
+}
+
+// Shortcut types
+export interface ShortcutSettings {
+	enabled: boolean;
+	ptt: string;
+	type: string;
+	clipboard: string;
+	file: string;
+}
+
+/**
+ * Get shortcut settings from localStorage
+ */
+export function getShortcuts(): ShortcutSettings {
+	try {
+		const stored = localStorage.getItem('frontend-tauri.shortcuts');
+		const enabled = localStorage.getItem('frontend-tauri.shortcutsEnabled') === 'true';
+		if (stored) {
+			return { ...JSON.parse(stored), enabled };
+		}
+	} catch {
+		// Ignore
+	}
+	return {
+		enabled: false,
+		ptt: 'Ctrl+Shift+Space',
+		type: 'Ctrl+Shift+T',
+		clipboard: 'Ctrl+Shift+C',
+		file: 'Ctrl+Shift+F'
+	};
+}
+
+/**
+ * Save shortcut settings to localStorage
+ */
+export function setShortcuts(settings: ShortcutSettings): void {
+	localStorage.setItem('frontend-tauri.shortcuts', JSON.stringify({
+		ptt: settings.ptt,
+		type: settings.type,
+		clipboard: settings.clipboard,
+		file: settings.file
+	}));
+	localStorage.setItem('frontend-tauri.shortcutsEnabled', settings.enabled ? 'true' : 'false');
+}
+
+/**
+ * Register a global shortcut
+ */
+export async function registerGlobalShortcut(shortcut: string): Promise<void> {
+	return tauriInvoke<void>('register_global_shortcut_command', { shortcut });
+}
+
+/**
+ * Unregister a global shortcut
+ */
+export async function unregisterGlobalShortcut(shortcut: string): Promise<void> {
+	return tauriInvoke<void>('unregister_global_shortcut_command', { shortcut });
+}
+
+// Audio device types
+export interface AudioDevice {
+	name: string;
+	is_default: boolean;
+}
+
+/**
+ * List available audio devices
+ */
+export async function listAudioDevices(): Promise<AudioDevice[]> {
+	return tauriInvoke<AudioDevice[]>('list_audio_devices_command');
+}
+
+/**
+ * Select an audio device for capture
+ */
+export async function selectAudioDevice(deviceName: string): Promise<void> {
+	return tauriInvoke<void>('select_audio_device_command', { deviceName });
+}

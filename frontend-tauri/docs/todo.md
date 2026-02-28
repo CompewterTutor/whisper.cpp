@@ -1,7 +1,7 @@
 # Careless TODO
 
 Date initialized: 2026-02-12
-Last updated: 2026-02-24
+Last updated: 2026-02-27
 
 Legend: `[ ]` pending, `[~]` in progress, `[x]` done
 
@@ -28,7 +28,7 @@ Breaking up the monolithic `dist/index.html` into modular SvelteKit components.
 - [x] R1.5: Extract UI components - Transcript display
 - [x] R1.6: Extract UI components - Batch queue
 - [x] R1.7: Extract UI components - History panel
-- [ ] R1.8: Extract UI components - Settings panel
+- [x] R1.8: Extract UI components - Settings panel
 - [ ] R1.9: Extract UI components - PTT interface
 - [ ] R1.10: Create Tauri service layer
 - [ ] R1.11: Wire up state management and stores

@@ -1,8 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { getName, getVersion, getTauriVersion } from '@tauri-apps/api/app';
-	import { theme, type Theme } from '$lib/stores/theme';
-	import { InputSection, OptionsDrawer, TranscriptSection, BatchQueue, HistoryPanel } from '$lib/components';
+	import { InputSection, OptionsDrawer, TranscriptSection, BatchQueue, HistoryPanel, SettingsPanel } from '$lib/components';
 	import type { AdvancedOptions } from '$lib/services/tauri';
 	import '$lib/types/tauri.d.ts';
 
@@ -28,11 +27,6 @@
 			tauriVersion = '-';
 		}
 	});
-
-	function handleThemeChange(e: Event) {
-		const target = e.target as HTMLSelectElement;
-		theme.set(target.value as Theme);
-	}
 
 	function handleOptionsChange(options: AdvancedOptions) {
 		currentOptions = options;
@@ -105,6 +99,11 @@
 	onstatus={handleStatus}
 />
 
+<!-- Settings Panel Section -->
+<SettingsPanel
+	onstatus={handleStatus}
+/>
+
 <!-- App Info Section (for testing) -->
 <div class="section">
 	<div class="section-header">App Info</div>
@@ -127,22 +126,6 @@
 				<span class="meta-value">SvelteKit 5</span>
 			</div>
 		</div>
-	</div>
-</div>
-
-<!-- Theme Test Section -->
-<div class="section">
-	<div class="section-header">Theme Test</div>
-	<div class="card">
-		<div class="field">
-			<label for="themeSelect">Theme</label>
-			<select id="themeSelect" value={$theme} onchange={handleThemeChange}>
-				<option value="system">System</option>
-				<option value="light">Light</option>
-				<option value="dark">Dark</option>
-			</select>
-		</div>
-		<p class="hint neutral">Current theme: {$theme}</p>
 	</div>
 </div>
 

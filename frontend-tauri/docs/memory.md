@@ -1,5 +1,47 @@
 # Careless Memory
 
+## 2026-02-27 (R1.8 Settings Panel Component)
+
+### What was learned
+
+- Complex settings can be organized into sub-cards within a main section for better UX.
+- Shortcut conflict detection uses a Map to track duplicate values across multiple inputs.
+- The `class:conflict` directive in Svelte allows dynamic styling based on validation state.
+- Settings are loaded on mount and persisted through individual change handlers.
+- localStorage is used for shortcut bindings (not Tauri backend) for faster UI response.
+
+### Architecture decisions
+
+- Created `SettingsPanel.svelte` as a comprehensive settings component with:
+  - Appearance: Theme selector (synced with theme store)
+  - Default Paths: Output directory and model directory with directory pickers
+  - Execution Defaults: Threads and timeout settings
+  - Startup Behavior: Start in background and launch on login toggles
+  - Global Shortcuts: Enable toggle + 4 shortcut inputs with conflict detection
+  - PTT Audio Settings: Microphone selector and PTT mode (hold/toggle)
+  - PTT Output Routing: Clipboard, file, and type emulation toggles
+  - Diagnostics: Enable logging toggle
+- Extended `tauri.ts` service layer with settings API functions:
+  - `getAppSettings`, `setTheme`, `setDefaultOutputDir`, `setDefaultModelDir`
+  - `setDefaultThreads`, `setDefaultTimeout`, `setDiagnosticsEnabled`
+  - `setStartInBackground`, `setLaunchOnLogin`, `pickDirectory`
+  - `getPttRouting`, `setPttRouting`
+  - `getShortcuts`, `setShortcuts`, `registerGlobalShortcut`, `unregisterGlobalShortcut`
+  - `listAudioDevices`, `selectAudioDevice`
+- Added types: `AppSettings`, `PttRouting`, `ShortcutSettings`, `AudioDevice`
+- Component uses `onstatus` callback for parent communication (consistent pattern).
+
+### Files created/modified
+
+- `web/src/lib/components/SettingsPanel.svelte` - New component
+- `web/src/lib/components/index.ts` - Added export
+- `web/src/lib/services/tauri.ts` - Added settings API functions and types
+- `web/src/routes/+page.svelte` - Integrated SettingsPanel, removed Theme Test section
+
+### Next immediate action
+
+- R1.9: Extract UI components - PTT interface (status indicator, capture controls)
+
 ## 2026-02-27 (R1.7 History Panel Component)
 
 ### What was learned
