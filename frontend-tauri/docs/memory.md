@@ -1,5 +1,42 @@
 # Careless Memory
 
+## 2026-02-27 (R1.10 Tauri Service Layer)
+
+### What was learned
+
+- Separating types into a dedicated `types.ts` file improves code organization and enables cleaner imports.
+- Using section headers with `// ============================================================================` comments makes large files more navigable.
+- A `safeInvoke` wrapper provides a Result-style error handling pattern for optional use.
+- Re-exporting with `export * from './types'` allows consumers to import all types from the main module.
+
+### Architecture decisions
+
+- Created `types.ts` with all TypeScript interfaces and types:
+  - `ValidationResult`, `ApiError`, `AppHealthResponse`
+  - `AdvancedOptions`, `Preset`
+  - `QueueItem`, `QueueItemStatus`, `QueueItemStatusUpdate`
+  - `HistoryItem`
+  - `AppSettings`
+  - `PttRouting`, `ShortcutSettings`
+  - `AudioDevice`, `PttState`, `CaptureResult`, `TranscriptionResult`
+- Refactored `tauri.ts` to:
+  - Import types from `types.ts`
+  - Re-export all types with `export * from './types'`
+  - Group functions into logical sections with clear headers
+  - Add `safeInvoke` utility for Result-style error handling
+- Created `services/index.ts` as a barrel file for cleaner imports
+- Organized functions into sections: Core API utilities, File Validation, File Pickers, App Health, Transcription, Presets, Batch Queue, History, App Settings, PTT Routing, Global Shortcuts, Audio Capture
+
+### Files created/modified
+
+- `web/src/lib/services/types.ts` - New file with all type definitions
+- `web/src/lib/services/tauri.ts` - Refactored with sections and type imports
+- `web/src/lib/services/index.ts` - New barrel file
+
+### Next immediate action
+
+- R1.11: Wire up state management and stores (connect components with shared state)
+
 ## 2026-02-27 (R1.9 PTT Interface Component)
 
 ### What was learned
