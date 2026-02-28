@@ -1,5 +1,46 @@
 # Careless Memory
 
+## 2026-02-27 (R1.12 Build Configuration and Test - SvelteKit Refactor Complete)
+
+### What was learned
+
+- npm workspaces in root package.json enable `npm run dev` to work from frontend-tauri directory.
+- `make check` runs Rust tests (56 passing) covering all backend functionality.
+- Legacy HTML can be safely removed once SvelteKit components replicate all functionality.
+
+### Architecture decisions
+
+- Verified tauri.conf.json configuration:
+  - `frontendDist: "web/build"` points to SvelteKit output
+  - `beforeDevCommand: "npm run dev"` uses workspace scripts
+  - `beforeBuildCommand: "npm run build"` uses workspace scripts
+- Removed legacy `dist/index.html` (79KB monolithic file)
+- All SvelteKit refactor (R1) tasks complete
+
+### Files removed
+
+- `frontend-tauri/dist/index.html` - Legacy monolithic HTML (no longer needed)
+
+### R1 SvelteKit Refactor Summary
+
+Completed all 12 subtasks:
+- R1.1: SvelteKit project structure
+- R1.2: Base layout and theming
+- R1.3: InputSection component
+- R1.4: OptionsDrawer component
+- R1.5: TranscriptSection component
+- R1.6: BatchQueue component
+- R1.7: HistoryPanel component
+- R1.8: SettingsPanel component
+- R1.9: PttInterface component
+- R1.10: Tauri service layer with types
+- R1.11: State management stores
+- R1.12: Build configuration and test
+
+### Next phase
+
+- P5: Push-to-talk + output routing (wire global shortcuts to PTT capture)
+
 ## 2026-02-27 (R1.11 State Management and Stores)
 
 ### What was learned

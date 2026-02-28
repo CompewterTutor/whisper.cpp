@@ -16,6 +16,7 @@ Legend: `[ ]` pending, `[~]` in progress, `[x]` done
 - [x] Open output folder action integrated after export.
 - [x] Last-used model/audio/export context persisted locally.
 - [x] SvelteKit + Vite project structure initialized (Phase 1 of refactor)
+- [x] **SvelteKit Refactor (R1) COMPLETE** - All UI components extracted and wired up
 
 ## Now — SvelteKit Refactor (R1)
 
@@ -32,14 +33,14 @@ Breaking up the monolithic `dist/index.html` into modular SvelteKit components.
 - [x] R1.9: Extract UI components - PTT interface
 - [x] R1.10: Create Tauri service layer
 - [x] R1.11: Wire up state management and stores
-- [ ] R1.12: Update build configuration and test
+- [x] R1.12: Update build configuration and test
 
 Acceptance criteria:
 
-- [ ] All existing UI functionality replicated in SvelteKit
-- [ ] `make dev` works with hot reload
-- [ ] `make check` passes
-- [ ] Legacy `dist/index.html` removed
+- [x] All existing UI functionality replicated in SvelteKit
+- [x] `make dev` works with hot reload
+- [x] `make check` passes
+- [x] Legacy `dist/index.html` removed
 
 ## P1 — Complete single-file transcribe UX (DONE)
 
